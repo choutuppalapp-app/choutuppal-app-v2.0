@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
         { status: 413 },
       )
     }
-    // folder hints come from the optional "folder" field (default: "uploads")
     const folder = (form.get('folder') as string | null) || 'uploads'
     try {
       const res = await uploadToR2(file, folder, file.type || 'image/jpeg')

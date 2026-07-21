@@ -39,12 +39,22 @@ export const authConfig = {
       return session
     },
     /**
-     * Middleware gate. `auth` is the decoded session (runs the session callback
-     * above, so `auth.user.role` is populated). Runs in the edge runtime.
+     * Proxy/middleware gate. `auth` is the decoded session (runs the session
+     * callback above, so `auth.user.role` is populated). Runs in the edge
+     * runtime.
+     *
+     * NOTE: In Next.js 16 the `request` argument can be `undefined` when
+     * next-auth v4's `withAuth` invokes this callback (a known compatibility
+     * quirk). When that happens we fall back to a login-only check — the
+     * fine-grained role routing is handled by the Server Components for each
+     * protected route (they call `getCurrentUser()` and redirect as needed).
      */
     authorized({ auth, request }) {
-      const pathname = request.nextUrl.pathname
       const isLoggedIn = !!auth?.user
+      if (!request) return isLoggedIn
+
+      const pathname =
+        request.nextUrl?.pathname ?? new URL(request.url).pathname
       const role = (auth?.user as { role?: string } | undefined)?.role
 
       if (pathname.startsWith('/admin')) {
