@@ -1,11 +1,14 @@
-import {
-  S3Client,
-  PutObjectCommand,
-  DeleteObjectCommand,
-} from '@aws-sdk/client-s3'
-import sharp from 'sharp'
+import type { S3Client as S3ClientType } from '@aws-sdk/client-s3'
 import { promises as fs } from 'fs'
 import path from 'path'
+
+/**
+ * NOTE: `@aws-sdk/client-s3` and `sharp` are heavy (and sharp is a native
+ * module). They are lazy-loaded inside the functions that actually need them so
+ * that simply importing this module (e.g. from the cron route) does NOT pull
+ * them into memory. This keeps the dev server's memory footprint low and lets
+ * media routes coexist with page routes on memory-constrained hosts.
+ */
 
 /**
  * Cloudflare R2 media storage (zero-egress) via @aws-sdk/client-s3.
@@ -39,16 +42,17 @@ export const isR2Configured = Boolean(
 /** Target payload size for image compression. */
 const MAX_IMAGE_BYTES = 500 * 1024 // ~500KB
 
-let _client: S3Client | null = null
+let _client: S3ClientType | null = null
 
-/** Lazily-instantiated R2 S3 client. */
-export function getR2Client(): S3Client {
+/** Lazily-instantiated R2 S3 client (aws-sdk loaded on first call). */
+export async function getR2Client(): Promise<S3ClientType> {
   if (!isR2Configured) {
     throw new Error(
       'R2 is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME.',
     )
   }
   if (!_client) {
+    const { S3Client } = await import('@aws-sdk/client-s3')
     _client = new S3Client({
       region: 'auto',
       endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -90,6 +94,7 @@ export function isVideo(mimetype: string): boolean {
 export async function compressImage(
   buffer: Buffer,
 ): Promise<{ buffer: Buffer; contentType: string }> {
+  const sharp = (await import('sharp')).default
   let image = sharp(buffer, { failOn: 'none' })
   const meta = await image.metadata()
   const longestEdge = Math.max(meta.width ?? 0, meta.height ?? 0)
@@ -188,7 +193,8 @@ export async function uploadToR2(
   const key = buildKey(folder, contentType)
 
   if (isR2Configured) {
-    const client = getR2Client()
+    const { PutObjectCommand } = await import('@aws-sdk/client-s3')
+    const client = await getR2Client()
     await client.send(
       new PutObjectCommand({
         Bucket: R2_BUCKET_NAME,
@@ -225,7 +231,8 @@ export async function deleteFromR2(key: string): Promise<void> {
   if (!key) return
 
   if (isR2Configured) {
-    const client = getR2Client()
+    const { DeleteObjectCommand } = await import('@aws-sdk/client-s3')
+    const client = await getR2Client()
     try {
       await client.send(
         new DeleteObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }),

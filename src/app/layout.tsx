@@ -1,53 +1,84 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+import type { Metadata, Viewport } from 'next'
+import { Geist, Geist_Mono, Noto_Sans_Telugu } from 'next/font/google'
+import './globals.css'
+import { Toaster } from '@/components/ui/toaster'
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
+})
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
+})
+
+const notoTelugu = Noto_Sans_Telugu({
+  variable: '--font-noto-telugu',
+  subsets: ['telugu'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+})
+
+const SITE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
 
 export const metadata: Metadata = {
-  title: "Z.ai Code Scaffold - AI-Powered Development",
-  description: "Modern Next.js scaffold optimized for AI-powered development with Z.ai. Built with TypeScript, Tailwind CSS, and shadcn/ui.",
-  keywords: ["Z.ai", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "AI development", "React"],
-  authors: [{ name: "Z.ai Team" }],
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Choutuppal App v2.0 — Business, Real Estate & Community',
+    template: '%s | Choutuppal App',
+  },
+  description:
+    'Discover businesses, services, real estate, news and community in Choutuppal, Yadadri Bhuvanagiri, Telangana. Promote your business, list properties, and connect locally.',
+  keywords: [
+    'Choutuppal',
+    'Yadadri',
+    'Telangana business',
+    'real estate Choutuppal',
+    'local services',
+    'community',
+  ],
+  authors: [{ name: 'MSOIN MD, Choutuppal' }],
+  manifest: '/manifest.webmanifest',
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: '/icon.svg',
+    apple: '/icon.svg',
   },
   openGraph: {
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
-    url: "https://chat.z.ai",
-    siteName: "Z.ai",
-    type: "website",
+    title: 'Choutuppal App v2.0',
+    description:
+      'Businesses, services, real estate, news & community for Choutuppal, Yadadri, Telangana.',
+    url: SITE_URL,
+    siteName: 'Choutuppal App',
+    type: 'website',
+    locale: 'te_IN',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
+    card: 'summary_large_image',
+    title: 'Choutuppal App v2.0',
+    description:
+      'Businesses, services, real estate, news & community for Choutuppal, Yadadri, Telangana.',
   },
-};
+}
+
+export const viewport: Viewport = {
+  themeColor: '#1d4ed8',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="te" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}
       >
         {children}
         <Toaster />
       </body>
     </html>
-  );
+  )
 }

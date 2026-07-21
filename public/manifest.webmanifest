@@ -1,0 +1,18 @@
+{
+  "name": "Choutuppal App v2.0",
+  "short_name": "Choutuppal",
+  "description": "Businesses, services, real estate, news & community for Choutuppal, Yadadri, Telangana.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f9fc",
+  "theme_color": "#1d4ed8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
