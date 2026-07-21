@@ -1,0 +1,486 @@
+// ============================================================================
+// Choutuppal App v2.0 — Prisma Schema
+// ============================================================================
+// NOTE: This sandbox runs Prisma v6 on SQLite (the Supabase/PostgreSQL target
+// from the master blueprint is mapped to SQLite here so the app is fully
+// runnable in this environment). When promoting to production Supabase:
+//   1. change `provider = "sqlite"` -> `"postgresql"`
+//   2. swap `Json` fields for native Postgres `Json` (already Json — no change)
+//   3. swap `String` enum fields for native `enum` types if desired
+// All "enum-like" String fields are documented with allowed values inline.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// AUTH — NextAuth.js (PrismaAdapter) + custom password-reset flow
+// ----------------------------------------------------------------------------
+// Maps the Supabase Auth requirements (Email/Phone/Password + Google OAuth +
+// password reset) onto NextAuth v4 with a Credentials + Google provider and a
+// custom PasswordResetToken table.
+// ----------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phone        String?  @unique
+  username     String?  @unique
+  name         String?
+  passwordHash String? // null when signed up via OAuth only
+  image        String?
+
+  // role: USER | AGENT | ADMIN
+  role       String @default("USER")
+  isPublic   Boolean @default(false) // public profile visibility (Community)
+  isBanned   Boolean @default(false)
+  bio        String?
+  villageId  String?
+  village    Village? @relation(fields: [villageId], references: [id])
+
+  // Spin & Win
+  spinCredits Int @default(1)
+  lastSpinAt  DateTime?
+
+  // Pricing tier: FREE | BASIC | PRO
+  planTier      String   @default("FREE")
+  planExpiresAt DateTime?
+
+  // Relations
+  listings          Listing[]
+  realEstates       RealEstate[]
+  stories           Story[]
+  banners           Banner[]
+  services          Service[]
+  shorts            Short[]
+  news              News[]
+  blogs             Blog[]
+  notifications     Notification[]
+  communityPosts    CommunityPost[]
+  communityComments CommunityComment[]
+  leads             Lead[] @relation("AgentLeads")
+  accounts          Account[]
+  sessions          Session[]
+  resetTokens       PasswordResetToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([isBanned])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expires   DateTime
+  used      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ----------------------------------------------------------------------------
+// TAXONOMY
+// ----------------------------------------------------------------------------
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  icon        String?
+  description String?
+  listings    Listing[]
+  createdAt   DateTime @default(now())
+}
+
+model Village {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  district    String?
+  state       String?
+  pincode     String?
+  users       User[]
+  listings    Listing[]
+  realEstates RealEstate[]
+  createdAt   DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// LISTINGS (business mini-websites)
+// ----------------------------------------------------------------------------
+
+model Listing {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+
+  // status: PENDING | APPROVED | REJECTED | EXPIRED
+  status     String  @default("PENDING")
+  isFeatured Boolean @default(false)
+  isPremium  Boolean @default(false)
+
+  coverImage String?
+  logo       String?
+  // Json array of image URLs (gallery)
+  gallery    Json?
+
+  phone    String?
+  whatsapp String?
+  email    String?
+  website  String?
+  address  String?
+  location String?
+  mapEmbed String?
+
+  // Json object: business hours { mon: {open, close}, ... }
+  businessHours Json?
+
+  // Json array: [{ name, price, description, image }] (services catalog)
+  servicesCatalog Json?
+
+  views          Int @default(0)
+  clicks         Int @default(0)
+  whatsappClicks Int @default(0)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  villageId  String?
+  village    Village?  @relation(fields: [villageId], references: [id])
+
+  ownerId String
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([isFeatured])
+  @@index([categoryId])
+  @@index([villageId])
+  @@index([ownerId])
+}
+
+// ----------------------------------------------------------------------------
+// REAL ESTATE
+// ----------------------------------------------------------------------------
+
+model RealEstate {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+
+  // type: PLOT | HOUSE | APARTMENT | COMMERCIAL | FARM
+  type        String @default("PLOT")
+  // listingType: SALE | RENT | LEASE
+  listingType String @default("SALE")
+
+  price      Float
+  negotiable Boolean @default(false)
+  areaSqft   Float?
+  bedrooms   Int?
+  bathrooms  Int?
+  furnished  Boolean @default(false)
+
+  images     Json?
+  coverImage String?
+
+  address         String
+  location        String?
+  mapEmbed        String?
+  contactPhone    String?
+  contactWhatsapp String?
+
+  // status: PENDING | APPROVED | REJECTED
+  status String @default("PENDING")
+  views  Int    @default(0)
+
+  villageId String?
+  village   Village? @relation(fields: [villageId], references: [id])
+
+  ownerId String
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([listingType])
+  @@index([villageId])
+  @@index([ownerId])
+}
+
+// ----------------------------------------------------------------------------
+// STORIES — 24hr auto-delete via cron (expiresAt)
+// ----------------------------------------------------------------------------
+
+model Story {
+  id       String   @id @default(cuid())
+  mediaUrl String
+  // mediaType: IMAGE | VIDEO
+  mediaType String @default("IMAGE")
+  caption   String?
+  link      String?
+  views     Int      @default(0)
+  expiresAt DateTime // <-- cron deletes R2 file first, then this row
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([ownerId])
+}
+
+// ----------------------------------------------------------------------------
+// BANNERS — 24hr auto-delete via cron (expiresAt)
+// ----------------------------------------------------------------------------
+
+model Banner {
+  id       String   @id @default(cuid())
+  imageUrl String
+  title    String?
+  link     String?
+  // position: HOME_TOP | HOME_MIDDLE | SIDEBAR
+  position String @default("HOME_TOP")
+  clicks   Int    @default(0)
+  expiresAt DateTime // <-- cron deletes R2 file first, then this row
+  ownerId  String?
+  owner    User?  @relation(fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([position])
+}
+
+// ----------------------------------------------------------------------------
+// SERVICES (standalone service listings by users)
+// ----------------------------------------------------------------------------
+
+model Service {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  price           Float?
+  image           String?
+  contactPhone    String?
+  contactWhatsapp String?
+  // status: PENDING | APPROVED | REJECTED
+  status String @default("PENDING")
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([ownerId])
+}
+
+// ----------------------------------------------------------------------------
+// SHORTS (short-form videos, optionally synced from YouTube)
+// ----------------------------------------------------------------------------
+
+model Short {
+  id          String   @id @default(cuid())
+  videoUrl    String
+  thumbnail   String?
+  title       String?
+  description String?
+  views       Int @default(0)
+  likes       Int @default(0)
+  youtubeId   String?
+  ownerId     String
+  owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([youtubeId])
+  @@index([ownerId])
+}
+
+// ----------------------------------------------------------------------------
+// NEWS & BLOGS (Agent / Admin editor)
+// ----------------------------------------------------------------------------
+
+model News {
+  id      String @id @default(cuid())
+  slug    String @unique
+  title   String
+  summary String?
+  content String
+  image   String?
+  // Json array of tags
+  tags        Json?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  authorId    String
+  author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished])
+  @@index([authorId])
+}
+
+model Blog {
+  id         String @id @default(cuid())
+  slug       String @unique
+  title      String
+  excerpt    String?
+  content    String
+  coverImage String?
+  // Json array of tags
+  tags        Json?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  authorId    String
+  author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished])
+  @@index([authorId])
+}
+
+// ----------------------------------------------------------------------------
+// NOTIFICATIONS
+// ----------------------------------------------------------------------------
+
+model Notification {
+  id      String @id @default(cuid())
+  // type: LISTING_APPROVED | LISTING_REJECTED | BANNER_EXPIRED | SYSTEM | LEAD
+  type    String
+  title   String
+  message String
+  link    String?
+  isRead  Boolean @default(false)
+  userId  String
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+// ----------------------------------------------------------------------------
+// COMMUNITY (text-only posts, political tags, public profiles only)
+// ----------------------------------------------------------------------------
+
+model CommunityPost {
+  id      String   @id @default(cuid())
+  content String
+  // politicalTag: NONE | BJP | CONGRESS | BRS | CPM
+  politicalTag String @default("NONE")
+  likes        Int    @default(0)
+  authorId     String
+  author       User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments     CommunityComment[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([politicalTag])
+  @@index([authorId])
+}
+
+model CommunityComment {
+  id        String   @id @default(cuid())
+  content   String
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@index([authorId])
+}
+
+// ----------------------------------------------------------------------------
+// LEADS (Agent lead tracking)
+// ----------------------------------------------------------------------------
+
+model Lead {
+  id      String   @id @default(cuid())
+  name    String
+  phone   String
+  email   String?
+  interest String?
+  notes   String?
+  // status: NEW | CONTACTED | CONVERTED | LOST
+  status  String   @default("NEW")
+  agentId String
+  agent   User     @relation("AgentLeads", fields: [agentId], references: [id], onDelete: Cascade)
+  listingId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId])
+  @@index([status])
+}
+
+// ----------------------------------------------------------------------------
+// ADMIN SETTINGS & SPIN & WIN PRIZES (toggled from /admin)
+// ----------------------------------------------------------------------------
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model SpinPrize {
+  id          String  @id @default(cuid())
+  label       String
+  // type: DISCOUNT | CASHBACK | MERCH | NONE
+  type        String
+  value       String?
+  probability Float   @default(10)
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+}
