@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Noto_Sans_Telugu } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
+import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -78,6 +79,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster />
+        <SonnerToaster position="top-center" richColors closeButton />
       </body>
     </html>
   )

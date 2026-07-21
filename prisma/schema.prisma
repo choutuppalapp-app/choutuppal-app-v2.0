@@ -34,7 +34,8 @@ model User {
   username     String?  @unique
   name         String?
   passwordHash String? // null when signed up via OAuth only
-  image        String?
+  image        String? // profile photo
+  coverImage   String? // dashboard cover banner
 
   // role: USER | AGENT | ADMIN
   role       String @default("USER")

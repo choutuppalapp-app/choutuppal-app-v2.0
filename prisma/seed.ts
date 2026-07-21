@@ -9,8 +9,10 @@
  *   bun prisma/seed.ts
  */
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
+const DEMO_PASSWORD = 'demo1234'
 
 function hoursFromNow(h: number): Date {
   return new Date(Date.now() + h * 60 * 60 * 1000)
@@ -60,11 +62,14 @@ async function main() {
   }
 
   // -------------------------------------------------------------------
-  // Demo owner user (no real password — OAuth-style placeholder)
+  // Demo owner user (with a known password so the login flow is testable).
+  //   email:    demo@choutuppal.app
+  //   password: demo1234
   // -------------------------------------------------------------------
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12)
   const owner = await prisma.user.upsert({
     where: { email: 'demo@choutuppal.app' },
-    update: {},
+    update: { passwordHash, role: 'ADMIN', isPublic: true },
     create: {
       email: 'demo@choutuppal.app',
       phone: '+919912353705',
@@ -72,6 +77,7 @@ async function main() {
       name: 'Choutuppal Demo',
       role: 'ADMIN',
       isPublic: true,
+      passwordHash,
       bio: 'Official demo account for Choutuppal App.',
       villageId: (await prisma.village.findUnique({ where: { slug: 'choutuppal' } }))!.id,
     },
