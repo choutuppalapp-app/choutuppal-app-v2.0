@@ -96,6 +96,30 @@ async function main() {
     },
   })
 
+  // -------------------------------------------------------------------
+  // Test user (normal USER role, non-premium, public profile).
+  //   email:    user@choutuppal.app
+  //   password: user1234
+  // Used to test the non-premium story flow and community interactions.
+  // -------------------------------------------------------------------
+  const userPasswordHash = await bcrypt.hash('user1234', 12)
+  await prisma.user.upsert({
+    where: { email: 'user@choutuppal.app' },
+    update: { passwordHash: userPasswordHash, role: 'USER', isPublic: true, planTier: 'FREE' },
+    create: {
+      email: 'user@choutuppal.app',
+      phone: '+919912353706',
+      username: 'test_user',
+      name: 'Test User',
+      role: 'USER',
+      isPublic: true,
+      planTier: 'FREE',
+      passwordHash: userPasswordHash,
+      bio: 'Test user for trying out the community and stories.',
+      villageId: (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!.id,
+    },
+  })
+
   const panthangi = (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!
   const malkapur = (await prisma.village.findUnique({ where: { slug: 'malkapur' } }))!
   const peddakondur = (await prisma.village.findUnique({ where: { slug: 'peddakondur' } }))!

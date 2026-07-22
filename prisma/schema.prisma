@@ -70,6 +70,7 @@ model User {
   communityLikes    CommunityLike[]
   storyViews        StoryView[]
   storyReplies      StoryReply[]
+  storyLikes        StoryLike[]
   leads             Lead[] @relation("AgentLeads")
   accounts          Account[]
   sessions          Session[]
@@ -284,6 +285,7 @@ model Story {
 
   storyViews   StoryView[]
   storyReplies StoryReply[]
+  storyLikes   StoryLike[]
 
   @@index([expiresAt])
   @@index([ownerId])
@@ -314,6 +316,19 @@ model StoryReply {
 
   @@index([storyId])
   @@index([userId])
+}
+
+// Likes on a story (private — only owner sees the count/list). Unique per user+story.
+model StoryLike {
+  id        String   @id @default(cuid())
+  storyId   String
+  userId    String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([storyId, userId])
+  @@index([storyId])
 }
 
 // ----------------------------------------------------------------------------

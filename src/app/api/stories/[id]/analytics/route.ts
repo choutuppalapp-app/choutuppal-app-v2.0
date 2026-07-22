@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/stories/[id]/analytics
- * Owner-only: returns the list of viewers (with user info) + reply count.
+ * Owner-only: returns viewers list + reply count + likes list.
  * Non-owners get 403.
  */
 export async function GET(
@@ -24,17 +24,22 @@ export async function GET(
     return NextResponse.json({ error: 'Only the owner can view analytics' }, { status: 403 })
   }
 
-  const [viewers, replyCount] = await Promise.all([
+  const [viewers, replyCount, likers] = await Promise.all([
     prisma.storyView.findMany({
       where: { storyId },
       orderBy: { createdAt: 'desc' },
       include: {
-        user: {
-          select: { id: true, name: true, username: true, image: true },
-        },
+        user: { select: { id: true, name: true, username: true, image: true } },
       },
     }),
     prisma.storyReply.count({ where: { storyId } }),
+    prisma.storyLike.findMany({
+      where: { storyId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { id: true, name: true, username: true, image: true } },
+      },
+    }),
   ])
 
   return NextResponse.json({
@@ -47,6 +52,12 @@ export async function GET(
         user: v.user,
       })),
       replyCount,
+      likeCount: likers.length,
+      likers: likers.map((l) => ({
+        id: l.id,
+        createdAt: l.createdAt,
+        user: l.user,
+      })),
     },
   })
 }

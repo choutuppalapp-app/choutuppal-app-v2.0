@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Send, Eye, MessageCircle, Trash2, Loader2 } from 'lucide-react'
+import { X, Send, Eye, MessageCircle, Trash2, Loader2, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -46,12 +46,16 @@ export function StoryViewer({
   const [replyText, setReplyText] = useState('')
   const [replyBusy, setReplyBusy] = useState(false)
   const [deleteBusy, setDeleteBusy] = useState(false)
+  const [liked, setLiked] = useState(false)
+  const [likeBusy, setLikeBusy] = useState(false)
 
   // Analytics (owner mode only)
   const [analytics, setAnalytics] = useState<{
     viewers: Array<{ id: string; createdAt: string; user: { id: string; name: string | null; username: string | null; image: string | null } }>
     replyCount: number
     totalViews: number
+    likeCount: number
+    likers: Array<{ id: string; createdAt: string; user: { id: string; name: string | null; username: string | null; image: string | null } }>
   } | null>(null)
   const [replies, setReplies] = useState<Array<{ id: string; content: string; createdAt: string; user: { id: string; name: string | null; username: string | null; image: string | null } }>>([])
 
@@ -84,6 +88,16 @@ export function StoryViewer({
     fetch(`/api/stories/${story.id}/view`, { method: 'POST' }).catch(() => {})
   }, [story, ownerMode])
 
+  // Check if the viewer has liked this story (non-owner only)
+  useEffect(() => {
+    if (!story || ownerMode) return
+    setLiked(false)
+    fetch(`/api/stories/${story.id}/like`)
+      .then((r) => r.json())
+      .then((j) => j.ok && setLiked(j.liked))
+      .catch(() => {})
+  }, [story, ownerMode])
+
   // Load analytics in owner mode
   useEffect(() => {
     if (!story || !ownerMode) return
@@ -97,6 +111,22 @@ export function StoryViewer({
       .then((r) => r.json())
       .then((j) => j.ok && setReplies(j.replies))
       .catch(() => {})
+  }, [story, ownerMode])
+
+  // Toggle like (non-owner only)
+  const toggleLike = useCallback(async () => {
+    if (!story || ownerMode) return
+    setLikeBusy(true)
+    try {
+      const res = await fetch(`/api/stories/${story.id}/like`, { method: 'POST' })
+      const j = await res.json()
+      if (!res.ok || !j.ok) throw new Error(j.error || 'Failed')
+      setLiked(j.liked)
+    } catch {
+      // silent — like toggle is non-critical
+    } finally {
+      setLikeBusy(false)
+    }
   }, [story, ownerMode])
 
   const sendReply = useCallback(async () => {
@@ -237,11 +267,14 @@ export function StoryViewer({
         {ownerMode ? (
           <div className="absolute inset-x-0 bottom-0 z-40 max-h-[45vh] overflow-y-auto rounded-t-3xl bg-white/95 backdrop-blur-xl fancy-scroll">
             <Tabs defaultValue="views" className="p-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="views" className="gap-1.5 text-xs">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="views" className="gap-1 text-xs">
                   <Eye className="h-3.5 w-3.5" /> Views ({analytics?.totalViews ?? story.views})
                 </TabsTrigger>
-                <TabsTrigger value="replies" className="gap-1.5 text-xs">
+                <TabsTrigger value="likes" className="gap-1 text-xs">
+                  <Heart className="h-3.5 w-3.5" /> Likes ({analytics?.likeCount ?? 0})
+                </TabsTrigger>
+                <TabsTrigger value="replies" className="gap-1 text-xs">
                   <MessageCircle className="h-3.5 w-3.5" /> Replies ({replies.length})
                 </TabsTrigger>
               </TabsList>
@@ -262,6 +295,29 @@ export function StoryViewer({
                           {v.user.name ?? v.user.username ?? 'User'}
                         </span>
                         <span className="ml-auto text-[10px] text-slate-400">{timeAgo(v.createdAt)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="likes" className="mt-3">
+                {analytics?.likers.length === 0 ? (
+                  <p className="py-4 text-center text-xs text-slate-400">No likes yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {analytics?.likers.map((l) => (
+                      <div key={l.id} className="flex items-center gap-2">
+                        <Avatar className="h-7 w-7">
+                          <AvatarImage src={l.user.image ?? undefined} />
+                          <AvatarFallback className="text-[10px] gradient-brand text-white">
+                            {(l.user.name ?? 'U').charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs font-medium text-slate-700">
+                          {l.user.name ?? l.user.username ?? 'User'}
+                        </span>
+                        <Heart className="ml-auto h-3 w-3 fill-red-500 text-red-500" />
+                        <span className="text-[10px] text-slate-400">{timeAgo(l.createdAt)}</span>
                       </div>
                     ))}
                   </div>
@@ -297,7 +353,7 @@ export function StoryViewer({
             </Tabs>
           </div>
         ) : (
-          /* Non-owner reply box */
+          /* Non-owner reply + like box */
           <div className="absolute inset-x-0 bottom-0 z-40 p-4">
             <div className="flex items-center gap-2 rounded-full border border-white/30 bg-black/40 p-1.5 pl-4 backdrop-blur">
               <input
@@ -307,6 +363,20 @@ export function StoryViewer({
                 placeholder="Reply to story…"
                 className="flex-1 bg-transparent text-sm text-white placeholder:text-white/50 outline-none"
               />
+              {/* Like button — heart turns red when liked. Count NOT shown to non-owners. */}
+              <button
+                onClick={toggleLike}
+                disabled={likeBusy}
+                aria-label={liked ? 'Unlike' : 'Like'}
+                aria-pressed={liked}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white transition disabled:opacity-50"
+              >
+                {likeBusy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Heart className={cn('h-5 w-5 transition', liked && 'fill-red-500 text-red-500')} />
+                )}
+              </button>
               <button
                 onClick={sendReply}
                 disabled={!replyText.trim() || replyBusy}
