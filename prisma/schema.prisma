@@ -42,6 +42,8 @@ model User {
   isPublic   Boolean @default(false) // public profile visibility (Community)
   isBanned   Boolean @default(false)
   bio        String?
+  // politicalTag: NONE | BJP | CONGRESS | BRS | CPM (shown on profile card)
+  politicalTag String @default("NONE")
   villageId  String?
   village    Village? @relation(fields: [villageId], references: [id])
 
@@ -65,6 +67,7 @@ model User {
   notifications     Notification[]
   communityPosts    CommunityPost[]
   communityComments CommunityComment[]
+  communityLikes    CommunityLike[]
   leads             Lead[] @relation("AgentLeads")
   accounts          Account[]
   sessions          Session[]
@@ -422,11 +425,24 @@ model CommunityPost {
   authorId     String
   author       User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments     CommunityComment[]
+  likesRel     CommunityLike[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@index([politicalTag])
   @@index([authorId])
+}
+
+model CommunityLike {
+  id        String @id @default(cuid())
+  userId    String
+  postId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
 }
 
 model CommunityComment {
