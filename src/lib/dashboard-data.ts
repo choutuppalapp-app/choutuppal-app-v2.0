@@ -22,6 +22,9 @@ export async function getDashboardData(user: User) {
       prisma.story.findMany({
         where: { ownerId: user.id },
         orderBy: { createdAt: 'desc' },
+        include: {
+          _count: { select: { storyViews: true, storyReplies: true } },
+        },
       }),
       prisma.village.findMany({ orderBy: { name: 'asc' } }),
       prisma.category.findMany({ orderBy: { name: 'asc' } }),

@@ -68,6 +68,8 @@ model User {
   communityPosts    CommunityPost[]
   communityComments CommunityComment[]
   communityLikes    CommunityLike[]
+  storyViews        StoryView[]
+  storyReplies      StoryReply[]
   leads             Lead[] @relation("AgentLeads")
   accounts          Account[]
   sessions          Session[]
@@ -280,8 +282,38 @@ model Story {
   owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
+  storyViews   StoryView[]
+  storyReplies StoryReply[]
+
   @@index([expiresAt])
   @@index([ownerId])
+}
+
+// Who viewed a story (for owner-only analytics). Unique per user+story.
+model StoryView {
+  id        String   @id @default(cuid())
+  storyId   String
+  userId    String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([storyId, userId])
+  @@index([storyId])
+}
+
+// Private replies to a story (not public). Only the story owner sees them.
+model StoryReply {
+  id        String   @id @default(cuid())
+  storyId   String
+  userId    String
+  content   String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([storyId])
+  @@index([userId])
 }
 
 // ----------------------------------------------------------------------------

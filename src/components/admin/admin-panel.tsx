@@ -19,6 +19,7 @@ import {
   Save,
   RefreshCw,
   Home,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -114,12 +115,15 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 
       <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 lg:px-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
             <TabsTrigger value="overview" className="gap-1.5 text-xs sm:text-sm">
               <Home className="h-3.5 w-3.5" /> Overview
             </TabsTrigger>
             <TabsTrigger value="approvals" className="gap-1.5 text-xs sm:text-sm">
               <Clock className="h-3.5 w-3.5" /> Approvals
+            </TabsTrigger>
+            <TabsTrigger value="stories" className="gap-1.5 text-xs sm:text-sm">
+              <ImageIcon className="h-3.5 w-3.5" /> Stories
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-1.5 text-xs sm:text-sm">
               <Users className="h-3.5 w-3.5" /> Users
@@ -131,6 +135,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 
           <TabsContent value="overview"><OverviewTab /></TabsContent>
           <TabsContent value="approvals"><ApprovalsTab /></TabsContent>
+          <TabsContent value="stories"><StoriesTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="settings"><SettingsTab /></TabsContent>
         </Tabs>
@@ -724,6 +729,124 @@ function SettingCard({
         </div>
         <Switch checked={on} onCheckedChange={onToggle} />
       </div>
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Stories Moderation                                                          */
+/* -------------------------------------------------------------------------- */
+
+interface AdminStory {
+  id: string
+  mediaUrl: string
+  mediaType: string
+  caption: string | null
+  views: number
+  expiresAt: string
+  createdAt: string
+  owner: { id: string; name: string | null; username: string | null; email: string; image: string | null }
+  _count: { storyViews: number; storyReplies: number }
+}
+
+function StoriesTab() {
+  const [stories, setStories] = useState<AdminStory[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState<string | null>(null)
+
+  const load = useCallback(() => {
+    setLoading(true)
+    fetch('/api/admin/stories')
+      .then((r) => r.json())
+      .then((j) => j.ok && setStories(j.stories))
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/admin/stories')
+      .then((r) => r.json())
+      .then((j) => { if (active && j.ok) setStories(j.stories) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [])
+
+  async function del(id: string) {
+    if (!confirm('Delete this story? The media will be removed from R2.')) return
+    setBusy(id)
+    try {
+      const res = await fetch(`/api/admin/stories/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed')
+      setStories((p) => p.filter((s) => s.id !== id))
+      toast.success('Story deleted')
+    } catch {
+      toast.error('Failed to delete')
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  if (loading) return <CenteredLoader />
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-slate-900">Active Stories</h2>
+          <p className="text-sm text-slate-500">{stories.length} stories currently live (auto-expire in 24h)</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={load} className="gap-1.5">
+          <RefreshCw className="h-3.5 w-3.5" /> Refresh
+        </Button>
+      </div>
+
+      {stories.length === 0 ? (
+        <div className="rounded-3xl glass p-10 text-center">
+          <ImageIcon className="mx-auto h-10 w-10 text-slate-300" />
+          <h3 className="mt-2 font-bold text-slate-900">No active stories</h3>
+          <p className="text-sm text-slate-500">All clear — no stories to moderate right now.</p>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {stories.map((s) => (
+            <div key={s.id} className="overflow-hidden rounded-2xl glass">
+              <div className="relative aspect-[9/16] max-h-64">
+                {s.mediaUrl ? (
+                  s.mediaType === 'VIDEO' ? (
+                    <video src={s.mediaUrl} className="h-full w-full object-cover" muted />
+                  ) : (
+                    <img src={s.mediaUrl} alt={s.caption ?? 'story'} className="h-full w-full object-cover" />
+                  )
+                ) : (
+                  <div className="grid h-full w-full place-items-center gradient-brand p-3 text-center">
+                    <span className="text-[11px] font-medium text-white">{s.caption ?? 'Story'}</span>
+                  </div>
+                )}
+              </div>
+              <div className="p-3">
+                <p className="line-clamp-1 text-xs font-semibold text-slate-900">{s.caption ?? 'No caption'}</p>
+                <p className="text-[11px] text-slate-500">
+                  by {s.owner.name ?? s.owner.email} · {new Date(s.createdAt).toLocaleString('en-IN')}
+                </p>
+                <div className="mt-1.5 flex items-center gap-3 text-[10px] text-slate-400">
+                  <span>{s._count.storyViews} views</span>
+                  <span>{s._count.storyReplies} replies</span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => del(s.id)}
+                  disabled={busy === s.id}
+                  className="mt-2 w-full gap-1.5 border-red-200 text-red-600 hover:bg-red-50"
+                >
+                  {busy === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                  Delete (spam)
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

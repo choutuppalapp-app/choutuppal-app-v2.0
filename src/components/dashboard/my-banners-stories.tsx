@@ -1,12 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Image as ImageIcon, Megaphone, Plus, Clock, Video } from 'lucide-react'
+import { Image as ImageIcon, Megaphone, Plus, Clock, Video, Eye, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { EmptyState } from './my-listings'
+import { StoryViewer, type StoryItem } from '@/components/stories/story-viewer'
+import { StoryCreator } from '@/components/stories/story-creator'
 import type { Banner, Story } from '@prisma/client'
+
+type StoryWithCounts = Story & {
+  _count: { storyViews: number; storyReplies: number }
+}
 
 /** Returns a live hh:mm:ss countdown string for a target date. */
 function useCountdown(target: Date) {
@@ -43,10 +49,24 @@ export function MyBannersStories({
   stories,
 }: {
   banners: Banner[]
-  stories: Story[]
+  stories: StoryWithCounts[]
 }) {
   const activeBanners = banners.filter((b) => new Date(b.expiresAt) > new Date())
   const activeStories = stories.filter((s) => new Date(s.expiresAt) > new Date())
+  const [creatorOpen, setCreatorOpen] = useState(false)
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null)
+  const [storyList, setStoryList] = useState(stories)
+
+  const storyItems: StoryItem[] = storyList.map((s) => ({
+    id: s.id,
+    mediaUrl: s.mediaUrl,
+    mediaType: s.mediaType,
+    caption: s.caption,
+    views: s.views,
+    expiresAt: s.expiresAt.toISOString(),
+    createdAt: s.createdAt.toISOString(),
+    owner: { id: '', name: null, username: null, image: null },
+  }))
 
   return (
     <div className="space-y-6">
@@ -62,7 +82,7 @@ export function MyBannersStories({
             <Megaphone className="h-4 w-4 text-blue-500" /> Banner Ads
             <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">₹99/day</Badge>
           </h3>
-          <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => toast.info('Use the Add Listing button → Banner to create one.')}>
+          <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => toast.info('Banner creation flow coming soon.')}>
             <Plus className="h-4 w-4" /> New Banner
           </Button>
         </div>
@@ -75,7 +95,6 @@ export function MyBannersStories({
               <div key={b.id} className="overflow-hidden rounded-2xl glass">
                 <div className="relative aspect-[16/9]">
                   {b.imageUrl ? (
-                     
                     <img src={b.imageUrl} alt={b.title ?? 'banner'} className="h-full w-full object-cover" />
                   ) : (
                     <div className="grid h-full w-full place-items-center gradient-brand p-4 text-center text-white">
@@ -106,7 +125,7 @@ export function MyBannersStories({
             <ImageIcon className="h-4 w-4 text-amber-500" /> Stories
             <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">24hr</Badge>
           </h3>
-          <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => toast.info('Upload a photo/video from the Add Listing → Story flow.')}>
+          <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => setCreatorOpen(true)}>
             <Plus className="h-4 w-4" /> New Story
           </Button>
         </div>
@@ -115,14 +134,17 @@ export function MyBannersStories({
           <EmptyState icon={ImageIcon} title="No active stories" desc="Share a 24-hour story — photos or short videos that auto-expire." />
         ) : (
           <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
-            {stories.map((s) => (
-              <div key={s.id} className="w-40 shrink-0 overflow-hidden rounded-2xl glass">
+            {storyList.map((s, i) => (
+              <button
+                key={s.id}
+                onClick={() => setViewerIndex(i)}
+                className="w-44 shrink-0 overflow-hidden rounded-2xl glass text-left"
+              >
                 <div className="relative aspect-[9/16]">
                   {s.mediaUrl ? (
                     s.mediaType === 'VIDEO' ? (
                       <video src={s.mediaUrl} className="h-full w-full object-cover" muted />
                     ) : (
-                       
                       <img src={s.mediaUrl} alt={s.caption ?? 'story'} className="h-full w-full object-cover" />
                     )
                   ) : (
@@ -140,14 +162,46 @@ export function MyBannersStories({
                   ) : null}
                 </div>
                 <div className="p-2">
-                  <p className="line-clamp-2 text-[11px] text-slate-600">{s.caption ?? 'Story'}</p>
-                  <p className="mt-1 text-[10px] text-slate-400">{s.views} views</p>
+                  <p className="line-clamp-1 text-[11px] text-slate-600">{s.caption ?? 'Story'}</p>
+                  <div className="mt-1.5 flex items-center gap-3 text-[10px] text-slate-500">
+                    <span className="flex items-center gap-0.5">
+                      <Eye className="h-3 w-3" /> {s._count.storyViews} views
+                    </span>
+                    <span className="flex items-center gap-0.5">
+                      <MessageCircle className="h-3 w-3" /> {s._count.storyReplies} replies
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
       </div>
+
+      {/* Owner-mode viewer */}
+      {viewerIndex !== null && (
+        <StoryViewer
+          stories={storyItems}
+          startIndex={viewerIndex}
+          ownerMode
+          onClose={() => setViewerIndex(null)}
+          onDeleted={(id) => {
+            setStoryList((prev) => prev.filter((s) => s.id !== id))
+            setViewerIndex(null)
+          }}
+        />
+      )}
+
+      {/* Creator modal */}
+      <StoryCreator
+        open={creatorOpen}
+        onOpenChange={setCreatorOpen}
+        onCreated={() => {
+          toast.success('Story created')
+          // Refresh to pick up the new story + its counts.
+          window.location.reload()
+        }}
+      />
     </div>
   )
 }

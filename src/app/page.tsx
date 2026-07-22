@@ -1,4 +1,5 @@
 import { getHomePageData } from '@/lib/home-data'
+import { getCurrentUser } from '@/lib/session'
 import { SiteHeader } from '@/components/home/site-header'
 import { Ticker } from '@/components/home/ticker'
 import { StoriesRail } from '@/components/home/stories-rail'
@@ -18,6 +19,18 @@ export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const data = await getHomePageData()
+  const viewer = await getCurrentUser()
+  const viewerInfo = viewer
+    ? {
+        isLoggedIn: true,
+        isPremium:
+          viewer.planTier === 'PREMIUM' ||
+          viewer.planTier === 'PRO' ||
+          viewer.role === 'ADMIN' ||
+          viewer.role === 'SUPER_ADMIN' ||
+          viewer.role === 'AGENT',
+      }
+    : { isLoggedIn: false, isPremium: false }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -29,7 +42,7 @@ export default async function Home() {
       <main className="flex-1">
         <div className="mx-auto flex max-w-7xl flex-col gap-10 px-3 py-6 sm:px-4 sm:py-8 lg:px-6 lg:py-10">
           {/* 3. Stories (Premium) */}
-          <StoriesRail stories={data.stories} />
+          <StoriesRail stories={data.stories} viewer={viewerInfo} />
 
           {/* 4. Banner Ads ₹99/day */}
           <BannerCarousel banners={data.banners} />
