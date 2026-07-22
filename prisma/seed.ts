@@ -23,21 +23,34 @@ function daysFromNow(d: number): Date {
 
 async function main() {
   // -------------------------------------------------------------------
-  // Villages (real local)
+  // Villages — the 18 villages of Choutuppal mandal, Yadadri Bhuvanagiri,
+  // Telangana. Old dummy entries (Bhongir, Alair, etc.) are deleted first.
   // -------------------------------------------------------------------
   const villages = [
-    { name: 'Choutuppal', slug: 'choutuppal', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
-    { name: 'Yadadri', slug: 'yadadri', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508286' },
-    { name: 'Bhongir', slug: 'bhongir', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508116' },
-    { name: 'Aler', slug: 'aler', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508101' },
-    { name: 'Motakonduru', slug: 'motakonduru', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508246' },
+    { name: 'Allapur', slug: 'allapur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Chinna Kondur', slug: 'chinna-kondur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Devalamma Nagaram', slug: 'devalamma-nagaram', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Jai Kesaram', slug: 'jai-kesaram', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Khairathpur', slug: 'khairathpur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Koyalagudem', slug: 'koyalagudem', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Lakkaram', slug: 'lakkaram', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Lingoji Guda', slug: 'lingoji-guda', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Malkapur', slug: 'malkapur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Nelapatla', slug: 'nelapatla', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Panthangi', slug: 'panthangi', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Peddakondur', slug: 'peddakondur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Peepal Pahad', slug: 'peepal-pahad', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Swamulavari Lingotam', slug: 'swamulavari-lingotam', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Tallasingaram', slug: 'tallasingaram', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Tangad Palle', slug: 'tangad-palle', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Tupranpet', slug: 'tupranpet', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+    { name: 'Yellagiri', slug: 'yellagiri', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
   ]
+  // Wipe old villages first (cascades to any FK references that allow it;
+  // listings/realestate villageId are nullable, so they become null).
+  await prisma.village.deleteMany({})
   for (const v of villages) {
-    await prisma.village.upsert({
-      where: { slug: v.slug },
-      update: {},
-      create: v,
-    })
+    await prisma.village.create({ data: v })
   }
 
   // -------------------------------------------------------------------
@@ -79,13 +92,13 @@ async function main() {
       isPublic: true,
       passwordHash,
       bio: 'Official demo account for Choutuppal App.',
-      villageId: (await prisma.village.findUnique({ where: { slug: 'choutuppal' } }))!.id,
+      villageId: (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!.id,
     },
   })
 
-  const choutuppal = (await prisma.village.findUnique({ where: { slug: 'choutuppal' } }))!
-  const yadadri = (await prisma.village.findUnique({ where: { slug: 'yadadri' } }))!
-  const bhongir = (await prisma.village.findUnique({ where: { slug: 'bhongir' } }))!
+  const panthangi = (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!
+  const malkapur = (await prisma.village.findUnique({ where: { slug: 'malkapur' } }))!
+  const peddakondur = (await prisma.village.findUnique({ where: { slug: 'peddakondur' } }))!
 
   const cat = (slug: string) =>
     prisma.category.findUnique({ where: { slug } })
@@ -100,9 +113,9 @@ async function main() {
       description: 'Famous for hot idli, dosa, upma & filter coffee. Morning tiffin & evening snacks served fresh daily since 2008.',
       phone: '9912353705',
       whatsapp: '919912353705',
-      address: 'Main Road, Choutuppal, Yadadri Bhuvanagiri',
+      address: 'Main Road, Panthangi, Yadadri Bhuvanagiri',
       categoryId: (await cat('restaurants'))!.id,
-      villageId: choutuppal.id,
+      villageId: panthangi.id,
       isFeatured: true,
     },
     {
@@ -111,9 +124,9 @@ async function main() {
       description: '24x7 pharmacy with allopathic & ayurvedic medicines, surgical supplies and free home delivery within Choutuppal.',
       phone: '9912353706',
       whatsapp: '919912353706',
-      address: 'Bus Stand Road, Choutuppal',
+      address: 'Bus Stand Road, Panthangi',
       categoryId: (await cat('medical'))!.id,
-      villageId: choutuppal.id,
+      villageId: panthangi.id,
       isFeatured: true,
     },
     {
@@ -122,9 +135,9 @@ async function main() {
       description: 'Authorized mobile retailer — latest smartphones, accessories, recharges & quick repairs. EMI available.',
       phone: '9912353707',
       whatsapp: '919912353707',
-      address: 'SRT Road, Choutuppal',
+      address: 'SRT Road, Panthangi',
       categoryId: (await cat('electronics'))!.id,
-      villageId: choutuppal.id,
+      villageId: panthangi.id,
       isFeatured: true,
     },
     {
@@ -133,9 +146,9 @@ async function main() {
       description: 'Groceries, household items & fresh vegetables at wholesale prices. Monthly ration kits for families.',
       phone: '9912353708',
       whatsapp: '919912353708',
-      address: 'Market Yard, Choutuppal',
+      address: 'Market Yard, Panthangi',
       categoryId: (await cat('groceries'))!.id,
-      villageId: choutuppal.id,
+      villageId: panthangi.id,
       isFeatured: true,
     },
     {
@@ -144,9 +157,9 @@ async function main() {
       description: 'CBSE-affiliated school from LKG to 10th. Smart classrooms, experienced faculty & bus transport across villages.',
       phone: '9912353709',
       whatsapp: '919912353709',
-      address: 'Yadadri Road, Choutuppal',
+      address: 'Yadadri Road, Panthangi',
       categoryId: (await cat('education'))!.id,
-      villageId: choutuppal.id,
+      villageId: panthangi.id,
       isFeatured: false,
     },
     {
@@ -155,9 +168,9 @@ async function main() {
       description: 'Two-wheeler & four-wheeler service center. Genuine spare parts, cashless insurance claims & bike sales.',
       phone: '9912353710',
       whatsapp: '919912353710',
-      address: 'Hyderabad Highway, Choutuppal',
+      address: 'Hyderabad Highway, Panthangi',
       categoryId: (await cat('automobile'))!.id,
-      villageId: choutuppal.id,
+      villageId: panthangi.id,
       isFeatured: true,
     },
     {
@@ -166,9 +179,9 @@ async function main() {
       description: 'Sarees, mens wear, kids fashion & festival collections. Bulk orders for weddings and functions.',
       phone: '9912353711',
       whatsapp: '919912353711',
-      address: 'Clock Tower, Choutuppal',
+      address: 'Clock Tower, Panthangi',
       categoryId: (await cat('fashion'))!.id,
-      villageId: choutuppal.id,
+      villageId: panthangi.id,
       isFeatured: false,
     },
     {
@@ -177,9 +190,9 @@ async function main() {
       description: 'General physician & pediatric care. Daily 5-6 new patients via the app. OPD 9am-9pm.',
       phone: '9912353712',
       whatsapp: '919912353712',
-      address: 'Hospital Road, Choutuppal',
+      address: 'Hospital Road, Panthangi',
       categoryId: (await cat('health'))!.id,
-      villageId: choutuppal.id,
+      villageId: panthangi.id,
       isFeatured: true,
     },
   ]
@@ -215,22 +228,22 @@ async function main() {
       areaSqft: 1450,
       bedrooms: 3,
       bathrooms: 2,
-      address: 'Near Bus Stand, Choutuppal',
-      villageId: choutuppal.id,
+      address: 'Near Bus Stand, Panthangi',
+      villageId: panthangi.id,
     },
     {
-      slug: 'open-plot-200sqyd-yadadri',
-      title: 'Open Plot 200 sq.yd — Yadadri',
-      description: 'Corner plot facing east, DTCP approved, ready for construction. Walkable to Yadadri temple.',
+      slug: 'open-plot-200sqyd-malkapur',
+      title: 'Open Plot 200 sq.yd — Malkapur',
+      description: 'Corner plot facing east, DTCP approved, ready for construction. Walkable to main road.',
       type: 'PLOT',
       listingType: 'SALE',
       price: 1800000,
       areaSqft: 1800,
-      address: 'Temple Approach Road, Yadadri',
-      villageId: yadadri.id,
+      address: 'Main Road, Malkapur',
+      villageId: malkapur.id,
     },
     {
-      slug: '2bhk-rent-bhongir',
+      slug: '2bhk-rent-peddakondur',
       title: '2BHK Flat for Rent',
       description: 'Semi-furnished 2BHK on 2nd floor, lift facility, 24h water. Family/bachelors preferred.',
       type: 'APARTMENT',
@@ -240,19 +253,19 @@ async function main() {
       bedrooms: 2,
       bathrooms: 2,
       furnished: true,
-      address: 'Balaji Nagar, Bhongir',
-      villageId: bhongir.id,
+      address: 'Balaji Nagar, Peddakondur',
+      villageId: peddakondur.id,
     },
     {
-      slug: 'commercial-shop-rent-choutuppal',
+      slug: 'commercial-shop-rent-panthangi',
       title: 'Commercial Shop for Rent',
       description: 'Road-facing 400 sqft shop on Main Road — ideal for retail, clinic or showroom. High footfall.',
       type: 'COMMERCIAL',
       listingType: 'RENT',
       price: 25000,
       areaSqft: 400,
-      address: 'Main Road, Choutuppal',
-      villageId: choutuppal.id,
+      address: 'Main Road, Panthangi',
+      villageId: panthangi.id,
     },
   ]
   for (const r of realEstates) {
