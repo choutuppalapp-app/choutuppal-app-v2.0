@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { toast } from 'sonner'
 import { Loader2, Eye, EyeOff, ArrowLeft, Sparkles } from 'lucide-react'
@@ -10,6 +10,7 @@ import { Loader2, Eye, EyeOff, ArrowLeft, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { fetchRoleRedirect } from '@/lib/role-redirect'
 import {
   Tabs,
   TabsContent,
@@ -65,7 +66,45 @@ function Spinner({ className }: { className?: string }) {
 /* -------------------------------------------------------------------------- */
 
 export default function LoginPage() {
+  // useSearchParams requires a Suspense boundary in the App Router.
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginInner />
+    </Suspense>
+  )
+}
+
+function LoginFallback() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50">
+      <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+    </div>
+  )
+}
+
+function LoginInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // ---- Google OAuth callback redirect ---------------------------------------
+  // When Google OAuth completes, NextAuth sends the browser to /login?google=1.
+  // Detect that, read the now-active session, and redirect to the role-
+  // appropriate destination (admin -> /admin, agent -> /agent, user -> /dashboard).
+  useEffect(() => {
+    if (searchParams.get('google') !== '1') return
+    let active = true
+    fetch('/api/auth/session', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then(async (data) => {
+        if (!active) return
+        if (data?.user) {
+          const dest = await fetchRoleRedirect()
+          router.replace(dest)
+        }
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [searchParams, router])
 
   // ---- Active tab -----------------------------------------------------------
   const [tab, setTab] = useState<'login' | 'signup'>('login')
@@ -121,8 +160,9 @@ export default function LoginPage() {
       })
 
       if (res?.ok && !res.error) {
-        toast.success('Logged in! Redirecting to dashboard…')
-        router.push('/dashboard')
+        toast.success('Logged in! Redirecting…')
+        const dest = await fetchRoleRedirect()
+        router.push(dest)
         return
       }
 
@@ -139,9 +179,11 @@ export default function LoginPage() {
     const setter = which === 'login' ? setGoogleLoading : setSuGoogleLoading
     setter(true)
     try {
-      // This redirects the browser to Google OAuth. If env vars aren't set,
-      // NextAuth will surface an error page — acceptable for the demo.
-      await signIn('google', { callbackUrl: '/dashboard' })
+      // Redirect to Google OAuth. After the callback completes, NextAuth sends
+      // the browser to the callbackUrl; we use /login?google=1 which then reads
+      // the session and redirects to the role-appropriate destination. If env
+      // vars aren't set, NextAuth surfaces an error page (acceptable for demo).
+      await signIn('google', { callbackUrl: '/login?google=1' })
     } catch {
       toast.error('Google sign-in failed to start.')
       setter(false)
@@ -198,8 +240,9 @@ export default function LoginPage() {
       })
 
       if (r?.ok && !r.error) {
-        toast.success('Account created! Redirecting to dashboard…')
-        router.push('/dashboard')
+        toast.success('Account created! Redirecting…')
+        const dest = await fetchRoleRedirect()
+        router.push(dest)
         return
       }
 

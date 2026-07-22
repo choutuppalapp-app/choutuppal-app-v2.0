@@ -15,6 +15,8 @@ import {
   Menu,
   X,
   Crown,
+  ShieldCheck,
+  Briefcase,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -117,6 +119,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
                 </button>
               )
             })}
+            <RoleLinks role={data.user.role} />
           </nav>
         </aside>
 
@@ -158,6 +161,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
                   )
                 })}
               </nav>
+              <RoleLinks role={data.user.role} onNavigate={() => setSidebarOpen(false)} />
             </aside>
           </div>
         ) : null}
@@ -195,6 +199,69 @@ export function DashboardShell({ data }: DashboardShellProps) {
 /* -------------------------------------------------------------------------- */
 /* Sub-components                                                              */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Role-based navigation links to the Admin and Agent panels.
+ * - Admin Panel (/admin): visible to ADMIN + SUPER_ADMIN
+ * - Agent Panel (/agent): visible to AGENT + ADMIN (SUPER_ADMIN)
+ *
+ * `onNavigate` is called after a click (used by the mobile drawer to close).
+ */
+function RoleLinks({
+  role,
+  onNavigate,
+}: {
+  role: string
+  onNavigate?: () => void
+}) {
+  const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+  const isAgent = role === 'AGENT' || isAdmin
+  const links: { href: string; label: string; icon: typeof ShieldCheck; accent: string }[] = []
+
+  if (isAdmin) {
+    links.push({
+      href: '/admin',
+      label: 'Admin Panel',
+      icon: ShieldCheck,
+      accent: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
+    })
+  }
+  if (isAgent) {
+    links.push({
+      href: '/agent',
+      label: 'Agent Panel',
+      icon: Briefcase,
+      accent: 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100',
+    })
+  }
+
+  if (links.length === 0) return null
+
+  return (
+    <div className="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
+      <p className="px-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        Management
+      </p>
+      {links.map((l) => {
+        const Icon = l.icon
+        return (
+          <Link
+            key={l.href}
+            href={l.href}
+            onClick={onNavigate}
+            className={cn(
+              'flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-semibold transition',
+              l.accent,
+            )}
+          >
+            <Icon className="h-4 w-4" />
+            {l.label}
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
 
 function UserCard({ data }: { data: DashboardData }) {
   const { user, analytics } = data
