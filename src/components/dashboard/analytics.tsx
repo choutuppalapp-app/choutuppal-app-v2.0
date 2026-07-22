@@ -1,12 +1,13 @@
 'use client'
 
-import { Eye, MessageCircle, Store, Home, Megaphone, ImageIcon, TrendingUp, MousePointerClick } from 'lucide-react'
+import { Eye, MessageCircle, Store, Home, Megaphone, ImageIcon, TrendingUp, MousePointerClick, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AnalyticsProps {
   analytics: {
     totalViews: number
     totalWhatsappClicks: number
+    totalCallClicks: number
     totalClicks: number
     totalListings: number
     approvedListings: number
@@ -20,13 +21,13 @@ interface AnalyticsProps {
 export function Analytics({ analytics }: AnalyticsProps) {
   const cards = [
     { label: 'Profile Views', value: analytics.totalViews, icon: Eye, grad: 'from-blue-600 to-blue-400', sub: 'Across all listings' },
+    { label: 'Total Listings', value: analytics.totalListings, icon: Store, grad: 'from-blue-500 to-amber-400', sub: `${analytics.approvedListings} approved · ${analytics.pendingListings} pending` },
     { label: 'WhatsApp Clicks', value: analytics.totalWhatsappClicks, icon: MessageCircle, grad: 'from-emerald-500 to-emerald-400', sub: 'Customer enquiries' },
-    { label: 'Total Clicks', value: analytics.totalClicks, icon: MousePointerClick, grad: 'from-amber-500 to-amber-400', sub: 'Listing interactions' },
-    { label: 'Active Listings', value: analytics.approvedListings, icon: Store, grad: 'from-blue-500 to-amber-400', sub: `${analytics.pendingListings} pending approval` },
+    { label: 'Call Clicks', value: analytics.totalCallClicks, icon: Phone, grad: 'from-amber-500 to-amber-400', sub: 'Phone call taps' },
+    { label: 'Total Clicks', value: analytics.totalClicks, icon: MousePointerClick, grad: 'from-blue-500 to-blue-400', sub: 'All interactions' },
     { label: 'Properties', value: analytics.totalProperties, icon: Home, grad: 'from-amber-500 to-blue-400', sub: 'Real estate listings' },
     { label: 'Active Banners', value: analytics.activeBanners, icon: Megaphone, grad: 'from-blue-600 to-amber-500', sub: 'Running campaigns' },
     { label: 'Active Stories', value: analytics.activeStories, icon: ImageIcon, grad: 'from-amber-400 to-blue-500', sub: '24hr stories live' },
-    { label: 'Total Listings', value: analytics.totalListings, icon: TrendingUp, grad: 'from-blue-500 to-blue-400', sub: 'All time' },
   ]
 
   return (

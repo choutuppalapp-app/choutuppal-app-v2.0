@@ -1,17 +1,18 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Image as ImageIcon, Megaphone, Plus, Clock, Video, Eye, MessageCircle } from 'lucide-react'
+import { Image as ImageIcon, Megaphone, Plus, Clock, Video, Eye, MessageCircle, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { EmptyState } from './my-listings'
 import { StoryViewer, type StoryItem } from '@/components/stories/story-viewer'
 import { StoryCreator } from '@/components/stories/story-creator'
+import { BannerCreator } from './banner-creator'
 import type { Banner, Story } from '@prisma/client'
 
 type StoryWithCounts = Story & {
-  _count: { storyViews: number; storyReplies: number }
+  _count: { storyViews: number; storyReplies: number; storyLikes: number }
 }
 
 /** Returns a live hh:mm:ss countdown string for a target date. */
@@ -54,6 +55,7 @@ export function MyBannersStories({
   const activeBanners = banners.filter((b) => new Date(b.expiresAt) > new Date())
   const activeStories = stories.filter((s) => new Date(s.expiresAt) > new Date())
   const [creatorOpen, setCreatorOpen] = useState(false)
+  const [bannerOpen, setBannerOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [storyList, setStoryList] = useState(stories)
 
@@ -82,8 +84,8 @@ export function MyBannersStories({
             <Megaphone className="h-4 w-4 text-blue-500" /> Banner Ads
             <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">₹99/day</Badge>
           </h3>
-          <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => toast.info('Banner creation flow coming soon.')}>
-            <Plus className="h-4 w-4" /> New Banner
+          <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => setBannerOpen(true)}>
+            <Plus className="h-4 w-4" /> Promote Your Business
           </Button>
         </div>
 
@@ -165,10 +167,13 @@ export function MyBannersStories({
                   <p className="line-clamp-1 text-[11px] text-slate-600">{s.caption ?? 'Story'}</p>
                   <div className="mt-1.5 flex items-center gap-3 text-[10px] text-slate-500">
                     <span className="flex items-center gap-0.5">
-                      <Eye className="h-3 w-3" /> {s._count.storyViews} views
+                      <Eye className="h-3 w-3" /> {s._count.storyViews}
                     </span>
                     <span className="flex items-center gap-0.5">
-                      <MessageCircle className="h-3 w-3" /> {s._count.storyReplies} replies
+                      <Heart className="h-3 w-3" /> {s._count.storyLikes}
+                    </span>
+                    <span className="flex items-center gap-0.5">
+                      <MessageCircle className="h-3 w-3" /> {s._count.storyReplies}
                     </span>
                   </div>
                 </div>
@@ -199,6 +204,16 @@ export function MyBannersStories({
         onCreated={() => {
           toast.success('Story created')
           // Refresh to pick up the new story + its counts.
+          window.location.reload()
+        }}
+      />
+
+      {/* Banner creator modal */}
+      <BannerCreator
+        open={bannerOpen}
+        onOpenChange={setBannerOpen}
+        onCreated={() => {
+          toast.success('Banner created')
           window.location.reload()
         }}
       />

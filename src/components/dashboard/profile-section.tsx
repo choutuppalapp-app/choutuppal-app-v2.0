@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Camera, Loader2, Save, Crown, Shield, Eye, EyeOff, Check } from 'lucide-react'
+import { Camera, Loader2, Save, Crown, Shield, Eye, EyeOff, Check, KeyRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,8 +9,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { ImageUpload } from './image-upload'
+import { tagStyle } from '@/components/community/tag-styles'
+import { cn } from '@/lib/utils'
 import type { Village } from '@prisma/client'
 
 interface ProfileUser {
@@ -25,6 +34,7 @@ interface ProfileUser {
   isPublic: boolean
   role: string
   planTier: string
+  politicalTag: string
   planExpiresAt: Date | null
   villageId: string | null
 }
@@ -43,7 +53,11 @@ export function ProfileSection({
   const [image, setImage] = useState<string | null>(user.image)
   const [coverImage, setCoverImage] = useState<string | null>(user.coverImage)
   const [isPublic, setIsPublic] = useState(user.isPublic)
+  const [politicalTag, setPoliticalTag] = useState(user.politicalTag ?? 'NONE')
   const [saving, setSaving] = useState(false)
+  const [pwOpen, setPwOpen] = useState(false)
+  const [pwEmail, setPwEmail] = useState(user.email)
+  const [pwBusy, setPwBusy] = useState(false)
 
   async function save() {
     setSaving(true)
@@ -51,7 +65,7 @@ export function ProfileSection({
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, username, bio, phone, image, coverImage, isPublic }),
+        body: JSON.stringify({ name, username, bio, phone, image, coverImage, isPublic, politicalTag }),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to save')
@@ -60,6 +74,25 @@ export function ProfileSection({
       toast.error(err instanceof Error ? err.message : 'Failed to save')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handlePasswordReset() {
+    setPwBusy(true)
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: pwEmail }),
+      })
+      const j = await res.json()
+      if (!res.ok || !j.ok) throw new Error(j.error || 'Failed')
+      toast.success('Password reset link sent to your email')
+      setPwOpen(false)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to send reset link')
+    } finally {
+      setPwBusy(false)
     }
   }
 
@@ -167,6 +200,41 @@ export function ProfileSection({
           />
           <p className="mt-1 text-right text-[11px] text-slate-400">{bio.length}/280</p>
         </Field>
+        <Field label="Political Tag (shown on profile & community posts)" className="mt-4">
+          <Select value={politicalTag} onValueChange={setPoliticalTag}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select political affiliation" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="NONE">None</SelectItem>
+              <SelectItem value="BJP">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-orange-500" /> BJP
+                </span>
+              </SelectItem>
+              <SelectItem value="CONGRESS">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-sky-500" /> Congress
+                </span>
+              </SelectItem>
+              <SelectItem value="BRS">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-pink-500" /> BRS
+                </span>
+              </SelectItem>
+              <SelectItem value="CPM">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-red-500" /> CPM
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          {politicalTag !== 'NONE' ? (
+            <span className={cn('mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold', tagStyle(politicalTag).cls)}>
+              {tagStyle(politicalTag).label}
+            </span>
+          ) : null}
+        </Field>
       </div>
 
       {/* Privacy + Upgrade */}
@@ -214,6 +282,47 @@ export function ProfileSection({
           </div>
         </div>
       </div>
+
+      {/* Security / Password Reset */}
+      <div className="rounded-3xl glass p-5">
+        <div className="flex items-start gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-600">
+            <KeyRound className="h-5 w-5" />
+          </span>
+          <div className="flex-1">
+            <h3 className="font-bold text-slate-900">Password & Security</h3>
+            <p className="text-xs text-slate-500">
+              Send a password reset link to your email to change your password.
+            </p>
+          </div>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setPwOpen(true)}>
+            <KeyRound className="h-3.5 w-3.5" /> Reset Password
+          </Button>
+        </div>
+      </div>
+
+      {/* Password reset dialog */}
+      <Dialog open={pwOpen} onOpenChange={setPwOpen}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg font-black text-slate-900">
+              <KeyRound className="h-4 w-4 text-blue-600" /> Reset Password
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              A password reset link will be sent to your email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Field label="Email or Phone">
+              <Input value={pwEmail} onChange={(e) => setPwEmail(e.target.value)} placeholder="your@email.com" />
+            </Field>
+            <Button onClick={handlePasswordReset} disabled={pwBusy} className="w-full gap-2 gradient-brand text-white">
+              {pwBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+              Send Reset Link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Save bar */}
       <div className="sticky bottom-20 z-30 flex justify-end lg:bottom-4">

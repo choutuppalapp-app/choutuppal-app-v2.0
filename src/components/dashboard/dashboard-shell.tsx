@@ -17,6 +17,7 @@ import {
   Crown,
   ShieldCheck,
   Briefcase,
+  MessageCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -28,8 +29,9 @@ import { MyRealEstate } from './my-real-estate'
 import { MyBannersStories } from './my-banners-stories'
 import { Analytics } from './analytics'
 import { AddListingModal } from './add-listing-modal'
+import { MyCommunityPosts } from './my-community-posts'
 
-type TabId = 'overview' | 'profile' | 'listings' | 'realestate' | 'media' | 'analytics'
+type TabId = 'overview' | 'profile' | 'listings' | 'realestate' | 'media' | 'analytics' | 'community'
 
 const NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -37,6 +39,7 @@ const NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'listings', label: 'My Listings', icon: Store },
   { id: 'realestate', label: 'Real Estate', icon: Home },
   { id: 'media', label: 'Banners & Stories', icon: ImageIcon },
+  { id: 'community', label: 'My Posts', icon: MessageCircle },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
@@ -179,6 +182,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
             <MyRealEstate realEstates={data.realEstates} onAdd={() => setAddOpen(true)} />
           ) : null}
           {tab === 'media' ? <MyBannersStories banners={data.banners} stories={data.stories} /> : null}
+          {tab === 'community' ? <MyCommunityPosts posts={data.communityPosts} /> : null}
           {tab === 'analytics' ? <Analytics analytics={data.analytics} /> : null}
         </main>
       </div>

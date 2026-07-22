@@ -3,7 +3,7 @@ import type { User } from '@prisma/client'
 
 /** Fetch everything the dashboard needs in one pass (for the server component). */
 export async function getDashboardData(user: User) {
-  const [listings, realEstates, banners, stories, villages, categories] =
+  const [listings, realEstates, banners, stories, villages, categories, communityPosts] =
     await Promise.all([
       prisma.listing.findMany({
         where: { ownerId: user.id },
@@ -23,17 +23,26 @@ export async function getDashboardData(user: User) {
         where: { ownerId: user.id },
         orderBy: { createdAt: 'desc' },
         include: {
-          _count: { select: { storyViews: true, storyReplies: true } },
+          _count: { select: { storyViews: true, storyReplies: true, storyLikes: true } },
         },
       }),
       prisma.village.findMany({ orderBy: { name: 'asc' } }),
       prisma.category.findMany({ orderBy: { name: 'asc' } }),
+      prisma.communityPost.findMany({
+        where: { authorId: user.id },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: { select: { comments: true, likesRel: true } },
+        },
+      }),
     ])
 
   // Analytics (aggregated from the user's content)
   const totalViews = listings.reduce((s, l) => s + l.views, 0)
   const totalWhatsappClicks = listings.reduce((s, l) => s + l.whatsappClicks, 0)
   const totalClicks = listings.reduce((s, l) => s + l.clicks, 0)
+  // Call clicks = total clicks minus WhatsApp clicks (the rest are call/listing interactions)
+  const totalCallClicks = Math.max(0, totalClicks - totalWhatsappClicks)
   const totalListings = listings.length
   const approvedListings = listings.filter((l) => l.status === 'APPROVED').length
   const pendingListings = listings.filter((l) => l.status === 'PENDING').length
@@ -54,6 +63,7 @@ export async function getDashboardData(user: User) {
       isPublic: user.isPublic,
       role: user.role,
       planTier: user.planTier,
+      politicalTag: user.politicalTag,
       planExpiresAt: user.planExpiresAt,
       villageId: user.villageId,
     },
@@ -61,11 +71,13 @@ export async function getDashboardData(user: User) {
     realEstates,
     banners,
     stories,
+    communityPosts,
     villages,
     categories,
     analytics: {
       totalViews,
       totalWhatsappClicks,
+      totalCallClicks,
       totalClicks,
       totalListings,
       approvedListings,

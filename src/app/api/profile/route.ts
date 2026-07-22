@@ -15,6 +15,7 @@ const Schema = z.object({
   image: z.string().nullable().optional(),
   coverImage: z.string().nullable().optional(),
   isPublic: z.boolean().optional(),
+  politicalTag: z.enum(['NONE', 'BJP', 'CONGRESS', 'BRS', 'CPM']).optional(),
 })
 
 /** PATCH /api/profile — update the current user's profile. */
@@ -60,6 +61,7 @@ export async function PATCH(request: NextRequest) {
     select: {
       id: true, name: true, username: true, email: true, phone: true, bio: true,
       image: true, coverImage: true, isPublic: true, role: true, planTier: true,
+      politicalTag: true,
     },
   })
   return NextResponse.json({ ok: true, user: updated })
@@ -74,6 +76,7 @@ export async function GET() {
     select: {
       id: true, name: true, username: true, email: true, phone: true, bio: true,
       image: true, coverImage: true, isPublic: true, role: true, planTier: true,
+      politicalTag: true,
       planExpiresAt: true, spinCredits: true, createdAt: true, villageId: true,
     },
   })
