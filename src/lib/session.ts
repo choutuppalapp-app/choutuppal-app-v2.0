@@ -45,6 +45,11 @@ export function isAdminRole(role: string): boolean {
   return role === 'ADMIN' || role === 'SUPER_ADMIN'
 }
 
+/** True if the user can access the agent panel (AGENT or ADMIN). */
+export function isAgentRole(role: string): boolean {
+  return role === 'AGENT' || isAdminRole(role)
+}
+
 /** Require an admin in an API route — returns { user } or { error, status }. */
 export async function requireApiAdmin(): Promise<
   { ok: true; user: User } | { ok: false; status: number; error: string }
@@ -57,11 +62,32 @@ export async function requireApiAdmin(): Promise<
   return { ok: true, user: auth.user }
 }
 
+/** Require an agent (or admin) in an API route. */
+export async function requireApiAgent(): Promise<
+  { ok: true; user: User } | { ok: false; status: number; error: string }
+> {
+  const auth = await requireApiUser()
+  if (!auth.ok) return auth
+  if (!isAgentRole(auth.user.role)) {
+    return { ok: false, status: 403, error: 'Agent access required' }
+  }
+  return { ok: true, user: auth.user }
+}
+
 /** Require an admin in a Server Component — redirects non-admins to /. */
 export async function requireAdmin(): Promise<User> {
   const user = await getCurrentUser()
   if (!user) throw new Error('UNAUTHENTICATED')
   if (user.isBanned) throw new Error('BANNED')
   if (!isAdminRole(user.role)) throw new Error('FORBIDDEN')
+  return user
+}
+
+/** Require an agent (or admin) in a Server Component. */
+export async function requireAgent(): Promise<User> {
+  const user = await getCurrentUser()
+  if (!user) throw new Error('UNAUTHENTICATED')
+  if (user.isBanned) throw new Error('BANNED')
+  if (!isAgentRole(user.role)) throw new Error('FORBIDDEN')
   return user
 }
