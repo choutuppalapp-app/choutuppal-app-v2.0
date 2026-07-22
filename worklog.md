@@ -156,3 +156,39 @@ Stage Summary:
 - Both deliverables complete and verified. The full platform now has: Home, Login/Signup, Dashboard (profile/listings/RE/banners-stories/analytics + add-listing modal), Business mini-website (SEO + WhatsApp actions), and Admin Panel (stats/approvals/users/settings).
 - Known limitation: Agent Browser (Chromium) cannot run alongside the dev server on this 4GB box — OOM-kills the process during fresh route compiles. All verification done via curl with cookie handling.
 - Next steps (per master blueprint): /community page (text posts + political tags), /agent panel (CSV upload, leads, news/blog editor), YouTube sync, and wiring the announcement ticker to the admin-controlled Setting value.
+
+---
+Task ID: 7
+Agent: orchestrator (main)
+Task: Build the Agent Panel (/agent) — CSV bulk upload, lead tracking, news/blog rich text editor.
+
+Work Log:
+- Task 7-a: Installed papaparse + @types/papaparse. Added agent role helpers to src/lib/session.ts: isAgentRole (AGENT or ADMIN), requireApiAgent (API 403), requireAgent (Server Component redirect).
+- Task 7-b: Agent backend APIs (all session-guarded via requireApiAgent):
+  - POST /api/agent/csv-import — papaparse server-side parse, header mapping (name/title, category, phone, whatsapp, address, location, village, email, website, description/about, map/maplink), bulk-insert as PENDING listings, category/village name→id lookup. Returns {added, skipped, errors}.
+  - GET /api/agent/leads — analytics for the agent's own listings: total views, WhatsApp clicks, total clicks, approved/pending counts, per-listing breakdown, recent leads.
+  - POST /api/agent/news (type: news|blog) — creates post with status PENDING (isPublished:false), auto-slug, R2 image. GET /api/agent/news?type= lists own posts. DELETE /api/agent/news/[id]?type= deletes post + R2 image.
+- Task 7-c: src/app/agent/page.tsx — server component with requireAgent guard (redirect /login or /).
+- Task 7-d: src/components/agent/agent-panel.tsx — 3 tabs:
+  - CSV Import: drag-drop zone (.csv), file preview, Download Template button, column-mapping help, success toast with count.
+  - Leads: 4 stat cards (total listings, views, WhatsApp clicks, total clicks) + per-listing performance table with status badges + links to /business/[slug].
+  - News & Blog Editor: WordPress/Blogger-style two-column — main editor (title, auto-slug, rich content) + sidebar (Publish, Featured Image R2 upload, SEO meta title/description, tags). Existing posts list with delete. News/Blog type toggle.
+- Task 7-e: src/components/agent/rich-text-editor.tsx — lightweight contentEditable + execCommand editor (deliberately avoids Tiptap/Lexical to keep the 4GB host stable). Toolbar: H1, H2, Bold, Italic, Bullet/Numbered lists, Blockquote, Table (rows×cols prompt), Link, Undo/Redo. Styled tables/quotes/headings via Tailwind arbitrary variants on the editable surface.
+- Fix: removed invalid `include: { listing }` from leads query (Lead.listingId has no relation — plain field).
+- Lint fixes: refactored LeadsTab/EditorTab useEffect to avoid setState-in-effect rule; inlined rich-text toolbar buttons to avoid react-hooks/refs rule (handlers that close over ref must be in event handlers, not passed as props).
+
+Verification (via curl — 4GB sandbox OOMs under concurrent compiles):
+- /agent without auth → 307 redirect /login ✓
+- Login (demo@choutuppal.app / demo1234, ADMIN) → 200 ✓
+- /agent with admin session → 200, 46KB, all 3 tabs (CSV Import, Leads, News & Blog) ✓
+- /api/agent/leads → 200 {totalListings:9, approved:9, totalViews:2326, per-listing breakdown...} ✓
+- CSV import (3 rows: Test CSV Shop 1/2/3) → {ok:true, added:3, skipped:0, errors:[]} ✓
+- POST /api/agent/news (news) → 201 {slug:'test-news-from-agent', isPublished:false, content preserved with HTML} ✓
+- bun run lint → clean (0 errors, 0 warnings)
+
+Stage Summary:
+- Agent panel complete and verified. Committed locally. .env untracked (secrets protected).
+- The platform now has all 6 main routes: Home (/), Login (/login), Dashboard (/dashboard), Business mini-website (/business/[slug]), Admin (/admin), Agent (/agent).
+- Demo login: demo@choutuppal.app / demo1234 (ADMIN role — can access both /admin and /agent).
+- Known limitation: 4GB sandbox OOM-kills the dev server when multiple fresh route compiles happen concurrently. All verification done via curl with cookie handling. The app runs stably for normal single-user preview.
+- Remaining blueprint items: /community page (text posts + political tags BJP/Congress/BRS/CPM, public profiles only), YouTube sync for Shorts, and wiring the admin-controlled announcement_ticker Setting to the home Ticker component.
