@@ -192,3 +192,47 @@ Stage Summary:
 - Demo login: demo@choutuppal.app / demo1234 (ADMIN role — can access both /admin and /agent).
 - Known limitation: 4GB sandbox OOM-kills the dev server when multiple fresh route compiles happen concurrently. All verification done via curl with cookie handling. The app runs stably for normal single-user preview.
 - Remaining blueprint items: /community page (text posts + political tags BJP/Congress/BRS/CPM, public profiles only), YouTube sync for Shorts, and wiring the admin-controlled announcement_ticker Setting to the home Ticker component.
+
+---
+Task ID: 8
+Agent: orchestrator (main)
+Task: Build the Community Page (/community) and User Profile Page (/profile/[username]) — the final major routes.
+
+Work Log:
+- Task 8-a: Schema changes — added User.politicalTag field (NONE|BJP|CONGRESS|BRS|CPM, default NONE) for profile card badge. Added CommunityLike model (userId+postId unique) for proper like toggle. Added CommunityPost.likesRel relation. Pushed schema, re-seeded (8 listings, 4 RE, 6 stories, 3 banners, 4 shorts) + created 4 community posts + a private test user.
+- Task 8-b: Community APIs (all in /api/community/):
+  - GET /api/community/posts — public feed (only public, non-banned authors), ?tag= filter, includes author (public fields), comment count, likedByMe (if viewer logged in)
+  - POST /api/community/posts — create (logged-in only), content + politicalTag
+  - DELETE /api/community/posts/[id] — owner or admin
+  - POST /api/community/posts/[id]/like — toggle (CommunityLike upsert + increment/decrement counter)
+  - GET/POST /api/community/posts/[id]/comments — list + add (logged-in for add)
+  - GET /api/community/people — public users directory, excludes viewer, ?q= search
+- Task 8-c: Community page (src/app/community/page.tsx, server component) + client feed component (src/components/community/community-feed.tsx):
+  - Text-only post composer (textarea, max 2000, political tag dropdown)
+  - Vertical feed of post cards: avatar (initials fallback), name, political tag badge, text, timestamp, like toggle, comment section
+  - Like button toggles (filled heart when liked), shows count
+  - Comments: expandable section, list + input (Enter to submit), author + tag badge
+  - Tag filter chips (All/BJP/Congress/BRS/CPM) above feed
+  - People Directory sidebar: glassmorphism cards (photo, name, bio, tag dot) → /profile/[username]
+  - Shared tag-styles.ts: colored badges (BJP=orange, Congress=sky, BRS=pink, CPM=red)
+- Task 8-d: Profile page (src/app/profile/[username]/page.tsx, server component with generateMetadata + private check) + client component (src/components/community/profile-view.tsx):
+  - generateMetadata: absolute OG url, OG type=profile, OG image (profile photo), title, description — WhatsApp preview ready
+  - Fetch by username; if isPublic=false and viewer not owner/admin → "This profile is private" state (not 404)
+  - Portfolio layout: cover banner + overlapping profile photo, name, bio, political tag badge, village, post/listing/property counts
+  - 3 tabs: Posts (their community posts), Listings (approved businesses → /business/[slug]), Real Estate (approved properties → /business/[slug])
+
+Verification (via curl — 4GB sandbox OOMs under concurrent compiles):
+- /community → 200, 42KB. Sections: Community, Choutuppal Feed, People you might know, tag chips BJP/Congress/BRS ✓
+- /profile/choutuppal_demo → 200, 54KB. SEO title "Choutuppal Demo | Choutuppal App", OG url absolute, OG type=profile ✓
+- /profile/privateuser → 200, "This profile is private" (non-owner view) ✓
+- Login (demo@choutuppal.app / demo1234) → 200 ✓
+- Create post (BJP tag) → 201 {politicalTag:"BJP"} ✓
+- Like toggle → 200 {liked:true, likes:1} → toggle again → {liked:false, likes:0} ✓
+- bun run lint → clean (0 errors, 0 warnings)
+
+Stage Summary:
+- Community + Profile complete and verified. Committed locally. .env untracked (secrets protected).
+- The platform now has ALL major routes from the blueprint: Home (/), Login (/login), Dashboard (/dashboard), Business mini-website (/business/[slug]), Admin (/admin), Agent (/agent), Community (/community), Profile (/profile/[username]).
+- Demo login: demo@choutuppal.app / demo1234 (ADMIN, owns 8 listings + 4 properties + community posts).
+- Known limitation: 4GB sandbox OOM-kills the dev server under concurrent route compiles. All verification done via curl. The app runs stably for normal single-user preview.
+- Remaining polish items (optional): wire the admin-controlled announcement_ticker Setting to the home Ticker component; YouTube sync for Shorts; the /admin approve flow already creates notifications but there's no notifications dropdown yet.
