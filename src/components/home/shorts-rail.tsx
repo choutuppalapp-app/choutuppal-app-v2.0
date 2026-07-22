@@ -1,6 +1,7 @@
 'use client'
 
-import { Play, ChevronRight } from 'lucide-react'
+import { useState } from 'react'
+import { Play, ChevronRight, X, Eye, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SectionHeading } from './section-heading'
 import type { Short } from '@prisma/client'
@@ -16,9 +17,19 @@ function thumbUrl(youtubeId: string | null, fallback: string) {
   return fallback
 }
 
+function embedUrl(youtubeId: string | null, videoUrl: string): string {
+  if (youtubeId) return `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`
+  // Fallback: try to extract a video ID from a watch URL
+  const m = videoUrl.match(/[?&]v=([^&]+)/)
+  if (m) return `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0`
+  return videoUrl
+}
+
 export function ShortsRail({ shorts }: ShortsRailProps) {
+  const [active, setActive] = useState<number | null>(null)
+
   return (
-    <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
+    <section id="shorts" className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
         eyebrow="Watch"
         title="Shorts & Reels"
@@ -34,14 +45,12 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
         }
       />
       <div className="no-scrollbar mt-5 flex gap-4 overflow-x-auto pb-2">
-        {shorts.map((s) => {
+        {shorts.map((s, i) => {
           const owner = s.owner.username ?? s.owner.name ?? 'Choutuppal'
           return (
-            <a
+            <button
               key={s.id}
-              href={s.videoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              onClick={() => setActive(i)}
               className="hover-lift group relative block h-56 w-32 shrink-0 overflow-hidden rounded-2xl glass sm:h-64 sm:w-36"
             >
               <div className="relative h-full w-full overflow-hidden">
@@ -60,12 +69,49 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
                     {s.title ?? 'Short'}
                   </p>
                   <p className="mt-0.5 text-[10px] text-white/70">@{owner}</p>
+                  <div className="mt-1 flex items-center gap-2 text-[9px] text-white/60">
+                    <span className="flex items-center gap-0.5"><Eye className="h-2.5 w-2.5" /> {s.views}</span>
+                    <span className="flex items-center gap-0.5"><Heart className="h-2.5 w-2.5" /> {s.likes}</span>
+                  </div>
                 </div>
               </div>
-            </a>
+            </button>
           )
         })}
       </div>
+
+      {/* In-app YouTube iframe player (modal) */}
+      {active !== null && shorts[active] ? (
+        <div
+          className="fixed inset-0 z-[100] grid place-items-center bg-black/90 backdrop-blur-sm"
+          onClick={() => setActive(null)}
+        >
+          <button
+            aria-label="Close"
+            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <div
+            className="relative aspect-[9/16] h-[80vh] max-h-[80vh] w-auto overflow-hidden rounded-2xl bg-black shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <iframe
+              src={embedUrl(shorts[active].youtubeId, shorts[active].videoUrl)}
+              title={shorts[active].title ?? 'Short'}
+              className="h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+              <p className="text-sm font-semibold text-white">{shorts[active].title ?? 'Short'}</p>
+              <p className="text-xs text-white/70">
+                @{shorts[active].owner.username ?? shorts[active].owner.name ?? 'Choutuppal'}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }

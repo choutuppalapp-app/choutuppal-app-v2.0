@@ -11,6 +11,7 @@ const SignupSchema = z.object({
   identifier: z.string().min(4), // email or phone
   password: z.string().min(6).max(72),
   username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_.]+$/).optional(),
+  villageId: z.string().optional(),
 })
 
 /** POST /api/auth/signup — register with email-or-phone + password. */
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     )
   }
-  const { name, identifier, password, username } = parsed.data
+  const { name, identifier, password, username, villageId } = parsed.data
   const key = identifier.trim()
   const isEmail = key.includes('@')
 
@@ -65,6 +66,7 @@ export async function POST(request: NextRequest) {
       username: username ?? null,
       passwordHash,
       role: 'USER',
+      villageId: villageId ?? null,
     },
     select: { id: true, email: true, username: true, name: true },
   })

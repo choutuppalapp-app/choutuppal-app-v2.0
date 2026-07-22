@@ -106,6 +106,16 @@ function LoginInner() {
     return () => { active = false }
   }, [searchParams, router])
 
+  // ---- Fetch villages for the signup form -----------------------------------
+  useEffect(() => {
+    let active = true
+    fetch('/api/villages')
+      .then((r) => r.json())
+      .then((j) => { if (active && j.ok) setVillages(j.villages) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
+
   // ---- Active tab -----------------------------------------------------------
   const [tab, setTab] = useState<'login' | 'signup'>('login')
 
@@ -122,6 +132,8 @@ function LoginInner() {
   const [suIdentifier, setSuIdentifier] = useState('')
   const [suPassword, setSuPassword] = useState('')
   const [suConfirm, setSuConfirm] = useState('')
+  const [suVillage, setSuVillage] = useState('')
+  const [villages, setVillages] = useState<Array<{ id: string; name: string }>>([])
   const [suError, setSuError] = useState('')
   const [suLoading, setSuLoading] = useState(false)
   const [suGoogleLoading, setSuGoogleLoading] = useState(false)
@@ -222,6 +234,7 @@ function LoginInner() {
           identifier: suIdentifier.trim(),
           password: suPassword,
           username: suUsername.trim() || undefined,
+          villageId: suVillage || undefined,
         }),
       })
 
@@ -624,6 +637,23 @@ function LoginInner() {
                     disabled={suLoading || suGoogleLoading}
                     className="h-11 bg-white/80"
                   />
+                </div>
+
+                {/* Village */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="su-village">Village</Label>
+                  <select
+                    id="su-village"
+                    value={suVillage}
+                    onChange={(e) => setSuVillage(e.target.value)}
+                    disabled={suLoading || suGoogleLoading || villages.length === 0}
+                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white/80 px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
+                  >
+                    <option value="">{villages.length === 0 ? 'Loading villages…' : 'Select your village'}</option>
+                    {villages.map((v) => (
+                      <option key={v.id} value={v.id}>{v.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 {suError && (

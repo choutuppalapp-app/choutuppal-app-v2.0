@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Home,
   Trash2,
+  Newspaper,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -37,6 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { ContentTab } from './content-tab'
 
 interface Stats {
   totalUsers: number
@@ -115,12 +117,15 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 
       <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 lg:px-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6">
             <TabsTrigger value="overview" className="gap-1.5 text-xs sm:text-sm">
               <Home className="h-3.5 w-3.5" /> Overview
             </TabsTrigger>
             <TabsTrigger value="approvals" className="gap-1.5 text-xs sm:text-sm">
               <Clock className="h-3.5 w-3.5" /> Approvals
+            </TabsTrigger>
+            <TabsTrigger value="content" className="gap-1.5 text-xs sm:text-sm">
+              <Newspaper className="h-3.5 w-3.5" /> Content
             </TabsTrigger>
             <TabsTrigger value="stories" className="gap-1.5 text-xs sm:text-sm">
               <ImageIcon className="h-3.5 w-3.5" /> Stories
@@ -135,6 +140,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 
           <TabsContent value="overview"><OverviewTab /></TabsContent>
           <TabsContent value="approvals"><ApprovalsTab /></TabsContent>
+          <TabsContent value="content"><ContentTab /></TabsContent>
           <TabsContent value="stories"><StoriesTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="settings"><SettingsTab /></TabsContent>
@@ -699,6 +705,51 @@ function SettingsTab() {
           onChange={(e) => update('banner_price', e.target.value)}
           className="max-w-[160px]"
         />
+      </div>
+
+      {/* Integrations: API keys, GA4, FB Pixel */}
+      <div className="rounded-3xl glass p-5">
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
+          <KeyRound className="h-4 w-4 text-blue-500" /> Integrations & API Keys
+        </h3>
+        <div className="space-y-3">
+          <div>
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">Google Analytics 4 (GA4) Measurement ID</Label>
+            <Input
+              value={settings.ga4_id ?? ''}
+              onChange={(e) => update('ga4_id', e.target.value)}
+              placeholder="G-XXXXXXXXXX"
+              className="font-mono text-xs"
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">Facebook Pixel ID</Label>
+            <Input
+              value={settings.fb_pixel_id ?? ''}
+              onChange={(e) => update('fb_pixel_id', e.target.value)}
+              placeholder="123456789012345"
+              className="font-mono text-xs"
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">Google Maps API Key</Label>
+            <Input
+              value={settings.google_maps_key ?? ''}
+              onChange={(e) => update('google_maps_key', e.target.value)}
+              placeholder="AIzaSy…"
+              className="font-mono text-xs"
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">YouTube API Key (for Shorts sync)</Label>
+            <Input
+              value={settings.youtube_api_key ?? ''}
+              onChange={(e) => update('youtube_api_key', e.target.value)}
+              placeholder="AIzaSy…"
+              className="font-mono text-xs"
+            />
+          </div>
+        </div>
       </div>
     </div>
   )

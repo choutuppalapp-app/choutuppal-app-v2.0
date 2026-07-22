@@ -55,3 +55,4 @@ server.log
 # local data & verification artifacts
 db/
 .verify/
+tool-results/

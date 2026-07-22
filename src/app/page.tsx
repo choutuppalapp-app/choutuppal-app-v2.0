@@ -11,6 +11,7 @@ import { SpinWin } from '@/components/home/spin-win'
 import { ShortsRail } from '@/components/home/shorts-rail'
 import { Testimonials } from '@/components/home/testimonials'
 import { PricingPlans } from '@/components/home/pricing-plans'
+import { AgentCityCTA } from '@/components/home/agent-city-cta'
 import { SiteFooter } from '@/components/home/site-footer'
 import { BottomNav } from '@/components/home/bottom-nav'
 
@@ -71,6 +72,9 @@ export default async function Home() {
           <div id="pricing">
             <PricingPlans />
           </div>
+
+          {/* 12. Agent & City Expansion CTAs */}
+          <AgentCityCTA />
 
           {/* Explore anchor target (mobile bottom nav) */}
           <div id="explore" className="scroll-mt-20" />
