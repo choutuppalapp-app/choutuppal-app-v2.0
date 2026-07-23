@@ -6,7 +6,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
- * PATCH /api/admin/approve/[id]?type=listing|realestate
+ * PATCH /api/admin/approve/[id]?type=listing|realestate|banner
  * Sets status to APPROVED.
  */
 export async function PATCH(
@@ -18,6 +18,27 @@ export async function PATCH(
 
   const { id } = await params
   const type = request.nextUrl.searchParams.get('type') ?? 'listing'
+
+  if (type === 'banner') {
+    const item = await prisma.banner.findUnique({ where: { id } })
+    if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    const updated = await prisma.banner.update({
+      where: { id },
+      data: { status: 'APPROVED' },
+    })
+    if (item.ownerId) {
+      await prisma.notification.create({
+        data: {
+          userId: item.ownerId,
+          type: 'LISTING_APPROVED',
+          title: 'Banner Approved',
+          message: `Your banner "${item.title ?? 'Ad'}" is now live on the Home page.`,
+          link: '/',
+        },
+      }).catch(() => {})
+    }
+    return NextResponse.json({ ok: true, item: updated })
+  }
 
   if (type === 'realestate') {
     const item = await prisma.realEstate.findUnique({ where: { id } })

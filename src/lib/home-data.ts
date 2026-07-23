@@ -16,7 +16,7 @@ export async function getActiveStories() {
 
 export async function getActiveBanners() {
   return prisma.banner.findMany({
-    where: { expiresAt: { gt: new Date() } },
+    where: { expiresAt: { gt: new Date() }, status: 'APPROVED' },
     orderBy: { createdAt: 'desc' },
     take: 6,
   })

@@ -342,6 +342,8 @@ model Banner {
   link     String?
   // position: HOME_TOP | HOME_MIDDLE | SIDEBAR
   position String @default("HOME_TOP")
+  // status: PENDING | APPROVED | REJECTED
+  status   String @default("PENDING")
   clicks   Int    @default(0)
   expiresAt DateTime // <-- cron deletes R2 file first, then this row
   ownerId  String?

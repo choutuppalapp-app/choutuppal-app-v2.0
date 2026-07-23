@@ -349,6 +349,7 @@ async function main() {
         title: b.title,
         link: b.link,
         position: b.position,
+        status: 'APPROVED',
         expiresAt: hoursFromNow(24 + Math.floor(Math.random() * 4)),
         ownerId: owner.id,
       },

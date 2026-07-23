@@ -75,6 +75,16 @@ interface PendingRE extends Omit<PendingListing, 'category'> {
   address: string
 }
 
+interface PendingBanner {
+  id: string
+  imageUrl: string
+  title: string | null
+  link: string | null
+  position: string
+  createdAt: string
+  owner: { id: string; name: string | null; username: string | null; email: string }
+}
+
 interface AdminUser {
   id: string
   name: string | null
@@ -214,6 +224,7 @@ function OverviewTab() {
 function ApprovalsTab() {
   const [listings, setListings] = useState<PendingListing[]>([])
   const [realEstates, setRealEstates] = useState<PendingRE[]>([])
+  const [banners, setBanners] = useState<PendingBanner[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
 
@@ -225,6 +236,7 @@ function ApprovalsTab() {
         if (j.ok) {
           setListings(j.listings)
           setRealEstates(j.realEstates)
+          setBanners(j.banners ?? [])
         }
       })
       .finally(() => setLoading(false))
@@ -232,7 +244,7 @@ function ApprovalsTab() {
 
   useEffect(() => { load() }, [load])
 
-  async function approve(id: string, type: 'listing' | 'realestate') {
+  async function approve(id: string, type: 'listing' | 'realestate' | 'banner') {
     setBusy(id)
     try {
       const res = await fetch(`/api/admin/approve/${id}?type=${type}`, { method: 'PATCH' })
@@ -240,7 +252,8 @@ function ApprovalsTab() {
       if (!res.ok || !j.ok) throw new Error(j.error || 'Failed')
       toast.success('Approved')
       if (type === 'listing') setListings((p) => p.filter((l) => l.id !== id))
-      else setRealEstates((p) => p.filter((r) => r.id !== id))
+      else if (type === 'realestate') setRealEstates((p) => p.filter((r) => r.id !== id))
+      else setBanners((p) => p.filter((b) => b.id !== id))
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed')
     } finally {
@@ -248,7 +261,7 @@ function ApprovalsTab() {
     }
   }
 
-  async function reject(id: string, type: 'listing' | 'realestate') {
+  async function reject(id: string, type: 'listing' | 'realestate' | 'banner') {
     if (!confirm('Reject and delete this submission? Its media will be removed.')) return
     setBusy(id)
     try {
@@ -257,7 +270,8 @@ function ApprovalsTab() {
       if (!res.ok || !j.ok) throw new Error(j.error || 'Failed')
       toast.success('Rejected & deleted')
       if (type === 'listing') setListings((p) => p.filter((l) => l.id !== id))
-      else setRealEstates((p) => p.filter((r) => r.id !== id))
+      else if (type === 'realestate') setRealEstates((p) => p.filter((r) => r.id !== id))
+      else setBanners((p) => p.filter((b) => b.id !== id))
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed')
     } finally {
@@ -267,7 +281,7 @@ function ApprovalsTab() {
 
   if (loading) return <CenteredLoader />
 
-  const empty = listings.length === 0 && realEstates.length === 0
+  const empty = listings.length === 0 && realEstates.length === 0 && banners.length === 0
 
   return (
     <div className="space-y-6">
@@ -275,7 +289,7 @@ function ApprovalsTab() {
         <div>
           <h2 className="text-lg font-bold text-slate-900">Pending Approvals</h2>
           <p className="text-sm text-slate-500">
-            {listings.length} listings · {realEstates.length} properties awaiting review
+            {listings.length} listings · {realEstates.length} properties · {banners.length} banners awaiting review
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={load} className="gap-1.5">
@@ -336,6 +350,31 @@ function ApprovalsTab() {
                 busy={busy === r.id}
                 onApprove={() => approve(r.id, 'realestate')}
                 onReject={() => reject(r.id, 'realestate')}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Banners */}
+      {banners.length > 0 ? (
+        <section className="space-y-3">
+          <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
+            <Megaphone className="h-4 w-4 text-blue-500" /> Banner Ads
+          </h3>
+          <div className="grid gap-3 lg:grid-cols-2">
+            {banners.map((b) => (
+              <ApprovalCard
+                key={b.id}
+                title={b.title ?? 'Untitled Banner'}
+                desc={`Position: ${b.position}${b.link ? ' · Link: ' + b.link : ''}`}
+                cover={b.imageUrl}
+                meta={`by ${b.owner.name ?? b.owner.email}`}
+                owner={b.owner.name ?? b.owner.email}
+                createdAt={b.createdAt}
+                busy={busy === b.id}
+                onApprove={() => approve(b.id, 'banner')}
+                onReject={() => reject(b.id, 'banner')}
               />
             ))}
           </div>
@@ -707,15 +746,30 @@ function SettingsTab() {
 
       {/* Banner price */}
       <div className="rounded-3xl glass p-5">
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
-          <Store className="h-4 w-4 text-amber-500" /> Banner Ad Price (₹/day)
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
+          <Store className="h-4 w-4 text-amber-500" /> Banner Ad Pricing
         </h3>
-        <Input
-          type="number"
-          value={settings.banner_price ?? '99'}
-          onChange={(e) => update('banner_price', e.target.value)}
-          className="max-w-[160px]"
-        />
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold text-slate-600">
+            {settings.banner_free === 'true' ? 'FREE (Early Bird)' : `₹${settings.banner_price ?? '99'}/day`}
+          </span>
+          <Switch
+            checked={settings.banner_free === 'true'}
+            onCheckedChange={(v) => update('banner_free', v ? 'true' : 'false')}
+          />
+          <span className="text-xs text-slate-400">Toggle Free/Paid</span>
+        </div>
+        {settings.banner_free !== 'true' ? (
+          <div className="mt-3">
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">Price (₹/day)</Label>
+            <Input
+              type="number"
+              value={settings.banner_price ?? '99'}
+              onChange={(e) => update('banner_price', e.target.value)}
+              className="max-w-[160px]"
+            />
+          </div>
+        ) : null}
       </div>
 
       {/* Integrations: API keys, GA4, FB Pixel */}

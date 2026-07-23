@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
- * DELETE /api/admin/reject/[id]?type=listing|realestate
+ * DELETE /api/admin/reject/[id]?type=listing|realestate|banner
  * Rejects: deletes the DB record AND its media from R2.
  */
 export async function DELETE(
@@ -19,6 +19,26 @@ export async function DELETE(
 
   const { id } = await params
   const type = request.nextUrl.searchParams.get('type') ?? 'listing'
+
+  if (type === 'banner') {
+    const item = await prisma.banner.findUnique({ where: { id } })
+    if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    // Delete R2 image first.
+    const k = keyFromUrl(item.imageUrl)
+    if (k) await deleteFromR2(k).catch(() => {})
+    await prisma.banner.delete({ where: { id } })
+    if (item.ownerId) {
+      await prisma.notification.create({
+        data: {
+          userId: item.ownerId,
+          type: 'LISTING_REJECTED',
+          title: 'Banner Rejected',
+          message: `Your banner "${item.title ?? 'Ad'}" was not approved.`,
+        },
+      }).catch(() => {})
+    }
+    return NextResponse.json({ ok: true })
+  }
 
   if (type === 'realestate') {
     const item = await prisma.realEstate.findUnique({ where: { id } })

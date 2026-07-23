@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
+import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Megaphone, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -10,21 +11,61 @@ interface BannerCarouselProps {
   banners: Banner[]
 }
 
+/** Default promotional banners shown when no user banners are active. */
+const DEFAULT_BANNERS = [
+  {
+    id: 'default-1',
+    title: 'Choutuppal App v2.0 is Now Live!',
+    imageUrl: null as string | null,
+    link: '/login',
+  },
+  {
+    id: 'default-2',
+    title: 'List Your Business FREE — Early Bird Offer',
+    imageUrl: null as string | null,
+    link: '/dashboard',
+  },
+  {
+    id: 'default-3',
+    title: 'Spin & Win Daily Rewards',
+    imageUrl: null as string | null,
+    link: '/#spin',
+  },
+]
+
 export function BannerCarousel({ banners }: BannerCarouselProps) {
   const [index, setIndex] = useState(0)
-  const count = banners.length
-  const current = banners[index]
+  // Use user banners if any are active+approved, else fall back to defaults.
+  const active = banners.length > 0 ? banners : DEFAULT_BANNERS
+  const count = active.length
+  const current = active[index]
+  const isUserBanner = banners.length > 0
 
   const go = (dir: number) => {
     if (count === 0) return
     setIndex((i) => (i + dir + count) % count)
   }
 
+  // Click tracking — fire-and-forget POST when a user clicks a banner CTA.
+  const trackClick = useCallback(() => {
+    if (isUserBanner && current?.id) {
+      fetch(`/api/banners/${current.id}/click`, { method: 'POST' }).catch(() => {})
+    }
+  }, [isUserBanner, current])
+
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <div className="relative overflow-hidden rounded-3xl">
         {/* 16:9 glossy banner */}
         <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl shimmer gradient-brand">
+          {/* Uploaded banner image (object-cover prevents zoom/pixelation) */}
+          {current?.imageUrl ? (
+            <img
+              src={current.imageUrl}
+              alt={current.title ?? 'Banner Ad'}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : null}
           {/* decorative gloss */}
           <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white/20 blur-2xl" />
           <div className="absolute -bottom-12 right-10 h-48 w-48 rounded-full bg-amber-300/30 blur-3xl" />
@@ -39,6 +80,11 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               <span className="rounded-full bg-amber-400 px-2.5 py-1 text-[11px] font-bold text-amber-950">
                 ₹99/day
               </span>
+              {!isUserBanner ? (
+                <span className="rounded-full bg-emerald-400 px-2.5 py-1 text-[11px] font-bold text-emerald-950">
+                  Early Bird FREE
+                </span>
+              ) : null}
             </div>
 
             <div className="max-w-xl">
@@ -52,16 +98,20 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Button
-                size="lg"
-                className="gap-2 bg-white text-blue-700 hover:bg-amber-50 hover:text-blue-800"
-              >
-                <Megaphone className="h-4 w-4" />
-                Promote Your Business
-              </Button>
+              {current?.link ? (
+                <Link href={current.link} onClick={trackClick}>
+                  <Button
+                    size="lg"
+                    className="gap-2 bg-white text-blue-700 hover:bg-amber-50 hover:text-blue-800"
+                  >
+                    <Megaphone className="h-4 w-4" />
+                    Learn More
+                  </Button>
+                </Link>
+              ) : null}
               {count > 1 ? (
                 <div className="flex items-center gap-1.5">
-                  {banners.map((_, i) => (
+                  {active.map((_, i) => (
                     <button
                       key={i}
                       aria-label={`Go to banner ${i + 1}`}
@@ -101,14 +151,17 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
         </div>
       </div>
 
+      {/* CTA below the carousel — links to /dashboard */}
       <div className="mt-4 flex justify-center">
-        <Button
-          variant="outline"
-          className="gap-2 border-blue-200 bg-white/70 text-blue-700 hover:bg-blue-50"
-        >
-          <Megaphone className="h-4 w-4" />
-          Promote Your Business
-        </Button>
+        <Link href="/dashboard">
+          <Button
+            variant="outline"
+            className="gap-2 border-blue-200 bg-white/70 text-blue-700 hover:bg-blue-50"
+          >
+            <Megaphone className="h-4 w-4" />
+            Promote Your Business
+          </Button>
+        </Link>
       </div>
     </section>
   )
