@@ -95,5 +95,23 @@ export default async function BusinessPage({
   const data = await getListing(slug)
   if (!data) notFound()
 
-  return <ListingDetailView data={data} />
+  // Fetch 6 related listings from the same category (excluding current).
+  const related = data.listing.categoryId
+    ? await prisma.listing.findMany({
+        where: {
+          status: 'APPROVED',
+          categoryId: data.listing.categoryId,
+          id: { not: data.listing.id },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 6,
+        select: {
+          id: true, slug: true, title: true, coverImage: true, logo: true,
+          views: true, isFeatured: true,
+          village: { select: { name: true } },
+        },
+      })
+    : []
+
+  return <ListingDetailView data={data} related={related} />
 }

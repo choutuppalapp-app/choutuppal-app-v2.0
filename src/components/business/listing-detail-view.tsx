@@ -32,7 +32,24 @@ interface ListingDetailData {
   isAdmin: boolean
 }
 
-export function ListingDetailView({ data }: { data: ListingDetailData }) {
+export interface RelatedListing {
+  id: string
+  slug: string
+  title: string
+  coverImage: string | null
+  logo: string | null
+  views: number
+  isFeatured: boolean
+  village: { name: string } | null
+}
+
+export function ListingDetailView({
+  data,
+  related = [],
+}: {
+  data: ListingDetailData
+  related?: RelatedListing[]
+}) {
   const { listing, isOwner, isAdmin } = data
   const gallery = (listing.gallery as string[] | null) ?? []
   const services = (listing.servicesCatalog as Array<{
@@ -264,6 +281,45 @@ export function ListingDetailView({ data }: { data: ListingDetailData }) {
           </aside>
         </div>
       </div>
+
+      {/* Related Listings — "ఇంకా ఇవి కూడా చూడండి" */}
+      {related.length > 0 ? (
+        <section className="mx-auto max-w-6xl px-3 sm:px-4 lg:px-6">
+          <h2 className="font-telugu mb-3 text-lg font-bold text-slate-900">
+            ఇంకా ఇవి కూడా చూడండి
+          </h2>
+          <div className="no-scrollbar -mx-3 flex gap-4 overflow-x-auto px-3 pb-2">
+            {related.map((r) => (
+              <Link
+                key={r.id}
+                href={`/business/${r.slug}`}
+                className="hover-lift group w-[200px] shrink-0 overflow-hidden rounded-2xl glass"
+              >
+                <div className="relative aspect-[16/9] overflow-hidden">
+                  {r.coverImage || r.logo ? (
+                    <img src={(r.coverImage || r.logo)!} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                  ) : (
+                    <div className="grid h-full w-full place-items-center gradient-brand text-2xl font-black text-white">
+                      {r.title.charAt(0)}
+                    </div>
+                  )}
+                  {r.isFeatured ? (
+                    <span className="absolute right-2 top-2 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">
+                      Premium
+                    </span>
+                  ) : null}
+                </div>
+                <div className="p-3">
+                  <h3 className="truncate text-sm font-bold text-slate-900">{r.title}</h3>
+                  <p className="mt-0.5 text-[11px] text-slate-400">
+                    {r.village?.name ?? 'Choutuppal'} · {r.views} views
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* Sticky mobile action bar */}
       <MobileActionBar listing={listing} />
