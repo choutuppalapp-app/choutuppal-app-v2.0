@@ -1,22 +1,14 @@
 import Link from 'next/link'
-import { MapPin, Phone, Facebook, Instagram, Youtube, Send } from 'lucide-react'
-
-const LINKS = [
-  { label: 'News', href: '/?cat=news' },
-  { label: 'Blog', href: '/?cat=blogs' },
-  { label: 'Community', href: '/?cat=community' },
-  { label: 'List Business', href: '/login' },
-  { label: 'Pricing', href: '/#pricing' },
-]
+import { MapPin, Phone, MessageCircle, Mail, Facebook, Instagram, Youtube, Send } from 'lucide-react'
 
 export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-white/40 bg-white/70 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid gap-8 md:grid-cols-3">
-          {/* Brand */}
+          {/* Column 1 — Pages */}
           <div>
-            <div className="flex items-center gap-2">
+            <div className="mb-3 flex items-center gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-xl gradient-brand text-lg font-black text-white shadow">
                 C
               </span>
@@ -24,16 +16,36 @@ export function SiteFooter() {
                 Choutuppal App
               </span>
             </div>
-            <p className="mt-3 max-w-xs text-sm text-slate-500">
-              The local marketplace & community platform for Choutuppal and
-              nearby villages in Yadadri Bhuvanagiri, Telangana.
-            </p>
+            <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-900">
+              Pages
+            </h4>
+            <ul className="space-y-2">
+              <li><Link href="/" className="text-sm text-slate-500 transition hover:text-blue-600">Home</Link></li>
+              <li><Link href="/news" className="text-sm text-slate-500 transition hover:text-blue-600">News</Link></li>
+              <li><Link href="/blog" className="text-sm text-slate-500 transition hover:text-blue-600">Blog</Link></li>
+              <li><Link href="/community" className="text-sm text-slate-500 transition hover:text-blue-600">Community</Link></li>
+            </ul>
+          </div>
+
+          {/* Column 2 — Company */}
+          <div>
+            <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-900">
+              Company
+            </h4>
+            <ul className="space-y-2">
+              <li><Link href="/about" className="text-sm text-slate-500 transition hover:text-blue-600">About Us</Link></li>
+              <li><Link href="/terms" className="text-sm text-slate-500 transition hover:text-blue-600">Terms &amp; Conditions</Link></li>
+              <li><Link href="/privacy" className="text-sm text-slate-500 transition hover:text-blue-600">Privacy Policy</Link></li>
+              <li><Link href="/login" className="text-sm text-slate-500 transition hover:text-blue-600">Login / Sign Up</Link></li>
+            </ul>
             <div className="mt-4 flex gap-2">
               {[Facebook, Instagram, Youtube, Send].map((Icon, i) => (
                 <a
                   key={i}
-                  href="#"
-                  aria-label="social link"
+                  href="https://wa.me/918790083706"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Social link"
                   className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-blue-300 hover:text-blue-600"
                 >
                   <Icon className="h-4 w-4" />
@@ -42,43 +54,39 @@ export function SiteFooter() {
             </div>
           </div>
 
-          {/* Links */}
+          {/* Column 3 — Contact */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
-              Quick Links
-            </h4>
-            <ul className="mt-3 space-y-2">
-              {LINKS.map((l) => (
-                <li key={l.label}>
-                  <Link
-                    href={l.href}
-                    className="text-sm text-slate-500 transition hover:text-blue-600"
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
+            <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-900">
               Contact
             </h4>
-            <ul className="mt-3 space-y-2 text-sm text-slate-500">
+            <ul className="space-y-3 text-sm text-slate-500">
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
-                <span>
-                  MSOIN MD, Choutuppal, Yadadri,
-                  <br />
-                  Telangana, 508252
+                <span className="font-telugu">
+                  Powered by MSOIN MD, చౌటుప్పల్, యాదాద్రి, తెలంగాణ - 508252.
                 </span>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-amber-500" />
                 <a href="tel:9912353705" className="font-semibold text-slate-700 hover:text-blue-600">
                   9912353705
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4 shrink-0 text-green-500" />
+                <a
+                  href="https://wa.me/918790083706"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-slate-700 hover:text-green-600"
+                >
+                  8790083706
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <Mail className="h-4 w-4 shrink-0 text-blue-500" />
+                <a href="mailto:info@choutuppal.in" className="font-semibold text-slate-700 hover:text-blue-600">
+                  info@choutuppal.in
                 </a>
               </li>
             </ul>

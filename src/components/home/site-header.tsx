@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Tag, Download, LogIn, Menu, X } from 'lucide-react'
+import { Search, MapPin, Tag, Download, LogIn, LogOut, Menu, X, Home, Newspaper, BookOpen, Users, Info, FileText, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -171,7 +171,41 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Mobile navigation links */}
+        <nav className="mt-3 grid grid-cols-2 gap-1.5">
+          <MobileLink href="/" icon={Home} label="హోమ్" onClick={() => setMobileOpen(false)} />
+          <MobileLink href="/news" icon={Newspaper} label="న్యూస్" onClick={() => setMobileOpen(false)} />
+          <MobileLink href="/blog" icon={BookOpen} label="బ్లాగ్స్" onClick={() => setMobileOpen(false)} />
+          <MobileLink href="/community" icon={Users} label="కమ్యూనిటీ" onClick={() => setMobileOpen(false)} />
+          <MobileLink href="/about" icon={Info} label="అబౌట్ అస్" onClick={() => setMobileOpen(false)} />
+          <MobileLink href="/terms" icon={FileText} label="టర్మ్స్" onClick={() => setMobileOpen(false)} />
+          <MobileLink href="/privacy" icon={Shield} label="ప్రైవసీ" onClick={() => setMobileOpen(false)} />
+        </nav>
       </div>
     </header>
+  )
+}
+
+function MobileLink({
+  href,
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  href: string
+  icon: typeof Home
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
+    >
+      <Icon className="h-4 w-4 text-blue-500" />
+      <span className="font-telugu">{label}</span>
+    </Link>
   )
 }
