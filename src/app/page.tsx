@@ -42,8 +42,10 @@ export default async function Home() {
 
       <main className="flex-1">
         <div className="mx-auto flex max-w-7xl flex-col gap-10 px-3 py-6 sm:px-4 sm:py-8 lg:px-6 lg:py-10">
-          {/* 3. Stories (Premium) */}
-          <StoriesRail stories={data.stories} viewer={viewerInfo} />
+          {/* 3. Stories (Premium) — wrapped in overflow-hidden to isolate horizontal scroll */}
+          <div className="relative w-full overflow-hidden">
+            <StoriesRail stories={data.stories} viewer={viewerInfo} />
+          </div>
 
           {/* 4. Banner Ads ₹99/day */}
           <BannerCarousel banners={data.banners} />
