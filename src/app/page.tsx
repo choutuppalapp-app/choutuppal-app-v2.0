@@ -2,20 +2,20 @@ import { getHomePageData } from '@/lib/home-data'
 import { getCurrentUser } from '@/lib/session'
 import { Ticker } from '@/components/home/ticker'
 import { DiscoverSearch } from '@/components/home/discover-search'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 
 // Heavy client components — lazy-loaded to reduce initial JS bundle
-const StoriesRail = dynamic(() => import('@/components/home/stories-rail').then(m => ({ default: m.StoriesRail })), { ssr: true })
-const BannerCarousel = dynamic(() => import('@/components/home/banner-carousel').then(m => ({ default: m.BannerCarousel })), { ssr: true })
-const CategoriesGrid = dynamic(() => import('@/components/home/categories-grid').then(m => ({ default: m.CategoriesGrid })), { ssr: true })
-const FeaturedRail = dynamic(() => import('@/components/home/featured-rail').then(m => ({ default: m.FeaturedRail })), { ssr: true })
-const RealEstateRail = dynamic(() => import('@/components/home/real-estate-rail').then(m => ({ default: m.RealEstateRail })), { ssr: true })
-const SpinWin = dynamic(() => import('@/components/home/spin-win').then(m => ({ default: m.SpinWin })), { ssr: false })
-const ShortsRail = dynamic(() => import('@/components/home/shorts-rail').then(m => ({ default: m.ShortsRail })), { ssr: false })
-const Testimonials = dynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials })), { ssr: true })
-const PricingPlans = dynamic(() => import('@/components/home/pricing-plans').then(m => ({ default: m.PricingPlans })), { ssr: true })
-const AgentCityCTA = dynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })), { ssr: false })
-const SiteFooter = dynamic(() => import('@/components/home/site-footer').then(m => ({ default: m.SiteFooter })), { ssr: true })
+const StoriesRail = nextDynamic(() => import('@/components/home/stories-rail').then(m => ({ default: m.StoriesRail })))
+const BannerCarousel = nextDynamic(() => import('@/components/home/banner-carousel').then(m => ({ default: m.BannerCarousel })))
+const CategoriesGrid = nextDynamic(() => import('@/components/home/categories-grid').then(m => ({ default: m.CategoriesGrid })))
+const FeaturedRail = nextDynamic(() => import('@/components/home/featured-rail').then(m => ({ default: m.FeaturedRail })))
+const RealEstateRail = nextDynamic(() => import('@/components/home/real-estate-rail').then(m => ({ default: m.RealEstateRail })))
+const SpinWin = nextDynamic(() => import('@/components/home/spin-win').then(m => ({ default: m.SpinWin })), { ssr: false })
+const ShortsRail = nextDynamic(() => import('@/components/home/shorts-rail').then(m => ({ default: m.ShortsRail })), { ssr: false })
+const Testimonials = nextDynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials })))
+const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans').then(m => ({ default: m.PricingPlans })))
+const AgentCityCTA = nextDynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })), { ssr: false })
+const SiteFooter = nextDynamic(() => import('@/components/home/site-footer').then(m => ({ default: m.SiteFooter })))
 
 // Home page is fully dynamic (DB-driven, no caching) so fresh content shows.
 export const dynamic = 'force-dynamic'
