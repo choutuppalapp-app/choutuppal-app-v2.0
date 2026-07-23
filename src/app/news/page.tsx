@@ -21,5 +21,5 @@ export default async function NewsPage() {
       createdAt: true,
     },
   })
-  return <NewsList articles={news} />
+  return <NewsList articles={news.map(n => ({ ...n, createdAt: n.createdAt.toISOString() }))} />
 }

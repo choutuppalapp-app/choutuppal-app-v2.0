@@ -35,7 +35,7 @@ interface ProfileUser {
   role: string
   planTier: string
   politicalTag: string
-  planExpiresAt: Date | null
+  planExpiresAt: string | null
   villageId: string | null
 }
 

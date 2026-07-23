@@ -33,7 +33,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
     expiresAt: s.expiresAt.toISOString(),
     createdAt: s.createdAt.toISOString(),
     owner: {
-      id: s.owner.id ?? '',
+      id: '',
       name: s.owner.name,
       username: s.owner.username,
       image: s.owner.image,

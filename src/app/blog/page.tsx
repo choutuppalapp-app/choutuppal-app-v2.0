@@ -21,5 +21,5 @@ export default async function BlogPage() {
       createdAt: true,
     },
   })
-  return <BlogList posts={blogs} />
+  return <BlogList posts={blogs.map(b => ({ ...b, createdAt: b.createdAt.toISOString() }))} />
 }

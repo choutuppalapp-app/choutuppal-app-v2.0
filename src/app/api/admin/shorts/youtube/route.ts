@@ -135,11 +135,11 @@ export async function POST(request: NextRequest) {
   }
 
   const { channelId, handle } = extractChannelInput(input)
-  let resolvedChannelId = channelId
+  let resolvedChannelId: string | undefined = channelId ?? undefined
 
   // If a handle was given, resolve it to a channel ID.
   if (!resolvedChannelId && handle) {
-    resolvedChannelId = await resolveChannelId(handle, apiKey)
+    resolvedChannelId = (await resolveChannelId(handle, apiKey)) ?? undefined
     if (!resolvedChannelId) {
       return NextResponse.json({ error: 'Could not resolve the YouTube channel. Try a Channel ID (UC...).' }, { status: 400 })
     }
