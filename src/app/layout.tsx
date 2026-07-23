@@ -4,6 +4,8 @@ import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 import { PwaInstallPrompt } from '@/components/home/pwa-install-prompt'
+import { SiteHeader } from '@/components/home/site-header'
+import { BottomNav } from '@/components/home/bottom-nav'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -78,7 +80,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}
       >
+        <SiteHeader />
         {children}
+        <BottomNav />
         <PwaInstallPrompt />
         <Toaster />
         <SonnerToaster position="top-center" richColors closeButton />

@@ -2,26 +2,17 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Tag, Download, LogIn, LogOut, Menu, X, Home, Newspaper, BookOpen, Users, Info, FileText, Shield } from 'lucide-react'
+import { Download, LogIn, Menu, X, Home, Newspaper, BookOpen, Users, Info, FileText, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import type { Village, Category } from '@prisma/client'
 
-interface SiteHeaderProps {
-  villages: Pick<Village, 'id' | 'name' | 'slug'>[]
-  categories: Pick<Category, 'id' | 'name' | 'slug'>[]
-}
-
-export function SiteHeader({ villages, categories }: SiteHeaderProps) {
+/**
+ * Global site header — renders on every page via layout.tsx.
+ * Contains ONLY: Logo, desktop nav links, Login/Dashboard buttons, mobile hamburger.
+ * Search/filters live in the Home page's Discover section (not here).
+ */
+export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [query, setQuery] = useState('')
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/40 bg-white/70 backdrop-blur-xl">
@@ -40,52 +31,6 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
             </span>
           </span>
         </Link>
-
-        {/* Search (desktop — only on large screens to leave room for nav on medium) */}
-        <form
-          className="hidden max-w-md flex-1 items-center gap-2 lg:flex"
-          onSubmit={(e) => e.preventDefault()}
-        >
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search shops, services, properties…"
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white/80 pl-9 pr-3 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Select defaultValue="all">
-              <SelectTrigger className="h-10 w-[130px] bg-white/80">
-                <MapPin className="mr-1 h-3.5 w-3.5 text-blue-500" />
-                <SelectValue placeholder="Village" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Villages</SelectItem>
-                {villages.map((v) => (
-                  <SelectItem key={v.id} value={v.slug}>
-                    {v.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select defaultValue="all">
-              <SelectTrigger className="h-10 w-[130px] bg-white/80">
-                <Tag className="mr-1 h-3.5 w-3.5 text-amber-500" />
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.slug}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </form>
 
         {/* Desktop nav links */}
         <nav className="hidden items-center gap-6 md:flex">
@@ -113,8 +58,6 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
             size="sm"
             className="hidden gap-2 border-slate-200 bg-white/80 lg:inline-flex"
             onClick={() => {
-              const e = new Event('beforeinstallprompt')
-              window.dispatchEvent(e)
               alert(
                 'Install: tap your browser menu → "Add to Home screen" to install the Choutuppal App.',
               )
@@ -130,8 +73,7 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
           >
             <Link href="/login">
               <LogIn className="h-4 w-4" />
-              <span className="hidden sm:inline">Login</span>
-              <span className="sm:hidden">Login</span>
+              Login
             </Link>
           </Button>
           <Button
@@ -144,6 +86,7 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
               Dashboard
             </Link>
           </Button>
+          {/* Mobile hamburger — md:hidden so it only shows on mobile */}
           <button
             aria-label="Toggle menu"
             className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white/80 md:hidden"
@@ -154,55 +97,14 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
         </div>
       </div>
 
-      {/* Mobile search drawer */}
+      {/* Mobile menu drawer */}
       <div
         className={cn(
           'border-t border-white/40 bg-white/80 px-3 py-3 backdrop-blur-xl md:hidden',
           mobileOpen ? 'block' : 'hidden',
         )}
       >
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search shops, services, properties…"
-            className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-blue-400"
-          />
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <Select defaultValue="all">
-            <SelectTrigger className="h-10 w-full bg-white">
-              <MapPin className="mr-1 h-3.5 w-3.5 text-blue-500" />
-              <SelectValue placeholder="Village" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Villages</SelectItem>
-              {villages.map((v) => (
-                <SelectItem key={v.id} value={v.slug}>
-                  {v.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select defaultValue="all">
-            <SelectTrigger className="h-10 w-full bg-white">
-              <Tag className="mr-1 h-3.5 w-3.5 text-amber-500" />
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((c) => (
-                <SelectItem key={c.id} value={c.slug}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Mobile navigation links */}
-        <nav className="mt-3 grid grid-cols-2 gap-1.5">
+        <nav className="grid grid-cols-2 gap-1.5">
           <MobileLink href="/" icon={Home} label="హోమ్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/news" icon={Newspaper} label="న్యూస్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/blog" icon={BookOpen} label="బ్లాగ్స్" onClick={() => setMobileOpen(false)} />
@@ -210,6 +112,7 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
           <MobileLink href="/about" icon={Info} label="అబౌట్ అస్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/terms" icon={FileText} label="టర్మ్స్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/privacy" icon={Shield} label="ప్రైవసీ" onClick={() => setMobileOpen(false)} />
+          <MobileLink href="/dashboard" icon={Home} label="డాష్‌బోర్డ్" onClick={() => setMobileOpen(false)} />
         </nav>
       </div>
     </header>
