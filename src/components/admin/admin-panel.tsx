@@ -21,6 +21,7 @@ import {
   Home,
   Trash2,
   Newspaper,
+  UserPlus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -39,6 +40,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { ContentTab } from './content-tab'
+import { CreateUserModal } from './create-user-modal'
 
 interface Stats {
   totalUsers: number
@@ -422,6 +424,7 @@ function UsersTab() {
   const [busy, setBusy] = useState<string | null>(null)
   const [resetId, setResetId] = useState<string | null>(null)
   const [newPw, setNewPw] = useState('')
+  const [createOpen, setCreateOpen] = useState(false)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -471,9 +474,14 @@ function UsersTab() {
           <h2 className="text-lg font-bold text-slate-900">User Management</h2>
           <p className="text-sm text-slate-500">{users.length} registered users</p>
         </div>
-        <Button variant="outline" size="sm" onClick={load} className="gap-1.5">
-          <RefreshCw className="h-3.5 w-3.5" /> Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setCreateOpen(true)} size="sm" className="gap-1.5 gradient-brand text-white">
+            <UserPlus className="h-3.5 w-3.5" /> Create User
+          </Button>
+          <Button variant="outline" size="sm" onClick={load} className="gap-1.5">
+            <RefreshCw className="h-3.5 w-3.5" /> Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl glass">
@@ -569,6 +577,9 @@ function UsersTab() {
           </div>
         </div>
       ) : null}
+
+      {/* Create user modal */}
+      <CreateUserModal open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
     </div>
   )
 }

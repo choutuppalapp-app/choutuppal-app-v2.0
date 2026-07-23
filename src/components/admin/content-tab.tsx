@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { toast } from 'sonner'
+import { ShortsManager } from './shorts-manager'
 
 /* -------------------------------------------------------------------------- */
 /* Types                                                                       */
@@ -101,17 +102,7 @@ export function ContentTab() {
         </TabsContent>
 
         <TabsContent value="shorts" className="mt-4">
-          <ItemList
-            title="Shorts / Reels"
-            items={data?.shorts ?? []}
-            onDelete={(id) => del('shorts', id, load)}
-            render={(s) => ({
-              title: s.title ?? 'Untitled',
-              subtitle: `by ${s.owner.name ?? 'Unknown'} · ${s.views} views`,
-              badge: s.youtubeId ? 'YouTube' : 'Upload',
-              badgeClass: 'bg-red-100 text-red-700',
-            })}
-          />
+          <ShortsManager />
         </TabsContent>
 
         <TabsContent value="categories" className="mt-4">
