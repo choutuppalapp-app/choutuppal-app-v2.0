@@ -82,7 +82,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}
       >
         <SiteHeader />
-        {children}
+        <div className="pb-20 md:pb-0">
+          {children}
+        </div>
         <BottomNav />
         <WhatsAppFloat />
         <PwaInstallPrompt />
