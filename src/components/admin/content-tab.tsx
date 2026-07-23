@@ -184,6 +184,7 @@ function ItemList<T extends { id: string }>({
 
 function CategoryManager({ categories, onChanged }: { categories: ContentData['categories']; onChanged: () => void }) {
   const [name, setName] = useState('')
+  const [icon, setIcon] = useState('')
   const [busy, setBusy] = useState(false)
 
   async function add() {
@@ -193,11 +194,12 @@ function CategoryManager({ categories, onChanged }: { categories: ContentData['c
       const res = await fetch('/api/admin/content/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({ name: name.trim(), icon: icon.trim() || undefined }),
       })
       if (!res.ok) throw new Error('Failed')
       toast.success('Category added')
       setName('')
+      setIcon('')
       onChanged()
     } catch {
       toast.error('Failed to add')
@@ -210,11 +212,17 @@ function CategoryManager({ categories, onChanged }: { categories: ContentData['c
     <div className="space-y-3">
       <div className="rounded-2xl glass p-4">
         <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-700">Add Category</h3>
-        <div className="flex gap-2">
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Furniture & Decor" onKeyDown={(e) => e.key === 'Enter' && add()} />
-          <Button onClick={add} disabled={busy || !name.trim()} className="gap-1.5 gradient-brand text-white">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Add
-          </Button>
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Category Name (e.g. Furniture & Decor)" onKeyDown={(e) => e.key === 'Enter' && add()} />
+            <Input value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="Lucide Icon (e.g. Store)" className="max-w-[180px] font-mono text-xs" onKeyDown={(e) => e.key === 'Enter' && add()} />
+            <Button onClick={add} disabled={busy || !name.trim()} className="gap-1.5 gradient-brand text-white">
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Add
+            </Button>
+          </div>
+          <p className="text-[11px] text-slate-400">
+            Icon name from <a href="https://lucide.dev/icons" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">lucide.dev/icons</a> (e.g. Store, Home, UtensilsCrossed, Pill). Slug auto-generates from name.
+          </p>
         </div>
       </div>
       <div className="rounded-2xl glass">
@@ -227,7 +235,7 @@ function CategoryManager({ categories, onChanged }: { categories: ContentData['c
               <Tag className="h-4 w-4 text-blue-500" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-slate-900">{c.name}</p>
-                <p className="text-[11px] text-slate-400">/{c.slug}</p>
+                <p className="text-[11px] text-slate-400">/{c.slug}{c.icon ? ` · icon: ${c.icon}` : ''}</p>
               </div>
               <button
                 onClick={() => del('categories', c.id, onChanged)}

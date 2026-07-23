@@ -49,7 +49,7 @@ export default async function Home() {
           <BannerCarousel banners={data.banners} />
 
           {/* 5. Browse Categories */}
-          <CategoriesGrid />
+          <CategoriesGrid categories={data.categories} />
 
           {/* 6. Featured Business & Services */}
           <FeaturedRail listings={data.featured} />
