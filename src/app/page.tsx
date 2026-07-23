@@ -10,11 +10,11 @@ const BannerCarousel = nextDynamic(() => import('@/components/home/banner-carous
 const CategoriesGrid = nextDynamic(() => import('@/components/home/categories-grid').then(m => ({ default: m.CategoriesGrid })))
 const FeaturedRail = nextDynamic(() => import('@/components/home/featured-rail').then(m => ({ default: m.FeaturedRail })))
 const RealEstateRail = nextDynamic(() => import('@/components/home/real-estate-rail').then(m => ({ default: m.RealEstateRail })))
-const SpinWin = nextDynamic(() => import('@/components/home/spin-win').then(m => ({ default: m.SpinWin })), { ssr: false })
-const ShortsRail = nextDynamic(() => import('@/components/home/shorts-rail').then(m => ({ default: m.ShortsRail })), { ssr: false })
+const SpinWin = nextDynamic(() => import('@/components/home/spin-win').then(m => ({ default: m.SpinWin })))
+const ShortsRail = nextDynamic(() => import('@/components/home/shorts-rail').then(m => ({ default: m.ShortsRail })))
 const Testimonials = nextDynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials })))
 const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans').then(m => ({ default: m.PricingPlans })))
-const AgentCityCTA = nextDynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })), { ssr: false })
+const AgentCityCTA = nextDynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })))
 const SiteFooter = nextDynamic(() => import('@/components/home/site-footer').then(m => ({ default: m.SiteFooter })))
 
 // Home page is fully dynamic (DB-driven, no caching) so fresh content shows.
