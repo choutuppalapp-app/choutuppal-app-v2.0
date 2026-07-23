@@ -41,9 +41,9 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
           </span>
         </Link>
 
-        {/* Search (desktop) */}
+        {/* Search (desktop — only on large screens to leave room for nav on medium) */}
         <form
-          className="hidden flex-1 items-center gap-2 md:flex"
+          className="hidden max-w-md flex-1 items-center gap-2 lg:flex"
           onSubmit={(e) => e.preventDefault()}
         >
           <div className="relative flex-1">
@@ -87,12 +87,31 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
           </div>
         </form>
 
+        {/* Desktop nav links */}
+        <nav className="hidden items-center gap-6 md:flex">
+          <Link href="/" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+            Home
+          </Link>
+          <Link href="/news" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+            News
+          </Link>
+          <Link href="/blog" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+            Blog
+          </Link>
+          <Link href="/community" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+            Community
+          </Link>
+          <Link href="/about" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+            About
+          </Link>
+        </nav>
+
         {/* Actions */}
         <div className="ml-auto flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            className="hidden gap-2 border-slate-200 bg-white/80 sm:inline-flex"
+            className="hidden gap-2 border-slate-200 bg-white/80 lg:inline-flex"
             onClick={() => {
               const e = new Event('beforeinstallprompt')
               window.dispatchEvent(e)
@@ -113,6 +132,16 @@ export function SiteHeader({ villages, categories }: SiteHeaderProps) {
               <LogIn className="h-4 w-4" />
               <span className="hidden sm:inline">Login</span>
               <span className="sm:hidden">Login</span>
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="hidden gap-2 border-slate-200 bg-white/80 md:inline-flex"
+          >
+            <Link href="/dashboard">
+              Dashboard
             </Link>
           </Button>
           <button
