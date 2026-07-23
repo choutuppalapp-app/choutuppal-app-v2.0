@@ -6,6 +6,7 @@ import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 import { PwaInstallPrompt } from '@/components/home/pwa-install-prompt'
 import { SiteHeader } from '@/components/home/site-header'
 import { BottomNav } from '@/components/home/bottom-nav'
+import { WhatsAppFloat } from '@/components/home/whatsapp-float'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -83,6 +84,7 @@ export default function RootLayout({
         <SiteHeader />
         {children}
         <BottomNav />
+        <WhatsAppFloat />
         <PwaInstallPrompt />
         <Toaster />
         <SonnerToaster position="top-center" richColors closeButton />

@@ -22,6 +22,8 @@ import {
   Trash2,
   Newspaper,
   UserPlus,
+  Bell,
+  Send,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -129,7 +131,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 
       <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 lg:px-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-7">
             <TabsTrigger value="overview" className="gap-1.5 text-xs sm:text-sm">
               <Home className="h-3.5 w-3.5" /> Overview
             </TabsTrigger>
@@ -145,6 +147,9 @@ export function AdminPanel({ adminName }: { adminName: string }) {
             <TabsTrigger value="users" className="gap-1.5 text-xs sm:text-sm">
               <Users className="h-3.5 w-3.5" /> Users
             </TabsTrigger>
+            <TabsTrigger value="push" className="gap-1.5 text-xs sm:text-sm">
+              <Bell className="h-3.5 w-3.5" /> Push
+            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-1.5 text-xs sm:text-sm">
               <Megaphone className="h-3.5 w-3.5" /> Settings
             </TabsTrigger>
@@ -155,6 +160,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           <TabsContent value="content"><ContentTab /></TabsContent>
           <TabsContent value="stories"><StoriesTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
+          <TabsContent value="push"><PushTab /></TabsContent>
           <TabsContent value="settings"><SettingsTab /></TabsContent>
         </Tabs>
       </main>
@@ -963,6 +969,71 @@ function StoriesTab() {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Push Notifications                                                          */
+/* -------------------------------------------------------------------------- */
+
+function PushTab() {
+  const [title, setTitle] = useState('')
+  const [message, setMessage] = useState('')
+  const [link, setLink] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function send() {
+    if (!title.trim() || !message.trim()) {
+      toast.error('Title and message are required')
+      return
+    }
+    setBusy(true)
+    try {
+      const res = await fetch('/api/admin/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title.trim(), message: message.trim(), link: link.trim() || undefined }),
+      })
+      const j = await res.json()
+      if (!res.ok || !j.ok) throw new Error(j.error || 'Failed')
+      toast.success(`Notification sent to ${j.sent} users`)
+      setTitle(''); setMessage(''); setLink('')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to send')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-lg font-bold text-slate-900">Push Notifications</h2>
+        <p className="text-sm text-slate-500">Broadcast a notification to all users. They'll see it in the bell icon + dashboard.</p>
+      </div>
+      <div className="max-w-lg space-y-4 rounded-3xl glass p-5">
+        <div>
+          <Label className="mb-1 block text-xs font-semibold text-slate-600">Title *</Label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. New Feature Live!" maxLength={120} />
+        </div>
+        <div>
+          <Label className="mb-1 block text-xs font-semibold text-slate-600">Message *</Label>
+          <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Notification message…" rows={3} maxLength={500} />
+          <p className="mt-1 text-right text-[10px] text-slate-400">{message.length}/500</p>
+        </div>
+        <div>
+          <Label className="mb-1 block text-xs font-semibold text-slate-600">Link (optional)</Label>
+          <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder="/dashboard or https://…" />
+        </div>
+        <Button onClick={send} disabled={busy} className="w-full gap-2 gradient-brand text-white">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          Send to All Users
+        </Button>
+        <p className="text-center text-[11px] text-slate-400">
+          Creates an in-app Notification for every non-banned user. Web Push (VAPID) requires PushSubscription setup.
+        </p>
+      </div>
     </div>
   )
 }

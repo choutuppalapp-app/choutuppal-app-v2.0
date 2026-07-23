@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Download, LogIn, Menu, X, Home, Newspaper, BookOpen, Users, Info, FileText, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { NotificationBell } from '@/components/home/notification-bell'
 
 /**
  * Global site header — renders on every page via layout.tsx.
@@ -86,6 +87,8 @@ export function SiteHeader() {
               Dashboard
             </Link>
           </Button>
+          {/* Notification bell — shows unread count + dropdown */}
+          <NotificationBell />
           {/* Mobile hamburger — md:hidden so it only shows on mobile */}
           <button
             aria-label="Toggle menu"

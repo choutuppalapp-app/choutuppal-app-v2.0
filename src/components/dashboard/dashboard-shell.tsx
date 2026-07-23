@@ -30,8 +30,10 @@ import { MyBannersStories } from './my-banners-stories'
 import { Analytics } from './analytics'
 import { AddListingModal } from './add-listing-modal'
 import { MyCommunityPosts } from './my-community-posts'
+import { MyNotifications } from './my-notifications'
+import { Bell } from 'lucide-react'
 
-type TabId = 'overview' | 'profile' | 'listings' | 'realestate' | 'media' | 'analytics' | 'community'
+type TabId = 'overview' | 'profile' | 'listings' | 'realestate' | 'media' | 'analytics' | 'community' | 'notifications'
 
 const NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -40,6 +42,7 @@ const NAV: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'realestate', label: 'Real Estate', icon: Home },
   { id: 'media', label: 'Banners & Stories', icon: ImageIcon },
   { id: 'community', label: 'My Posts', icon: MessageCircle },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
@@ -183,6 +186,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
           ) : null}
           {tab === 'media' ? <MyBannersStories banners={data.banners} stories={data.stories} /> : null}
           {tab === 'community' ? <MyCommunityPosts posts={data.communityPosts} /> : null}
+          {tab === 'notifications' ? <MyNotifications /> : null}
           {tab === 'analytics' ? <Analytics analytics={data.analytics} /> : null}
         </main>
       </div>
