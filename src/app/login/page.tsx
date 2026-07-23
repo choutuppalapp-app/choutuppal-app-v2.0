@@ -382,17 +382,7 @@ function LoginInner() {
           className="flex items-center gap-3 hover-lift"
           aria-label="Choutuppal home"
         >
-          <span className="grid h-12 w-12 place-items-center rounded-2xl gradient-brand text-2xl font-black text-white shadow-lg shadow-blue-500/30">
-            C
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="text-xl font-extrabold tracking-tight text-slate-900">
-              Choutuppal
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-blue-600">
-              App v2.0
-            </span>
-          </span>
+          <img src="/logo.png" alt="Choutuppal App" className="h-14 w-auto" />
         </Link>
         <p className="max-w-[320px] text-sm text-slate-500">
           Sign in to manage your business, listings &amp; community.

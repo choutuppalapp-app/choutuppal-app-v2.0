@@ -68,15 +68,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
             {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
           <Link href="/" className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl gradient-brand text-lg font-black text-white shadow">
-              C
-            </span>
-            <span className="hidden flex-col leading-none sm:flex">
-              <span className="text-sm font-extrabold text-slate-900">Dashboard</span>
-              <span className="text-[10px] uppercase tracking-[0.18em] text-blue-600">
-                Choutuppal App
-              </span>
-            </span>
+            <img src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
           </Link>
 
           <div className="ml-auto flex items-center gap-2">

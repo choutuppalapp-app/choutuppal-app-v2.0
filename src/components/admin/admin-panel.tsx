@@ -111,15 +111,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           <Link href="/" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200">
             <ChevronLeft className="h-4 w-4" />
           </Link>
-          <span className="grid h-9 w-9 place-items-center rounded-xl gradient-brand text-base font-black text-white">
-            C
-          </span>
-          <div className="leading-none">
-            <h1 className="text-sm font-extrabold text-slate-900">Admin Panel</h1>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-blue-600">
-              {adminName}
-            </p>
-          </div>
+          <img src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
           <Link
             href="/dashboard"
             className="ml-auto hidden items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 sm:flex"

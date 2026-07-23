@@ -20,17 +20,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-4 lg:px-6">
         {/* Left: Logo */}
         <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl gradient-brand text-lg font-black text-white shadow-lg shadow-blue-500/30">
-            C
-          </span>
-          <span className="hidden flex-col leading-none sm:flex">
-            <span className="text-sm font-extrabold tracking-tight text-slate-900">
-              Choutuppal
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-600">
-              App v2.0
-            </span>
-          </span>
+          <img src="/logo.png" alt="Choutuppal App" className="h-10 w-auto" />
         </Link>
 
         {/* Center: Desktop nav links */}

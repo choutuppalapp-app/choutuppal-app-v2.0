@@ -46,8 +46,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'MSOIN MD, Choutuppal' }],
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/logo.png',
+    apple: '/logo.png',
   },
   openGraph: {
     title: 'Choutuppal App v2.0',

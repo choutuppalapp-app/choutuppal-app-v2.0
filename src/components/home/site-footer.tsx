@@ -9,12 +9,7 @@ export function SiteFooter() {
           {/* Column 1 — Pages */}
           <div>
             <div className="mb-3 flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-xl gradient-brand text-lg font-black text-white shadow">
-                C
-              </span>
-              <span className="font-extrabold tracking-tight text-slate-900">
-                Choutuppal App
-              </span>
+              <img src="/logo.png" alt="Choutuppal App" className="h-10 w-auto" />
             </div>
             <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-900">
               Pages
