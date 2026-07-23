@@ -67,7 +67,7 @@ export function ImageUpload({
         {value ? (
           <>
             { }
-            <img src={value} alt="preview" className="h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={value} alt="preview" className="h-full w-full object-cover" />
             <button
               type="button"
               onClick={() => onChange(null)}
@@ -160,7 +160,7 @@ export function GalleryUpload({
         {value.map((url, i) => (
           <div key={i} className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200">
             { }
-            <img src={url} alt={`gallery ${i + 1}`} className="h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={url} alt={`gallery ${i + 1}`} className="h-full w-full object-cover" />
             <button
               type="button"
               onClick={() => onChange(value.filter((_, idx) => idx !== i))}

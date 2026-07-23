@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
+  compress: true,
   // Reduce memory pressure during development compiles.
   experimental: {
     optimizePackageImports: [

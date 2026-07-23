@@ -55,7 +55,7 @@ export function NewsList({ articles }: { articles: Article[] }) {
               <Link key={a.id} href={`/news/${a.slug}`} className="hover-lift overflow-hidden rounded-2xl glass">
                 <div className="relative aspect-[16/9]">
                   {a.image ? (
-                    <img src={a.image} alt={a.title} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={a.image} alt={a.title} className="h-full w-full object-cover" />
                   ) : (
                     <div className="grid h-full w-full place-items-center gradient-brand">
                       <Newspaper className="h-8 w-8 text-white" />

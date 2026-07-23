@@ -108,7 +108,7 @@ export function BannerCreator({ open, onOpenChange, onCreated }: BannerCreatorPr
           {/* Upload zone / preview (16:9) */}
           {imageUrl ? (
             <div className="relative overflow-hidden rounded-2xl">
-              <img src={imageUrl} alt="banner preview" className="aspect-[16/9] w-full object-cover" />
+              <img loading="lazy" decoding="async" src={imageUrl} alt="banner preview" className="aspect-[16/9] w-full object-cover" />
               <button
                 onClick={() => setImageUrl(null)}
                 aria-label="Remove image"

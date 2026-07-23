@@ -37,7 +37,7 @@ export function BlogList({ posts }: { posts: Post[] }) {
               <Link key={p.id} href={`/blog/${p.slug}`} className="hover-lift overflow-hidden rounded-2xl glass">
                 <div className="relative aspect-[16/9]">
                   {p.coverImage ? (
-                    <img src={p.coverImage} alt={p.title} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={p.coverImage} alt={p.title} className="h-full w-full object-cover" />
                   ) : (
                     <div className="grid h-full w-full place-items-center gradient-brand">
                       <BookOpen className="h-8 w-8 text-white" />

@@ -112,7 +112,7 @@ export function ListingDetailView({
                     <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg sm:h-28 sm:w-28">
                       {listing.logo ? (
                          
-                        <img src={listing.logo} alt={listing.title} className="h-full w-full object-cover" />
+                        <img loading="lazy" decoding="async" src={listing.logo} alt={listing.title} className="h-full w-full object-cover" />
                       ) : (
                         <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white sm:text-4xl">
                           {listing.title.charAt(0).toUpperCase()}
@@ -297,7 +297,7 @@ export function ListingDetailView({
               >
                 <div className="relative aspect-[16/9] overflow-hidden">
                   {r.coverImage || r.logo ? (
-                    <img src={(r.coverImage || r.logo)!} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                    <img loading="lazy" decoding="async" src={(r.coverImage || r.logo)!} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
                   ) : (
                     <div className="grid h-full w-full place-items-center gradient-brand text-2xl font-black text-white">
                       {r.title.charAt(0)}

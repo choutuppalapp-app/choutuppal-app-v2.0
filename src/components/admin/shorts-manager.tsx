@@ -166,7 +166,7 @@ export function ShortsManager() {
                 <div key={s.id} className="overflow-hidden rounded-xl border border-slate-100 bg-white/60">
                   <div className="relative aspect-video">
                     {s.thumbnail ? (
-                      <img src={s.thumbnail} alt={s.title ?? 'Short'} className="h-full w-full object-cover" />
+                      <img loading="lazy" decoding="async" src={s.thumbnail} alt={s.title ?? 'Short'} className="h-full w-full object-cover" />
                     ) : (
                       <div className="grid h-full w-full place-items-center gradient-brand text-white">
                         <Video className="h-8 w-8" />

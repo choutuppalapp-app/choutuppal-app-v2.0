@@ -59,7 +59,7 @@ export function MyListings({
               <div className="relative aspect-[16/9]">
                 {l.coverImage ? (
                    
-                  <img src={l.coverImage} alt={l.title} className="h-full w-full object-cover" />
+                  <img loading="lazy" decoding="async" src={l.coverImage} alt={l.title} className="h-full w-full object-cover" />
                 ) : (
                   <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white">
                     {l.title.charAt(0)}

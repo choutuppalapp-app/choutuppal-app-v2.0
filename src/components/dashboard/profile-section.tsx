@@ -114,7 +114,7 @@ export function ProfileSection({
           <div className="relative h-40 w-full sm:h-48">
             {coverImage ? (
                
-              <img src={coverImage} alt="cover" className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={coverImage} alt="cover" className="h-full w-full object-cover" />
             ) : (
               <div className="h-full w-full gradient-brand" />
             )}
@@ -126,7 +126,7 @@ export function ProfileSection({
                 <div className="h-24 w-24 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg">
                   {image ? (
                      
-                    <img src={image} alt="avatar" className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={image} alt="avatar" className="h-full w-full object-cover" />
                   ) : (
                     <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white">
                       {(name || user.email).charAt(0).toUpperCase()}

@@ -138,7 +138,7 @@ export function ProfileView({
           <div className="relative h-40 w-full sm:h-52">
             {profile.coverImage ? (
                
-              <img src={profile.coverImage} alt="cover" className="h-full w-full object-cover" />
+              <img loading="lazy" decoding="async" src={profile.coverImage} alt="cover" className="h-full w-full object-cover" />
             ) : (
               <div className="h-full w-full gradient-brand" />
             )}
@@ -245,7 +245,7 @@ export function ProfileView({
                     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl">
                       {l.coverImage || l.logo ? (
                          
-                        <img src={(l.coverImage || l.logo)!} alt={l.title} className="h-full w-full object-cover" />
+                        <img loading="lazy" decoding="async" src={(l.coverImage || l.logo)!} alt={l.title} className="h-full w-full object-cover" />
                       ) : (
                         <div className="grid h-full w-full place-items-center gradient-brand text-xl font-black text-white">
                           {l.title.charAt(0)}
@@ -282,7 +282,7 @@ export function ProfileView({
                     <div className="relative aspect-[16/10]">
                       {r.coverImage ? (
                          
-                        <img src={r.coverImage} alt={r.title} className="h-full w-full object-cover" />
+                        <img loading="lazy" decoding="async" src={r.coverImage} alt={r.title} className="h-full w-full object-cover" />
                       ) : (
                         <div className="h-full w-full bg-gradient-to-br from-blue-500 to-amber-400" />
                       )}

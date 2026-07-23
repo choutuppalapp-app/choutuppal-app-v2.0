@@ -64,6 +64,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               src={current.imageUrl}
               alt={current.title ?? 'Banner Ad'}
               className="absolute inset-0 h-full w-full object-cover"
+              loading="eager"
+              fetchPriority="high"
             />
           ) : null}
           {/* decorative gloss */}

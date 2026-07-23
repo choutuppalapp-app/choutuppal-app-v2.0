@@ -62,7 +62,7 @@ export function MyRealEstate({
               <div className="relative aspect-[16/10]">
                 {p.coverImage ? (
                    
-                  <img src={p.coverImage} alt={p.title} className="h-full w-full object-cover" />
+                  <img loading="lazy" decoding="async" src={p.coverImage} alt={p.title} className="h-full w-full object-cover" />
                 ) : (
                   <div className="h-full w-full bg-gradient-to-br from-blue-500 to-amber-400" />
                 )}

@@ -97,7 +97,7 @@ export function MyBannersStories({
               <div key={b.id} className="overflow-hidden rounded-2xl glass">
                 <div className="relative aspect-[16/9]">
                   {b.imageUrl ? (
-                    <img src={b.imageUrl} alt={b.title ?? 'banner'} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={b.imageUrl} alt={b.title ?? 'banner'} className="h-full w-full object-cover" />
                   ) : (
                     <div className="grid h-full w-full place-items-center gradient-brand p-4 text-center text-white">
                       <span className="text-sm font-bold">{b.title ?? 'Banner Ad'}</span>
@@ -147,7 +147,7 @@ export function MyBannersStories({
                     s.mediaType === 'VIDEO' ? (
                       <video src={s.mediaUrl} className="h-full w-full object-cover" muted />
                     ) : (
-                      <img src={s.mediaUrl} alt={s.caption ?? 'story'} className="h-full w-full object-cover" />
+                      <img loading="lazy" decoding="async" src={s.mediaUrl} alt={s.caption ?? 'story'} className="h-full w-full object-cover" />
                     )
                   ) : (
                     <div className="grid h-full w-full place-items-center gradient-brand p-3 text-center">

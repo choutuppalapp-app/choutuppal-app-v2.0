@@ -419,7 +419,7 @@ function ApprovalCard({
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
           {cover || logo ? (
              
-            <img src={(cover || logo)!} alt={title} className="h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={(cover || logo)!} alt={title} className="h-full w-full object-cover" />
           ) : (
             <div className="grid h-full w-full place-items-center gradient-brand text-2xl font-black text-white">
               {title.charAt(0)}
@@ -937,7 +937,7 @@ function StoriesTab() {
                   s.mediaType === 'VIDEO' ? (
                     <video src={s.mediaUrl} className="h-full w-full object-cover" muted />
                   ) : (
-                    <img src={s.mediaUrl} alt={s.caption ?? 'story'} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={s.mediaUrl} alt={s.caption ?? 'story'} className="h-full w-full object-cover" />
                   )
                 ) : (
                   <div className="grid h-full w-full place-items-center gradient-brand p-3 text-center">
