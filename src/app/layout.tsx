@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Noto_Sans_Telugu } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'
+import { PwaInstallPrompt } from '@/components/home/pwa-install-prompt'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -78,6 +79,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}
       >
         {children}
+        <PwaInstallPrompt />
         <Toaster />
         <SonnerToaster position="top-center" richColors closeButton />
       </body>

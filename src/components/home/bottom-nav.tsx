@@ -2,64 +2,60 @@
 
 import { Home, Play, Compass, Plus, User } from 'lucide-react'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
-
-const TABS = [
-  { label: 'Home', icon: Home, href: '/' },
-  { label: 'Shorts', icon: Play, href: '/#shorts' },
-  { label: 'Explore', icon: Compass, href: '/#explore' },
-  { label: 'You', icon: User, href: '/login' },
-]
 
 export function BottomNav() {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-white/50 bg-white/85 backdrop-blur-xl lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 grid h-16 grid-cols-5 border-t border-gray-200 bg-white shadow-md md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Primary mobile navigation"
     >
-      <div className="relative mx-auto grid max-w-md grid-cols-5 items-center px-2 py-1.5">
-        {TABS.slice(0, 2).map((t) => (
-          <TabLink key={t.label} {...t} />
-        ))}
+      {/* Home */}
+      <Link
+        href="/"
+        className="flex flex-col items-center justify-center gap-0.5 text-slate-500 transition hover:text-blue-600"
+      >
+        <Home className="h-5 w-5" />
+        <span className="text-[10px] font-medium">Home</span>
+      </Link>
 
-        {/* Center FAB */}
-        <Link
-          href="/login"
-          aria-label="Add new listing"
-          className="relative flex justify-center"
-        >
-          <span className="-mt-6 grid h-14 w-14 place-items-center rounded-2xl gradient-brand text-white shadow-lg shadow-blue-500/40 transition active:scale-95">
-            <Plus className="h-7 w-7" />
-          </span>
-        </Link>
+      {/* Shorts */}
+      <Link
+        href="/#shorts"
+        className="flex flex-col items-center justify-center gap-0.5 text-slate-500 transition hover:text-blue-600"
+      >
+        <Play className="h-5 w-5" />
+        <span className="text-[10px] font-medium">Shorts</span>
+      </Link>
 
-        {TABS.slice(2).map((t) => (
-          <TabLink key={t.label} {...t} />
-        ))}
-      </div>
+      {/* Center FAB — Add */}
+      <Link
+        href="/dashboard"
+        aria-label="Add new listing"
+        className="relative flex items-start justify-center"
+      >
+        <span className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 text-white shadow-lg">
+          <Plus className="h-7 w-7" />
+        </span>
+      </Link>
+
+      {/* Explore */}
+      <Link
+        href="/#explore"
+        className="flex flex-col items-center justify-center gap-0.5 text-slate-500 transition hover:text-blue-600"
+      >
+        <Compass className="h-5 w-5" />
+        <span className="text-[10px] font-medium">Explore</span>
+      </Link>
+
+      {/* You */}
+      <Link
+        href="/dashboard"
+        className="flex flex-col items-center justify-center gap-0.5 text-slate-500 transition hover:text-blue-600"
+      >
+        <User className="h-5 w-5" />
+        <span className="text-[10px] font-medium">You</span>
+      </Link>
     </nav>
-  )
-}
-
-function TabLink({
-  label,
-  icon: Icon,
-  href,
-}: {
-  label: string
-  icon: typeof Home
-  href: string
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        'flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium text-slate-500 transition hover:text-blue-600',
-      )}
-    >
-      <Icon className="h-5 w-5" />
-      {label}
-    </Link>
   )
 }

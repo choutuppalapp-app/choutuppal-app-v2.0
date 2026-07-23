@@ -89,8 +89,8 @@ export default async function Home() {
       {/* 13. Bottom Nav (mobile only) */}
       <BottomNav />
 
-      {/* spacer so mobile content isn't hidden behind the bottom nav */}
-      <div className="h-16 lg:hidden" aria-hidden />
+      {/* Bottom padding so content isn't hidden behind the mobile bottom nav */}
+      <div className="h-20 md:hidden" aria-hidden />
     </div>
   )
 }
