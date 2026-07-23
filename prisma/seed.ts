@@ -120,6 +120,29 @@ async function main() {
     },
   })
 
+  // -------------------------------------------------------------------
+  // Agent user (AGENT role, can access /agent panel).
+  //   email:    agenttest@choutuppal.app
+  //   password: agent123
+  // -------------------------------------------------------------------
+  const agentPasswordHash = await bcrypt.hash('agent123', 12)
+  await prisma.user.upsert({
+    where: { email: 'agenttest@choutuppal.app' },
+    update: { passwordHash: agentPasswordHash, role: 'AGENT', isPublic: true, planTier: 'PRO' },
+    create: {
+      email: 'agenttest@choutuppal.app',
+      phone: '+919912353707',
+      username: 'test_agent',
+      name: 'Test Agent',
+      role: 'AGENT',
+      isPublic: true,
+      planTier: 'PRO',
+      passwordHash: agentPasswordHash,
+      bio: 'Test agent for CSV uploads and lead tracking.',
+      villageId: (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!.id,
+    },
+  })
+
   const panthangi = (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!
   const malkapur = (await prisma.village.findUnique({ where: { slug: 'malkapur' } }))!
   const peddakondur = (await prisma.village.findUnique({ where: { slug: 'peddakondur' } }))!

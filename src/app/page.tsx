@@ -42,16 +42,16 @@ export default async function Home() {
 
       <main className="flex-1">
         <div className="mx-auto flex max-w-7xl flex-col gap-10 px-3 py-6 sm:px-4 sm:py-8 lg:px-6 lg:py-10">
-          {/* 1. Discover — Search + Filters */}
-          <DiscoverSearch villages={data.villages} categories={data.categories} />
-
-          {/* 2. Stories (Premium) — wrapped in overflow-hidden to isolate horizontal scroll */}
+          {/* 1. Stories (Premium) — wrapped in overflow-hidden to isolate horizontal scroll */}
           <div className="relative w-full overflow-hidden">
             <StoriesRail stories={data.stories} viewer={viewerInfo} />
           </div>
 
-          {/* 3. Banner Ads ₹99/day */}
+          {/* 2. Banner Ads ₹99/day */}
           <BannerCarousel banners={data.banners} />
+
+          {/* 3. Discover — Search + Filters (below banner) */}
+          <DiscoverSearch villages={data.villages} categories={data.categories} />
 
           {/* 4. Browse Categories */}
           <CategoriesGrid categories={data.categories} />
