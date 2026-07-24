@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 
 const AGENT_WA_LINK =
-  'https://wa.me/918790083706?text=' +
+  'https://wa.me/919441348175?text=' +
   encodeURIComponent('నేను చౌటుప్పల్ యాప్ ఏజెంట్ గా చేరాలనుకుంటున్నాను')
 
 export function AgentCityCTA() {

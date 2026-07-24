@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     'local services',
     'community',
   ],
-  authors: [{ name: 'MSOIN MD, Choutuppal' }],
+  authors: [{ name: 'Choutuppal' }],
   manifest: '/manifest.webmanifest',
   icons: {
     icon: '/logo.png',

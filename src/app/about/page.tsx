@@ -36,12 +36,12 @@ export default function AboutPage() {
               <Heart className="h-4 w-4 text-amber-500" /> Powered By
             </h2>
             <p className="font-telugu text-base font-bold text-slate-900">
-              MSOIN MD, చౌటుప్పల్, యాదాద్రి, తెలంగాణ - 508252
+              చౌటుప్పల్, యాదాద్రి, తెలంగాణ - 508252
             </p>
             <div className="flex flex-col gap-1 text-sm text-slate-600">
               <span className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-blue-500" />
-                <a href="tel:9912353705" className="font-semibold hover:text-blue-600">9912353705</a>
+                <a href="tel:9441348175" className="font-semibold hover:text-blue-600">9441348175</a>
               </span>
               <span className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-amber-500" />

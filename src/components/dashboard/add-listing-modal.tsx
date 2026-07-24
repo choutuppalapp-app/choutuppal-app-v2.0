@@ -232,10 +232,10 @@ export function AddListingModal({
               </Field>
             )}
             <Field label="Phone">
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9912353705" />
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9441348175" />
             </Field>
             <Field label="WhatsApp">
-              <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919912353705" />
+              <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919441348175" />
             </Field>
             <Field label="Village">
               <Select value={villageId} onValueChange={setVillageId}>

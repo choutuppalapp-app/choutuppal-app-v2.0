@@ -1,7 +1,7 @@
 import { MessageCircle } from 'lucide-react'
 
 const WHATSAPP_LINK =
-  'https://wa.me/918790083706?text=' +
+  'https://wa.me/919441348175?text=' +
   encodeURIComponent('నమస్తే, చౌటుప్పల్ యాప్ గురించి సమాచారం కావాలి')
 
 export function WhatsAppFloat() {

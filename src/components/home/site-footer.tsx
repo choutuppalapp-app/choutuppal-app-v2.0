@@ -37,7 +37,7 @@ export function SiteFooter() {
               {[Facebook, Instagram, Youtube, Send].map((Icon, i) => (
                 <a
                   key={i}
-                  href="https://wa.me/918790083706"
+                  href="https://wa.me/919441348175"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Social link"
@@ -58,24 +58,24 @@ export function SiteFooter() {
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
                 <span className="font-telugu">
-                  Powered by MSOIN MD, చౌటుప్పల్, యాదాద్రి, తెలంగాణ - 508252.
+                  Powered by చౌటుప్పల్, యాదాద్రి, తెలంగాణ - 508252.
                 </span>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-amber-500" />
-                <a href="tel:9912353705" className="font-semibold text-slate-700 hover:text-blue-600">
-                  9912353705
+                <a href="tel:9441348175" className="font-semibold text-slate-700 hover:text-blue-600">
+                  9441348175
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4 shrink-0 text-green-500" />
                 <a
-                  href="https://wa.me/918790083706"
+                  href="https://wa.me/919441348175"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-slate-700 hover:text-green-600"
                 >
-                  8790083706
+                  9441348175
                 </a>
               </li>
               <li className="flex items-center gap-2">
@@ -90,7 +90,7 @@ export function SiteFooter() {
 
         <div className="mt-8 flex flex-col items-center justify-between gap-2 border-t border-slate-200 pt-5 text-center text-xs text-slate-500 sm:flex-row sm:text-left">
           <p>
-            Powered by <span className="font-semibold text-slate-700">MSOIN MD</span>,
+            Powered by <span className="font-semibold text-slate-700"></span>,
             Choutuppal, Yadadri, Telangana, 508252.
           </p>
           <p>© {new Date().getFullYear()} Choutuppal App v2.0. All rights reserved.</p>

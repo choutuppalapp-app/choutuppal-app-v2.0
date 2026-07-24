@@ -44,11 +44,11 @@ export default function PrivacyPage() {
             </section>
             <section>
               <h2 className="font-bold text-slate-900">6. Data Deletion</h2>
-              <p className="mt-1">You can delete your listings, stories, and community posts at any time. Account deletion requests can be sent to 9912353705.</p>
+              <p className="mt-1">You can delete your listings, stories, and community posts at any time. Account deletion requests can be sent to 9441348175.</p>
             </section>
             <section>
               <h2 className="font-bold text-slate-900">7. Contact</h2>
-              <p className="mt-1">For privacy concerns, contact: MSOIN MD, Choutuppal, Yadadri, Telangana - 508252. Phone: 9912353705.</p>
+              <p className="mt-1">For privacy concerns, contact: Choutuppal, Yadadri, Telangana - 508252. Phone: 9441348175.</p>
             </section>
           </div>
 
