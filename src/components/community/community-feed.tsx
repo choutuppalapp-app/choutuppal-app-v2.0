@@ -126,6 +126,49 @@ export function CommunityFeed({
             {/* Composer */}
             <PostComposer isLoggedIn={isLoggedIn} onCreated={onCreated} />
 
+            {/* Mobile People rail — horizontal scroll, below composer, above feed */}
+            {people.length > 0 ? (
+              <section className="flex md:hidden">
+                <div className="w-full">
+                  <h3 className="mb-2 flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                    <Users className="h-3.5 w-3.5 text-blue-500" /> People you may know
+                  </h3>
+                  <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
+                    {people.map((p) => {
+                      const tag = tagStyle(p.politicalTag)
+                      return (
+                        <div
+                          key={p.id}
+                          className="flex w-40 shrink-0 flex-col items-center rounded-xl border border-white/30 bg-white/20 p-4 text-center backdrop-blur-lg"
+                        >
+                          {p.image ? (
+                            <img src={p.image} alt={p.name ?? ''} className="h-16 w-16 rounded-full object-cover" />
+                          ) : (
+                            <span className="grid h-16 w-16 place-items-center rounded-full gradient-brand text-xl font-bold text-white">
+                              {(p.name ?? 'U').charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                          <p className="mt-2 text-sm font-bold text-slate-900">{p.name ?? p.username}</p>
+                          <p className="w-full truncate text-xs text-slate-500">{p.bio ?? p.village?.name ?? `@${p.username}`}</p>
+                          {tag.label ? (
+                            <span className={cn('mt-1 rounded-full border px-1.5 py-0.5 text-[8px] font-bold', tag.cls)}>
+                              {tag.label}
+                            </span>
+                          ) : null}
+                          <Link
+                            href={p.username ? `/profile/${p.username}` : '#'}
+                            className="mt-2 rounded-lg gradient-brand px-3 py-1 text-[10px] font-semibold text-white"
+                          >
+                            View
+                          </Link>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
             {/* Tag filter */}
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
               <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-slate-500">
