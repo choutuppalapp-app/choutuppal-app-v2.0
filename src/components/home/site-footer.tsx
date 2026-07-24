@@ -58,7 +58,7 @@ export function SiteFooter() {
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
                 <span className="font-telugu">
-                  Powered by చౌటుప్పల్, యాదాద్రి, తెలంగాణ - 508252.
+                  చౌటుప్పల్, యాదాద్రి, తెలంగాణ - 508252.
                 </span>
               </li>
               <li className="flex items-center gap-2">
@@ -90,7 +90,7 @@ export function SiteFooter() {
 
         <div className="mt-8 flex flex-col items-center justify-between gap-2 border-t border-slate-200 pt-5 text-center text-xs text-slate-500 sm:flex-row sm:text-left">
           <p>
-            Powered by <span className="font-semibold text-slate-700"></span>,
+            Powered by <span className="font-semibold text-slate-700">Choutuppal App</span>,
             Choutuppal, Yadadri, Telangana, 508252.
           </p>
           <p>© {new Date().getFullYear()} Choutuppal App v2.0. All rights reserved.</p>
