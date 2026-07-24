@@ -64,7 +64,7 @@ export function ListingDetailView({
   > | null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50 pb-28 lg:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50 pb-24 md:pb-10">
       {/* Top nav */}
       <header className="sticky top-0 z-30 border-b border-white/50 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-3 sm:px-4">
