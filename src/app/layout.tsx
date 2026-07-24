@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Noto_Sans_Telugu } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'
+import { Providers } from '@/components/providers'
 import { PwaInstallPrompt } from '@/components/home/pwa-install-prompt'
 import { SiteHeader } from '@/components/home/site-header'
 import { BottomNav } from '@/components/home/bottom-nav'
@@ -81,15 +82,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}
       >
-        <SiteHeader />
-        <div className="pb-20 md:pb-0">
-          {children}
-        </div>
-        <BottomNav />
-        <WhatsAppFloat />
-        <PwaInstallPrompt />
-        <Toaster />
-        <SonnerToaster position="top-center" richColors closeButton />
+        <Providers>
+          <SiteHeader />
+          <div className="pb-20 md:pb-0">
+            {children}
+          </div>
+          <BottomNav />
+          <WhatsAppFloat />
+          <PwaInstallPrompt />
+          <Toaster />
+          <SonnerToaster position="top-center" richColors closeButton />
+        </Providers>
       </body>
     </html>
   )
