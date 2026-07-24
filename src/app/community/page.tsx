@@ -34,7 +34,7 @@ export default async function CommunityPage() {
         author: {
           select: {
             id: true, name: true, username: true, image: true,
-            politicalTag: true, bio: true,
+             bio: true,
           },
         },
         _count: { select: { comments: true } },
@@ -51,7 +51,7 @@ export default async function CommunityPage() {
       take: 12,
       select: {
         id: true, name: true, username: true, image: true, bio: true,
-        politicalTag: true, village: { select: { name: true } },
+         village: { select: { name: true } },
       },
     }),
   ])
@@ -59,7 +59,6 @@ export default async function CommunityPage() {
   const serialisedPosts = posts.map((p) => ({
     id: p.id,
     content: p.content,
-    politicalTag: p.politicalTag,
     likes: p.likes,
     commentCount: p._count.comments,
     likedByMe: viewer ? p.likesRel.length > 0 : false,

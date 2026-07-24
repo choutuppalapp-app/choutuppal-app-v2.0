@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       username: true,
       image: true,
       bio: true,
-      politicalTag: true,
+      
       village: { select: { name: true } },
     },
   })

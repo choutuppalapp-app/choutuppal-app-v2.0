@@ -5,13 +5,11 @@ import { MessageCircle, Heart, Trash2, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { tagStyle } from '@/components/community/tag-styles'
 import { EmptyState } from './my-listings'
 
 interface CommunityPostItem {
   id: string
   content: string
-  politicalTag: string
   likes: number
   createdAt: string
   _count: { comments: number; likesRel: number }
@@ -52,17 +50,9 @@ export function MyCommunityPosts({ posts }: { posts: CommunityPostItem[] }) {
       ) : (
         <div className="space-y-3">
           {items.map((p) => {
-            const tag = tagStyle(p.politicalTag)
             return (
               <div key={p.id} className="rounded-2xl glass p-4">
                 <div className="flex items-center gap-2">
-                  {tag.label ? (
-                    <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-bold', tag.cls)}>
-                      {tag.label}
-                    </span>
-                  ) : (
-                    <Badge variant="outline" className="text-[10px] text-slate-400">No tag</Badge>
-                  )}
                   <span className="text-[11px] text-slate-400">{timeAgo(p.createdAt)}</span>
                   <button
                     onClick={() => remove(p.id)}

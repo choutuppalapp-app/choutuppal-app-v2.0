@@ -19,12 +19,10 @@ import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { tagStyle } from './tag-styles'
 
 interface ProfilePost {
   id: string
   content: string
-  politicalTag: string
   likes: number
   commentCount: number
   likedByMe: boolean
@@ -62,7 +60,6 @@ interface Profile {
   image: string | null
   coverImage: string | null
   isPublic: boolean
-  politicalTag: string
   villageId: string | null
   village: { name: string } | null
   createdAt: Date
@@ -111,7 +108,6 @@ export function ProfileView({
     )
   }
 
-  const tag = tagStyle(profile.politicalTag)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50 pb-12">
@@ -157,11 +153,6 @@ export function ProfileView({
                   <h1 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
                     {profile.name ?? profile.username}
                   </h1>
-                  {tag.label ? (
-                    <span className={cn('rounded-full border px-2.5 py-0.5 text-[10px] font-bold', tag.cls)}>
-                      {tag.label}
-                    </span>
-                  ) : null}
                 </div>
                 <p className="text-sm text-slate-500">@{profile.username}</p>
                 {profile.village ? (
@@ -204,15 +195,9 @@ export function ProfileView({
               <EmptyState icon={MessageCircle} text="No posts yet" />
             ) : (
               profile.posts.map((p) => {
-                const ptag = tagStyle(p.politicalTag)
                 return (
                   <div key={p.id} className="rounded-2xl glass p-4">
                     <div className="flex items-center gap-2">
-                      {ptag.label ? (
-                        <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-bold', ptag.cls)}>
-                          {ptag.label}
-                        </span>
-                      ) : null}
                       <span className="text-[11px] text-slate-400">{timeAgo(p.createdAt)}</span>
                     </div>
                     <p className="font-telugu mt-2 whitespace-pre-wrap text-sm text-slate-800">{p.content}</p>

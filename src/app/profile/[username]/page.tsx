@@ -14,7 +14,7 @@ async function getProfile(username: string) {
     where: { username },
     select: {
       id: true, name: true, username: true, bio: true, image: true,
-      coverImage: true, isPublic: true, politicalTag: true,
+      coverImage: true, isPublic: true, 
       villageId: true, village: { select: { name: true } },
       createdAt: true,
     },
@@ -127,7 +127,6 @@ export default async function ProfilePage({
   const serialisedPosts = posts.map((p) => ({
     id: p.id,
     content: p.content,
-    politicalTag: p.politicalTag,
     likes: p.likes,
     commentCount: p._count.comments,
     likedByMe: data.viewerId ? p.likesRel.length > 0 : false,

@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { ImageUpload } from './image-upload'
-import { tagStyle } from '@/components/community/tag-styles'
 import { cn } from '@/lib/utils'
 import type { Village } from '@prisma/client'
 
@@ -34,7 +33,6 @@ interface ProfileUser {
   isPublic: boolean
   role: string
   planTier: string
-  politicalTag: string
   planExpiresAt: string | null
   villageId: string | null
 }
@@ -53,7 +51,6 @@ export function ProfileSection({
   const [image, setImage] = useState<string | null>(user.image)
   const [coverImage, setCoverImage] = useState<string | null>(user.coverImage)
   const [isPublic, setIsPublic] = useState(user.isPublic)
-  const [politicalTag, setPoliticalTag] = useState(user.politicalTag ?? 'NONE')
   const [saving, setSaving] = useState(false)
   const [pwOpen, setPwOpen] = useState(false)
   const [pwEmail, setPwEmail] = useState(user.email)
@@ -65,7 +62,6 @@ export function ProfileSection({
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, username, bio, phone, image, coverImage, isPublic, politicalTag }),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to save')
@@ -199,41 +195,6 @@ export function ProfileSection({
             maxLength={280}
           />
           <p className="mt-1 text-right text-[11px] text-slate-400">{bio.length}/280</p>
-        </Field>
-        <Field label="Political Tag (shown on profile & community posts)" className="mt-4">
-          <Select value={politicalTag} onValueChange={setPoliticalTag}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select political affiliation" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="NONE">None</SelectItem>
-              <SelectItem value="BJP">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-orange-500" /> BJP
-                </span>
-              </SelectItem>
-              <SelectItem value="CONGRESS">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-sky-500" /> Congress
-                </span>
-              </SelectItem>
-              <SelectItem value="BRS">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-pink-500" /> BRS
-                </span>
-              </SelectItem>
-              <SelectItem value="CPM">
-                <span className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-red-500" /> CPM
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          {politicalTag !== 'NONE' ? (
-            <span className={cn('mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold', tagStyle(politicalTag).cls)}>
-              {tagStyle(politicalTag).label}
-            </span>
-          ) : null}
         </Field>
       </div>
 

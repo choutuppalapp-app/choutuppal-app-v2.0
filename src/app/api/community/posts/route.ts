@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
   const posts = await prisma.communityPost.findMany({
     where: {
       author: { isPublic: true, isBanned: false },
-      ...(tag && tag !== 'ALL' ? { politicalTag: tag } : {}),
     },
     orderBy: { createdAt: 'desc' },
     take: 50,
@@ -27,7 +26,6 @@ export async function GET(request: NextRequest) {
       author: {
         select: {
           id: true, name: true, username: true, image: true,
-          politicalTag: true, bio: true,
         },
       },
       _count: { select: { comments: true } },
@@ -38,7 +36,6 @@ export async function GET(request: NextRequest) {
   const serialised = posts.map((p) => ({
     id: p.id,
     content: p.content,
-    politicalTag: p.politicalTag,
     likes: p.likes,
     commentCount: p._count.comments,
     likedByMe: viewer ? p.likesRel.length > 0 : false,
@@ -51,7 +48,6 @@ export async function GET(request: NextRequest) {
 
 const CreateSchema = z.object({
   content: z.string().min(1).max(2000),
-  politicalTag: z.enum(['NONE', 'BJP', 'CONGRESS', 'BRS', 'CPM']).default('NONE'),
 })
 
 /** POST /api/community/posts — create a post (logged-in users only). */
@@ -69,12 +65,10 @@ export async function POST(request: NextRequest) {
   const post = await prisma.communityPost.create({
     data: {
       content: parsed.data.content,
-      politicalTag: parsed.data.politicalTag,
       authorId: viewer.id,
     },
     include: {
       author: {
-        select: { id: true, name: true, username: true, image: true, politicalTag: true, bio: true },
       },
     },
   })

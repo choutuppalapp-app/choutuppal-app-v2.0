@@ -18,7 +18,6 @@ export async function GET(
     take: 100,
     include: {
       author: {
-        select: { id: true, name: true, username: true, image: true, politicalTag: true },
       },
     },
   })
@@ -50,7 +49,6 @@ export async function POST(
     data: { content: parsed.data.content, postId, authorId: viewer.id },
     include: {
       author: {
-        select: { id: true, name: true, username: true, image: true, politicalTag: true },
       },
     },
   })

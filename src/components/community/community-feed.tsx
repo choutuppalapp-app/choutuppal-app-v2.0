@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   Search,
   Loader2,
-  Filter,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -25,20 +24,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { POLITICAL_TAGS, tagStyle } from './tag-styles'
+
 
 interface FeedAuthor {
   id: string
   name: string | null
   username: string | null
   image: string | null
-  politicalTag: string
   bio: string | null
 }
 interface FeedPost {
   id: string
   content: string
-  politicalTag: string
   likes: number
   commentCount: number
   likedByMe: boolean
@@ -51,7 +48,6 @@ interface Person {
   username: string | null
   image: string | null
   bio: string | null
-  politicalTag: string
   village: { name: string } | null
 }
 interface Comment {
@@ -76,7 +72,6 @@ export function CommunityFeed({
 }: CommunityFeedProps) {
   const [posts, setPosts] = useState<FeedPost[]>(initialPosts)
   const [people] = useState<Person[]>(initialPeople)
-  const [tagFilter, setTagFilter] = useState<string>('ALL')
 
   const onCreated = useCallback((post: FeedPost) => {
     setPosts((prev) => [post, ...prev])
@@ -97,7 +92,7 @@ export function CommunityFeed({
   }, [])
 
   const visible =
-    tagFilter === 'ALL' ? posts : posts.filter((p) => p.politicalTag === tagFilter)
+    posts
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50">
@@ -135,8 +130,7 @@ export function CommunityFeed({
                   </h3>
                   <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
                     {people.map((p) => {
-                      const tag = tagStyle(p.politicalTag)
-                      return (
+                                            return (
                         <div
                           key={p.id}
                           className="flex w-40 shrink-0 flex-col items-center rounded-xl border border-white/30 bg-white/20 p-4 text-center backdrop-blur-lg"
@@ -150,11 +144,7 @@ export function CommunityFeed({
                           )}
                           <p className="mt-2 text-sm font-bold text-slate-900">{p.name ?? p.username}</p>
                           <p className="w-full truncate text-xs text-slate-500">{p.bio ?? p.village?.name ?? `@${p.username}`}</p>
-                          {tag.label ? (
-                            <span className={cn('mt-1 rounded-full border px-1.5 py-0.5 text-[8px] font-bold', tag.cls)}>
-                              {tag.label}
-                            </span>
-                          ) : null}
+                          
                           <Link
                             href={p.username ? `/profile/${p.username}` : '#'}
                             className="mt-2 rounded-lg gradient-brand px-3 py-1 text-[10px] font-semibold text-white"
@@ -169,26 +159,7 @@ export function CommunityFeed({
               </section>
             ) : null}
 
-            {/* Tag filter */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-              <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-slate-500">
-                <Filter className="h-3.5 w-3.5" /> Filter:
-              </span>
-              <FilterChip active={tagFilter === 'ALL'} onClick={() => setTagFilter('ALL')}>
-                All
-              </FilterChip>
-              {POLITICAL_TAGS.map((t) => {
-                const s = tagStyle(t)
-                return (
-                  <FilterChip key={t} active={tagFilter === t} onClick={() => setTagFilter(t)}>
-                    <span className={cn('mr-1 h-2 w-2 rounded-full', s.dot)} />
-                    {s.label}
-                  </FilterChip>
-                )
-              })}
-            </div>
-
-            {/* Posts */}
+            {/* Posts */}{/* Posts */}
             {visible.length === 0 ? (
               <div className="rounded-3xl glass p-10 text-center">
                 <MessageCircle className="mx-auto h-10 w-10 text-slate-300" />
@@ -236,7 +207,6 @@ function PostComposer({
   onCreated: (post: FeedPost) => void
 }) {
   const [content, setContent] = useState('')
-  const [tag, setTag] = useState<string>('NONE')
   const [posting, setPosting] = useState(false)
 
   async function submit() {
@@ -246,13 +216,12 @@ function PostComposer({
       const res = await fetch('/api/community/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, politicalTag: tag }),
+        body: JSON.stringify({ content }),
       })
       const j = await res.json()
       if (!res.ok || !j.ok) throw new Error(j.error || 'Failed to post')
       onCreated(j.post)
       setContent('')
-      setTag('NONE')
       toast.success('Posted!')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to post')
@@ -285,26 +254,6 @@ function PostComposer({
         className="resize-none border-0 bg-transparent focus-visible:ring-0"
       />
       <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3">
-        <span className="text-xs text-slate-400">Political tag (optional):</span>
-        <Select value={tag} onValueChange={setTag}>
-          <SelectTrigger className="h-8 w-36 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="NONE">None</SelectItem>
-            {POLITICAL_TAGS.map((t) => {
-              const s = tagStyle(t)
-              return (
-                <SelectItem key={t} value={t}>
-                  <span className="flex items-center gap-1.5">
-                    <span className={cn('h-2 w-2 rounded-full', s.dot)} />
-                    {s.label}
-                  </span>
-                </SelectItem>
-              )
-            })}
-          </SelectContent>
-        </Select>
         <span className="ml-auto text-[11px] text-slate-400">{content.length}/2000</span>
         <Button
           onClick={submit}
@@ -342,8 +291,7 @@ function PostCard({
   const [showComments, setShowComments] = useState(false)
   const [likeBusy, setLikeBusy] = useState(false)
   const [deleteBusy, setDeleteBusy] = useState(false)
-  const tag = tagStyle(post.politicalTag)
-  const isOwnPost = viewerUsername && post.author.username === viewerUsername
+    const isOwnPost = viewerUsername && post.author.username === viewerUsername
 
   async function toggleLike() {
     if (!isLoggedIn) {
@@ -398,11 +346,7 @@ function PostCard({
             >
               {post.author.name ?? post.author.username ?? 'Anonymous'}
             </Link>
-            {tag.label ? (
-              <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-bold', tag.cls)}>
-                {tag.label}
-              </span>
-            ) : null}
+            
           </div>
           <p className="text-[11px] text-slate-400">
             @{post.author.username ?? 'user'} · {timeAgo(post.createdAt)}
@@ -523,8 +467,7 @@ function CommentSection({
       ) : (
         <div className="space-y-2">
           {comments.map((c) => {
-            const ctag = tagStyle(c.author.politicalTag)
-            return (
+                        return (
               <div key={c.id} className="flex items-start gap-2">
                 <Avatar className="h-7 w-7">
                   <AvatarImage src={c.author.image ?? undefined} />
@@ -537,11 +480,7 @@ function CommentSection({
                     <span className="font-bold text-slate-900">
                       {c.author.name ?? c.author.username}
                     </span>
-                    {ctag.label ? (
-                      <span className={cn('rounded-full border px-1.5 text-[8px] font-bold', ctag.cls)}>
-                        {ctag.label}
-                      </span>
-                    ) : null}
+                    
                     <span className="text-slate-300">·</span>
                     <span className="text-slate-400">{timeAgo(c.createdAt)}</span>
                   </div>
@@ -591,8 +530,7 @@ function PeopleDirectory({ people }: { people: Person[] }) {
       ) : (
         <div className="space-y-2">
           {people.map((p) => {
-            const tag = tagStyle(p.politicalTag)
-            return (
+                        return (
               <Link
                 key={p.id}
                 href={p.username ? `/profile/${p.username}` : '#'}
@@ -605,14 +543,9 @@ function PeopleDirectory({ people }: { people: Person[] }) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <p className="truncate text-sm font-semibold text-slate-900">
-                      {p.name ?? p.username}
-                    </p>
-                    {tag.label ? (
-                      <span className={cn('h-2 w-2 shrink-0 rounded-full', tag.dot)} />
-                    ) : null}
-                  </div>
+                  <p className="truncate text-sm font-semibold text-slate-900">
+                    {p.name ?? p.username}
+                  </p>
                   <p className="truncate text-[11px] text-slate-400">
                     {p.bio ?? p.village?.name ?? `@${p.username}`}
                   </p>
@@ -629,30 +562,6 @@ function PeopleDirectory({ people }: { people: Person[] }) {
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */
 /* -------------------------------------------------------------------------- */
-
-function FilterChip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'flex shrink-0 items-center rounded-full border px-3 py-1 text-xs font-semibold transition',
-        active
-          ? 'border-blue-300 bg-blue-50 text-blue-700'
-          : 'border-slate-200 bg-white/60 text-slate-500 hover:bg-slate-50',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()

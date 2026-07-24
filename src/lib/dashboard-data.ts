@@ -63,7 +63,7 @@ export async function getDashboardData(user: User) {
       isPublic: user.isPublic,
       role: user.role,
       planTier: user.planTier,
-      politicalTag: user.politicalTag,
+      
       planExpiresAt: user.planExpiresAt ? user.planExpiresAt.toISOString() : null,
       villageId: user.villageId,
     },
