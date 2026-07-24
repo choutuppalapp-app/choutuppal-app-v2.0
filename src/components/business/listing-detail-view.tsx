@@ -259,20 +259,38 @@ export function ListingDetailView({
             </section>
           </div>
 
-          {/* Desktop sticky sidebar */}
-          <aside className="hidden w-72 shrink-0 lg:block">
-            <div className="sticky top-20 space-y-3">
-              <div className="rounded-3xl glass-strong p-5">
-                <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-700">
-                  Get in Touch
-                </h3>
-                <ActionBar
-                  listing={listing}
-                  vertical
+          {/* Desktop sticky sidebar — Glassmorphism card */}
+          <aside className="hidden w-72 shrink-0 md:block">
+            <div className="w-full rounded-2xl border border-white/30 bg-white/20 p-6 shadow-xl backdrop-blur-lg md:sticky md:top-24">
+              <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-700">
+                Get in Touch
+              </h3>
+              <div className="flex flex-col gap-3">
+                <DesktopActionButton
+                  icon={Phone} label="Call" color="bg-emerald-500 hover:bg-emerald-600"
+                  href={listing.phone ? `tel:${listing.phone}` : null}
+                />
+                <DesktopActionButton
+                  icon={MessageCircle} label="WhatsApp" color="bg-green-600 hover:bg-green-700"
+                  href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}` : null}
+                />
+                <button
+                  onClick={() => shareListing(listing)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                >
+                  <Share2 className="h-4 w-4" /> Share
+                </button>
+                <DesktopActionButton
+                  icon={UserPlus} label="Save Contact" color="bg-slate-500 hover:bg-slate-600"
+                  onClick={() => downloadVcf(listing)}
+                />
+                <DesktopActionButton
+                  icon={MapPin} label="Location" color="bg-red-500 hover:bg-red-600"
+                  href={listing.mapEmbed ?? `https://maps.google.com/?q=${encodeURIComponent(listing.address ?? listing.title)}`}
                 />
               </div>
               {listing.phone || listing.whatsapp ? (
-                <div className="rounded-3xl glass p-4 text-center text-xs text-slate-500">
+                <div className="mt-4 rounded-xl bg-white/40 p-3 text-center text-xs text-slate-500">
                   <p className="font-semibold text-slate-700">{listing.owner.name ?? 'Business Owner'}</p>
                   <p className="mt-1">Responds within a few hours</p>
                 </div>
@@ -405,7 +423,7 @@ function ActionBar({
         vertical={vertical}
         icon={Share2}
         label="Share"
-        onClick={shareListing}
+        onClick={() => shareListing(listing)}
         accent="gradient-brand"
       />
     </div>
@@ -457,19 +475,31 @@ function ActionButton({
 }
 
 function MobileActionBar({ listing }: { listing: ListingDetailData['listing'] }) {
+  const mapLink = listing.mapEmbed ?? `https://maps.google.com/?q=${encodeURIComponent(listing.address ?? listing.title)}`
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/50 bg-white/90 backdrop-blur-xl lg:hidden"
+      className="fixed bottom-16 left-0 right-0 z-30 flex items-center justify-around bg-white py-3 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Listing actions"
     >
-      <div className="mx-auto grid max-w-md grid-cols-5 gap-1 px-2 py-2">
-        <MobileAction icon={Phone} label="Call" href={listing.phone ? `tel:${listing.phone}` : null} accent="bg-emerald-500" />
-        <MobileAction icon={MessageCircle} label="WhatsApp" href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}` : null} accent="bg-green-500" />
-        <MobileAction icon={UserPlus} label="Save" onClick={() => downloadVcf(listing)} accent="bg-blue-500" />
-        <MobileAction icon={MapPin} label="Map" href={listing.mapEmbed ?? `https://maps.google.com/?q=${encodeURIComponent(listing.address ?? listing.title)}`} accent="bg-amber-500" />
-        <MobileAction icon={Share2} label="Share" onClick={shareListing} accent="gradient-brand" />
+      {/* Call */}
+      <MobileAction icon={Phone} label="Call" href={listing.phone ? `tel:${listing.phone}` : null} />
+      {/* WhatsApp */}
+      <MobileAction icon={MessageCircle} label="WhatsApp" href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}` : null} />
+      {/* Share — Center FAB */}
+      <div className="flex items-center justify-center">
+        <button
+          onClick={() => shareListing(listing)}
+          aria-label="Share"
+          className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 text-white shadow-lg transition active:scale-95"
+        >
+          <Share2 className="h-6 w-6" />
+        </button>
       </div>
+      {/* Save Contact */}
+      <MobileAction icon={UserPlus} label="Save" onClick={() => downloadVcf(listing)} />
+      {/* Location */}
+      <MobileAction icon={MapPin} label="Location" href={mapLink} />
     </nav>
   )
 }
@@ -479,20 +509,50 @@ function MobileAction({
   label,
   href,
   onClick,
-  accent,
 }: {
   icon: typeof Phone
   label: string
   href?: string | null
   onClick?: () => void
-  accent: string
 }) {
-  const cls = 'flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] font-semibold text-slate-600'
+  const cls = 'flex flex-col items-center justify-center gap-1 text-slate-600'
   const inner = (
     <>
-      <span className={cn('grid h-10 w-10 place-items-center rounded-xl text-white shadow', accent)}>
-        <Icon className="h-4 w-4" />
-      </span>
+      <Icon className="h-6 w-6" />
+      <span className="text-[10px] font-medium">{label}</span>
+    </>
+  )
+  if (href) {
+    return (
+      <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className={cls}>
+        {inner}
+      </a>
+    )
+  }
+  return (
+    <button type="button" onClick={onClick} className={cls}>
+      {inner}
+    </button>
+  )
+}
+
+function DesktopActionButton({
+  icon: Icon,
+  label,
+  color,
+  href,
+  onClick,
+}: {
+  icon: typeof Phone
+  label: string
+  color: string
+  href?: string | null
+  onClick?: () => void
+}) {
+  const cls = cn('flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white transition', color)
+  const inner = (
+    <>
+      <Icon className="h-4 w-4" />
       {label}
     </>
   )
@@ -546,21 +606,18 @@ function downloadVcf(listing: ListingDetailData['listing']) {
   toast.success('Contact saved')
 }
 
-async function shareListing() {
+async function shareListing(listing: ListingDetailData['listing']) {
   const url = window.location.href
-  const title = document.title
+  const shareTitle = `చౌటుప్పల్ యాప్ - ${listing.title}`
+  const shareText = `${listing.title} - ${listing.address ?? ''}. చౌటుప్పల్ యాప్ లో చూడండి!`
   if (navigator.share) {
     try {
-      await navigator.share({ title, url })
+      await navigator.share({ title: shareTitle, text: shareText, url })
     } catch {
       // user cancelled — no-op
     }
   } else {
-    try {
-      await navigator.clipboard.writeText(url)
-      toast.success('Link copied to clipboard')
-    } catch {
-      toast.error('Share not supported')
-    }
+    // Fallback to WhatsApp
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareText + ' ' + url)}`, '_blank')
   }
 }
