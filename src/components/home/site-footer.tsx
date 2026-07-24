@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { MapPin, Phone, MessageCircle, Mail, Facebook, Instagram, Youtube, Send } from 'lucide-react'
+import { MapPin, Phone, MessageCircle, Mail } from 'lucide-react'
+import { SocialLinks } from '@/components/shared/social-links'
 
 export function SiteFooter() {
   return (
@@ -33,19 +34,9 @@ export function SiteFooter() {
               <li><Link href="/privacy" className="text-sm text-slate-500 transition hover:text-blue-600">Privacy Policy</Link></li>
               <li><Link href="/login" className="text-sm text-slate-500 transition hover:text-blue-600">Login / Sign Up</Link></li>
             </ul>
-            <div className="mt-4 flex gap-2">
-              {[Facebook, Instagram, Youtube, Send].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="https://wa.me/919441348175"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Social link"
-                  className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-blue-300 hover:text-blue-600"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-semibold text-slate-600">Connect With Us</p>
+              <SocialLinks />
             </div>
           </div>
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Search, MapPin, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SocialLinks } from '@/components/shared/social-links'
 import {
   Select,
   SelectContent,
@@ -67,6 +68,15 @@ export function DiscoverSearch({ villages, categories }: DiscoverSearchProps) {
           <Search className="h-4 w-4" />
           Search
         </Button>
+      </div>
+
+      {/* Social links — desktop inline, mobile below */}
+      <div className="mt-3 hidden items-center gap-2 md:flex">
+        <span className="text-xs font-semibold text-slate-500">Follow us:</span>
+        <SocialLinks />
+      </div>
+      <div className="mt-3 flex gap-3 overflow-x-auto scrollbar-none md:hidden">
+        <SocialLinks />
       </div>
     </section>
   )
