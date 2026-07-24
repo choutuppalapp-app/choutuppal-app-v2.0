@@ -64,7 +64,7 @@ export function ListingDetailView({
   > | null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50 pb-24 md:pb-10">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50 pb-32 md:pb-10">
       {/* Top nav */}
       <header className="sticky top-0 z-30 border-b border-white/50 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-3 sm:px-4">
@@ -86,9 +86,9 @@ export function ListingDetailView({
       </header>
 
       <div className="mx-auto max-w-6xl px-3 py-4 sm:px-4 lg:px-6">
-        <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Main column */}
-          <div className="min-w-0 flex-1 space-y-6">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+          {/* Main column (2/3 width on desktop) */}
+          <div className="min-w-0 space-y-6 md:col-span-2">
             {/* Cover + Logo */}
             <div className="overflow-hidden rounded-3xl glass">
               <div className="relative">
@@ -140,6 +140,34 @@ export function ListingDetailView({
                 </div>
               </div>
             </div>
+
+            {/* Business Hours card */}
+            {hours ? (
+              <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                <Clock className="h-5 w-5 shrink-0 text-blue-500" />
+                <div className="flex-1 text-xs text-slate-600">
+                  <span className="font-semibold text-slate-800">Today:</span>{' '}
+                  {hours[(new Date().getDay() === 0 ? 'sun' : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][new Date().getDay() - 1])]?.open ?? '9:00'} –{' '}
+                  {hours[(new Date().getDay() === 0 ? 'sun' : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][new Date().getDay() - 1])]?.close ?? '9:00'}
+                </div>
+                {(() => {
+                  const day = new Date().getDay() === 0 ? 'sun' : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][new Date().getDay() - 1]
+                  const todayHours = hours[day]
+                  const now = new Date()
+                  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+                  const [openH, openM] = (todayHours?.open ?? '9:00').split(':').map(Number)
+                  const [closeH, closeM] = (todayHours?.close ?? '21:00').split(':').map(Number)
+                  const openMinutes = openH * 60 + openM
+                  const closeMinutes = closeH * 60 + closeM
+                  const isOpen = currentMinutes >= openMinutes && currentMinutes <= closeMinutes
+                  return (
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {isOpen ? 'Open Now' : 'Closed'}
+                    </span>
+                  )
+                })()}
+              </div>
+            ) : null}
 
             {/* Info row */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -260,7 +288,7 @@ export function ListingDetailView({
           </div>
 
           {/* Desktop sticky sidebar — Glassmorphism card */}
-          <aside className="hidden w-72 shrink-0 md:block">
+          <aside className="hidden md:col-span-1 md:block">
             <div className="w-full rounded-2xl border border-white/30 bg-white/20 p-6 shadow-xl backdrop-blur-lg md:sticky md:top-24">
               <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-700">
                 Get in Touch
