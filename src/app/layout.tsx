@@ -47,8 +47,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'Choutuppal' }],
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: '/logo-pwa.png',
+    apple: '/logo-pwa.png',
   },
   openGraph: {
     title: 'Choutuppal App v2.0',
