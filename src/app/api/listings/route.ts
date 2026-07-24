@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { requireApiUser } from '@/lib/session'
+import { requireApiUser, isAdminRole } from '@/lib/session'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       servicesCatalog: parsed.data.servicesCatalog ?? undefined,
       businessHours: parsed.data.businessHours ?? undefined,
       ownerId: auth.user.id,
-      status: 'PENDING',
+      status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING',
     },
   })
   return NextResponse.json({ ok: true, listing }, { status: 201 })

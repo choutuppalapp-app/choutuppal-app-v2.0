@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
-import { requireApiUser } from '@/lib/session'
+import { requireApiUser, isAdminRole } from '@/lib/session'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
   const slug = await uniqueSlug(parsed.data.title)
   const re = await prisma.realEstate.create({
-    data: { ...parsed.data, slug, ownerId: auth.user.id, status: 'PENDING' },
+    data: { ...parsed.data, slug, ownerId: auth.user.id, status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING' },
   })
   return NextResponse.json({ ok: true, realEstate: re }, { status: 201 })
 }

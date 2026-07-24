@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { ShortsManager } from './shorts-manager'
+import { AdminContentModal } from './admin-content-modal'
 
 /* -------------------------------------------------------------------------- */
 /* Types                                                                       */
@@ -30,6 +31,8 @@ interface ContentData {
 export function ContentTab() {
   const [data, setData] = useState<ContentData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [newsModal, setNewsModal] = useState(false)
+  const [blogModal, setBlogModal] = useState(false)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -74,6 +77,11 @@ export function ContentTab() {
         </TabsList>
 
         <TabsContent value="news" className="mt-4">
+          <div className="mb-3 flex justify-end">
+            <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => setNewsModal(true)}>
+              <Plus className="h-4 w-4" /> Add New News
+            </Button>
+          </div>
           <ItemList
             title="News Articles"
             items={data?.news ?? []}
@@ -88,6 +96,11 @@ export function ContentTab() {
         </TabsContent>
 
         <TabsContent value="blogs" className="mt-4">
+          <div className="mb-3 flex justify-end">
+            <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => setBlogModal(true)}>
+              <Plus className="h-4 w-4" /> Add New Blog
+            </Button>
+          </div>
           <ItemList
             title="Blog Posts"
             items={data?.blogs ?? []}
@@ -113,6 +126,10 @@ export function ContentTab() {
           <VillageManager villages={data?.villages ?? []} onChanged={load} />
         </TabsContent>
       </Tabs>
+
+      {/* Admin content creation modals */}
+      <AdminContentModal open={newsModal} onOpenChange={setNewsModal} type="news" onCreated={load} />
+      <AdminContentModal open={blogModal} onOpenChange={setBlogModal} type="blog" onCreated={load} />
     </div>
   )
 }

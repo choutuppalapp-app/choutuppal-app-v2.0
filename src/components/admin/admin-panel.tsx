@@ -22,6 +22,7 @@ import {
   Trash2,
   Newspaper,
   UserPlus,
+  Plus,
   Bell,
   Send,
 } from 'lucide-react'
@@ -43,6 +44,7 @@ import {
 import { toast } from 'sonner'
 import { ContentTab } from './content-tab'
 import { CreateUserModal } from './create-user-modal'
+import { AddListingModal } from '@/components/dashboard/add-listing-modal'
 
 interface Stats {
   totalUsers: number
@@ -167,12 +169,19 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 function OverviewTab() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [addListingOpen, setAddListingOpen] = useState(false)
+  const [villages, setVillages] = useState<Array<{ id: string; name: string; slug: string }>>([])
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
 
   useEffect(() => {
+    let active = true
     fetch('/api/admin/stats')
       .then((r) => r.json())
-      .then((j) => j.ok && setStats(j.stats))
-      .finally(() => setLoading(false))
+      .then((j) => { if (active && j.ok) setStats(j.stats) })
+      .finally(() => { if (active) setLoading(false) })
+    fetch('/api/villages').then((r) => r.json()).then((j) => { if (active && j.ok) setVillages(j.villages) }).catch(() => {})
+    fetch('/api/admin/content').then((r) => r.json()).then((j) => { if (active && j.ok) setCategories(j.categories) }).catch(() => {})
+    return () => { active = false }
   }, [])
 
   if (loading) return <CenteredLoader />
@@ -210,7 +219,19 @@ function OverviewTab() {
         <p className="mt-1 text-sm text-slate-500">
           Review pending listings, manage users, and control platform settings from the tabs above.
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button onClick={() => setAddListingOpen(true)} size="sm" className="gap-1.5 gradient-brand text-white">
+            <Plus className="h-4 w-4" /> Add New Listing
+          </Button>
+        </div>
       </div>
+
+      <AddListingModal
+        open={addListingOpen}
+        onOpenChange={setAddListingOpen}
+        villages={villages}
+        categories={categories}
+      />
     </div>
   )
 }
