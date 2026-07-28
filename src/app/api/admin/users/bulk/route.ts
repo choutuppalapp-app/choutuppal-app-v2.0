@@ -5,6 +5,7 @@ import { requireApiAdmin } from '@/lib/session'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 /** POST /api/admin/users/bulk — Bulk create users from CSV parser */
 export async function POST(request: NextRequest) {

@@ -1,10 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   reactStrictMode: true,
   compress: true,
-  // Reduce memory pressure during development compiles.
   experimental: {
     optimizePackageImports: [
       "lucide-react",
@@ -12,9 +10,15 @@ const nextConfig: NextConfig = {
       "framer-motion",
     ],
   },
-  // Disable image optimization memory churn in dev (images served directly).
   images: {
     unoptimized: true,
+    remotePatterns: [
+      { protocol: "https", hostname: "*.r2.cloudflarestorage.com" },
+      { protocol: "https", hostname: "media.choutuppal.com" },
+      { protocol: "https", hostname: "img.youtube.com" },
+      { protocol: "https", hostname: "*.cdninstagram.com" },
+      { protocol: "https", hostname: "*.fbcdn.net" },
+    ],
   },
 };
 
