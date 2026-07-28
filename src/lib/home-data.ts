@@ -63,24 +63,29 @@ export async function getVillages() {
 }
 
 export async function getHomePageData() {
-  const [
-    stories,
-    banners,
-    categories,
-    featured,
-    realEstate,
-    shorts,
-    villages,
-  ] = await Promise.all([
-    getActiveStories(),
-    getActiveBanners(),
-    getCategories(),
-    getFeaturedListings(),
-    getPremiumRealEstate(),
-    getShorts(),
-    getVillages(),
-  ])
-  return { stories, banners, categories, featured, realEstate, shorts, villages }
+  try {
+    const [
+      stories,
+      banners,
+      categories,
+      featured,
+      realEstate,
+      shorts,
+      villages,
+    ] = await Promise.all([
+      getActiveStories().catch((err) => { console.error('[HomeData] stories error:', err); return [] }),
+      getActiveBanners().catch((err) => { console.error('[HomeData] banners error:', err); return [] }),
+      getCategories().catch((err) => { console.error('[HomeData] categories error:', err); return [] }),
+      getFeaturedListings().catch((err) => { console.error('[HomeData] featured error:', err); return [] }),
+      getPremiumRealEstate().catch((err) => { console.error('[HomeData] realEstate error:', err); return [] }),
+      getShorts().catch((err) => { console.error('[HomeData] shorts error:', err); return [] }),
+      getVillages().catch((err) => { console.error('[HomeData] villages error:', err); return [] }),
+    ])
+    return { stories, banners, categories, featured, realEstate, shorts, villages }
+  } catch (err) {
+    console.error('[HomeData] getHomePageData failed:', err)
+    return { stories: [], banners: [], categories: [], featured: [], realEstate: [], shorts: [], villages: [] }
+  }
 }
 
 export type HomePageData = Awaited<ReturnType<typeof getHomePageData>>

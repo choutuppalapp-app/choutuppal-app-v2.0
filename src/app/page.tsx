@@ -23,15 +23,25 @@ export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const data = await getHomePageData()
-  const viewer = await getCurrentUser()
+  let viewer: any = null
+  try {
+    viewer = await getCurrentUser()
+  } catch (err) {
+    console.error('[Home] getCurrentUser error:', err)
+  }
 
-  // Fetch settings to check if spin is enabled
-  const settingsList = await prisma.setting.findMany()
-  const settings = settingsList.reduce((acc, row) => {
-    acc[row.key] = row.value
-    return acc
-  }, {} as Record<string, string>)
-  const spinEnabled = (settings.spin_enabled ?? 'true') !== 'false'
+  let spinEnabled = true
+  try {
+    const settingsList = await prisma.setting.findMany()
+    const settings = settingsList.reduce((acc, row) => {
+      acc[row.key] = row.value
+      return acc
+    }, {} as Record<string, string>)
+    if (settings.spin_enabled === 'false') spinEnabled = false
+  } catch (err) {
+    console.error('[Home] settings query error:', err)
+  }
+
   const viewerInfo = viewer
     ? {
         isLoggedIn: true,
