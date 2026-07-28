@@ -514,23 +514,6 @@ function LoginInner() {
                   Continue with Google
                 </Button>
               </form>
-
-              {/* Demo hint */}
-              <div className="mt-5 flex items-start gap-2 rounded-xl border border-blue-100 bg-gradient-brand-soft px-3 py-2.5 text-xs text-slate-600">
-                <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-                <p>
-                  <span className="font-semibold text-slate-800">
-                    Demo login:
-                  </span>{' '}
-                  <code className="rounded bg-white/70 px-1 py-0.5 font-mono text-[11px] text-blue-700">
-                    demo@choutuppal.app
-                  </code>{' '}
-                  /{' '}
-                  <code className="rounded bg-white/70 px-1 py-0.5 font-mono text-[11px] text-blue-700">
-                    demo1234
-                  </code>
-                </p>
-              </div>
             </TabsContent>
 
             {/* ----------------------------- SIGN UP --------------------------- */}

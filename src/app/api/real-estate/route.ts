@@ -58,12 +58,20 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ ok: true, realEstate: re }, { status: 201 })
 }
 
-/** GET /api/real-estate — list the current user's properties. */
-export async function GET() {
+/** GET /api/real-estate — list properties. Supports filtering by userId for admins. */
+export async function GET(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
+  const { searchParams } = new URL(request.url)
+  const queryUserId = searchParams.get('userId')
+  let targetUserId = auth.user.id
+  if (queryUserId && isAdminRole(auth.user.role)) {
+    targetUserId = queryUserId
+  }
+
   const realEstates = await prisma.realEstate.findMany({
-    where: { ownerId: auth.user.id },
+    where: { ownerId: targetUserId },
     orderBy: { createdAt: 'desc' },
     include: { village: true },
   })

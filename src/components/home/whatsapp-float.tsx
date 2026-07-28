@@ -1,3 +1,6 @@
+'use client'
+
+import { usePathname } from 'next/navigation'
 import { MessageCircle } from 'lucide-react'
 
 const WHATSAPP_LINK =
@@ -5,6 +8,10 @@ const WHATSAPP_LINK =
   encodeURIComponent('నమస్తే, చౌటుప్పల్ యాప్ గురించి సమాచారం కావాలి')
 
 export function WhatsAppFloat() {
+  const pathname = usePathname()
+
+  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/dashboard')) return null
+
   return (
     <a
       href={WHATSAPP_LINK}
@@ -17,3 +24,4 @@ export function WhatsAppFloat() {
     </a>
   )
 }
+

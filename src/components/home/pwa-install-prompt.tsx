@@ -8,16 +8,21 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-const DISMISS_KEY = 'pwa-install-dismissed'
+const DISMISS_KEY = 'pwa-install-dismissed-session'
 
 export function PwaInstallPrompt() {
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    // Don't show if the user previously dismissed it.
     if (typeof window === 'undefined') return
-    if (localStorage.getItem(DISMISS_KEY) === 'true') return
+    
+    // Check if dismissed in this session
+    if (sessionStorage.getItem(DISMISS_KEY) === 'true') return
+
+    // Mobile-only check (userAgent + screen width)
+    const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent) || window.innerWidth < 768
+    if (!isMobile) return
 
     const handler = (e: Event) => {
       e.preventDefault()
@@ -41,7 +46,7 @@ export function PwaInstallPrompt() {
   }
 
   function dismiss() {
-    localStorage.setItem(DISMISS_KEY, 'true')
+    sessionStorage.setItem(DISMISS_KEY, 'true')
     setVisible(false)
   }
 

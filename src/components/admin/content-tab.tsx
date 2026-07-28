@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Newspaper, BookOpen, Video, Tag, MapPin, Plus, Trash2, Loader2, RefreshCw, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { ShortsManager } from './shorts-manager'
 import { AdminContentModal } from './admin-content-modal'
+import { AddListingModal } from '@/components/dashboard/add-listing-modal'
 
 /* -------------------------------------------------------------------------- */
 /* Types                                                                       */
@@ -29,10 +31,18 @@ interface ContentData {
 /* -------------------------------------------------------------------------- */
 
 export function ContentTab() {
+  const router = useRouter()
   const [data, setData] = useState<ContentData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [newsModal, setNewsModal] = useState(false)
-  const [blogModal, setBlogModal] = useState(false)
+  
+  // Quick Actions modal states
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [defaultType, setDefaultType] = useState<'business' | 'service' | 'realestate'>('business')
+
+  function openAddModal(type: 'business' | 'realestate') {
+    setDefaultType(type)
+    setAddModalOpen(true)
+  }
 
   const load = useCallback(() => {
     setLoading(true)
@@ -67,6 +77,25 @@ export function ContentTab() {
         </Button>
       </div>
 
+      {/* Quick Actions Card */}
+      <div className="rounded-3xl glass p-5">
+        <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-700">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Button onClick={() => openAddModal('business')} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
+            <Plus className="h-4 w-4" /> Add Listing
+          </Button>
+          <Button onClick={() => openAddModal('realestate')} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
+            <Plus className="h-4 w-4" /> Add Property
+          </Button>
+          <Button onClick={() => router.push('/admin/add-news')} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
+            <Plus className="h-4 w-4" /> Add News
+          </Button>
+          <Button onClick={() => router.push('/admin/add-blog')} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
+            <Plus className="h-4 w-4" /> Add Blog
+          </Button>
+        </div>
+      </div>
+
       <Tabs defaultValue="news">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
           <TabsTrigger value="news" className="gap-1 text-xs"><Newspaper className="h-3.5 w-3.5" /> News</TabsTrigger>
@@ -78,7 +107,7 @@ export function ContentTab() {
 
         <TabsContent value="news" className="mt-4">
           <div className="mb-3 flex justify-end">
-            <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => setNewsModal(true)}>
+            <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => router.push('/admin/add-news')}>
               <Plus className="h-4 w-4" /> Add New News
             </Button>
           </div>
@@ -97,7 +126,7 @@ export function ContentTab() {
 
         <TabsContent value="blogs" className="mt-4">
           <div className="mb-3 flex justify-end">
-            <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => setBlogModal(true)}>
+            <Button size="sm" className="gap-1.5 gradient-brand text-white" onClick={() => router.push('/admin/add-blog')}>
               <Plus className="h-4 w-4" /> Add New Blog
             </Button>
           </div>
@@ -127,9 +156,13 @@ export function ContentTab() {
         </TabsContent>
       </Tabs>
 
-      {/* Admin content creation modals */}
-      <AdminContentModal open={newsModal} onOpenChange={setNewsModal} type="news" onCreated={load} />
-      <AdminContentModal open={blogModal} onOpenChange={setBlogModal} type="blog" onCreated={load} />
+      <AddListingModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        villages={data?.villages ?? []}
+        categories={data?.categories ?? []}
+        defaultType={defaultType}
+      />
     </div>
   )
 }

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import {
   Users,
   Store,
@@ -25,6 +27,9 @@ import {
   Plus,
   Bell,
   Send,
+  Upload,
+  LogOut,
+  Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -110,16 +115,22 @@ export function AdminPanel({ adminName }: { adminName: string }) {
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-white/50 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-4 lg:px-6">
-          <Link href="/" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200">
+          <Link href="/" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200" title="Back to home">
             <ChevronLeft className="h-4 w-4" />
           </Link>
           <img src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
-          <Link
-            href="/dashboard"
-            className="ml-auto hidden items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 sm:flex"
-          >
-            <Home className="h-3.5 w-3.5" /> Dashboard
-          </Link>
+          <span className="font-bold text-slate-900">Admin Panel</span>
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              variant="outline"
+              size="sm"
+              className="gap-1.5 border-slate-200 text-slate-700 hover:text-red-600"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -170,6 +181,7 @@ function OverviewTab() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [addListingOpen, setAddListingOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<any>(null)
   const [villages, setVillages] = useState<Array<{ id: string; name: string; slug: string }>>([])
   const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
 
@@ -214,16 +226,30 @@ function OverviewTab() {
         })}
       </div>
 
+      {/* Quick Actions */}
+      <div className="rounded-3xl glass p-5">
+        <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-700">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Button onClick={() => { setEditingItem(null); setAddListingOpen(true) }} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
+            <Plus className="h-4 w-4" /> Add Listing
+          </Button>
+          <Button onClick={() => { setEditingItem(null); setAddListingOpen(true) }} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
+            <Plus className="h-4 w-4" /> Add Property
+          </Button>
+          <Button onClick={() => window.location.href = '/admin/add-news'} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
+            <Plus className="h-4 w-4" /> Add News
+          </Button>
+          <Button onClick={() => window.location.href = '/admin/add-blog'} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
+            <Plus className="h-4 w-4" /> Add Blog
+          </Button>
+        </div>
+      </div>
+
       <div className="rounded-3xl glass-strong p-6">
         <h2 className="text-lg font-bold text-slate-900">Welcome, Admin 👋</h2>
         <p className="mt-1 text-sm text-slate-500">
           Review pending listings, manage users, and control platform settings from the tabs above.
         </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button onClick={() => setAddListingOpen(true)} size="sm" className="gap-1.5 gradient-brand text-white">
-            <Plus className="h-4 w-4" /> Add New Listing
-          </Button>
-        </div>
       </div>
 
       <AddListingModal
@@ -231,6 +257,7 @@ function OverviewTab() {
         onOpenChange={setAddListingOpen}
         villages={villages}
         categories={categories}
+        editingItem={editingItem}
       />
     </div>
   )
@@ -476,13 +503,155 @@ function ApprovalCard({
 /* User Management                                                            */
 /* -------------------------------------------------------------------------- */
 
+interface UserListingsDialogProps {
+  user: AdminUser | null
+  onClose: () => void
+  categories: any[]
+  villages: any[]
+  onEdit: (item: any) => void
+}
+
+function UserListingsDialog({ user, onClose, categories, villages, onEdit }: UserListingsDialogProps) {
+  const [listings, setListings] = useState<any[]>([])
+  const [realEstates, setRealEstates] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const loadListings = useCallback(() => {
+    if (!user) return
+    setLoading(true)
+    Promise.all([
+      fetch(`/api/listings?userId=${user.id}`).then((r) => r.json()),
+      fetch(`/api/real-estate?userId=${user.id}`).then((r) => r.json()),
+    ])
+      .then(([lRes, reRes]) => {
+        if (lRes.ok) setListings(lRes.listings)
+        if (reRes.ok) setRealEstates(reRes.realEstates)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [user])
+
+  useEffect(() => {
+    loadListings()
+  }, [loadListings])
+
+  async function deleteListing(id: string) {
+    if (!confirm('Delete this listing?')) return
+    try {
+      const res = await fetch(`/api/listings/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed')
+      toast.success('Deleted')
+      loadListings()
+    } catch {
+      toast.error('Failed to delete')
+    }
+  }
+
+  async function deleteRealEstate(id: string) {
+    if (!confirm('Delete this property?')) return
+    try {
+      const res = await fetch(`/api/real-estate/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed')
+      toast.success('Deleted')
+      loadListings()
+    } catch {
+      toast.error('Failed to delete')
+    }
+  }
+
+  if (!user) return null
+
+  return (
+    <div className="fixed inset-0 z-40 grid place-items-center bg-black/40 p-4 animate-in fade-in duration-200" onClick={onClose}>
+      <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b pb-3">
+          <div>
+            <h3 className="text-lg font-black text-slate-900">Listings for {user.name ?? user.email}</h3>
+            <p className="text-xs text-slate-500">Manage business and property listings owned by this user.</p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-blue-500" /></div>
+        ) : (
+          <div className="max-h-[60vh] overflow-y-auto py-4 space-y-6 fancy-scroll">
+            {/* Listings Section */}
+            <div>
+              <h4 className="font-bold text-slate-800 text-sm mb-2 flex items-center gap-1.5"><Store className="h-4 w-4 text-blue-500" /> Business/Service Listings ({listings.length})</h4>
+              {listings.length === 0 ? (
+                <p className="text-xs text-slate-400 pl-5">No listings found.</p>
+              ) : (
+                <div className="space-y-2">
+                  {listings.map((l) => (
+                    <div key={l.id} className="flex items-center justify-between border rounded-xl p-3 hover:bg-slate-50">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">{l.title}</p>
+                        <p className="text-[10px] text-slate-400">Category: {l.category?.name ?? 'General'} · Status: <span className="font-bold text-[10px]">{l.status}</span></p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="text-xs py-1 px-2.5 h-7" onClick={() => onEdit(l)}>Edit</Button>
+                        <Button size="sm" variant="outline" className="text-xs py-1 px-2.5 h-7 text-red-600 border-red-100 hover:bg-red-50" onClick={() => deleteListing(l.id)}>Delete</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Properties Section */}
+            <div>
+              <h4 className="font-bold text-slate-800 text-sm mb-2 flex items-center gap-1.5"><Home className="h-4 w-4 text-amber-500" /> Real Estate Properties ({realEstates.length})</h4>
+              {realEstates.length === 0 ? (
+                <p className="text-xs text-slate-400 pl-5">No properties found.</p>
+              ) : (
+                <div className="space-y-2">
+                  {realEstates.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between border rounded-xl p-3 hover:bg-slate-50">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">{p.title}</p>
+                        <p className="text-[10px] text-slate-400">Type: {p.type} · Status: <span className="font-bold text-[10px]">{p.status}</span></p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="text-xs py-1 px-2.5 h-7" onClick={() => onEdit(p)}>Edit</Button>
+                        <Button size="sm" variant="outline" className="text-xs py-1 px-2.5 h-7 text-red-600 border-red-100 hover:bg-red-50" onClick={() => deleteRealEstate(p.id)}>Delete</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function UsersTab() {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [createOpen, setCreateOpen] = useState(false)
+  const [listingsUser, setListingsUser] = useState<AdminUser | null>(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<any>(null)
   const [resetId, setResetId] = useState<string | null>(null)
   const [newPw, setNewPw] = useState('')
-  const [createOpen, setCreateOpen] = useState(false)
+  const [busy, setBusy] = useState<string | null>(null)
+
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
+  const [villages, setVillages] = useState<Array<{ id: string; name: string; slug: string }>>([])
+
+  const filteredUsers = users.filter((u) => {
+    const q = search.toLowerCase()
+    return (
+      (u.name?.toLowerCase().includes(q) ?? false) ||
+      (u.username?.toLowerCase().includes(q) ?? false) ||
+      u.email.toLowerCase().includes(q) ||
+      (u.phone?.includes(q) ?? false)
+    )
+  })
 
   const load = useCallback(() => {
     setLoading(true)
@@ -492,7 +661,20 @@ function UsersTab() {
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+
+    // Fetch categories and villages for listings modal
+    fetch('/api/admin/content')
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.ok) {
+          setCategories(j.categories || [])
+          setVillages(j.villages || [])
+        }
+      })
+      .catch(() => {})
+  }, [load])
 
   async function act(id: string, action: string, extra?: Record<string, unknown>) {
     setBusy(id)
@@ -523,16 +705,72 @@ function UsersTab() {
     setNewPw('')
   }
 
+  function handleCsvUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const Papa = require('papaparse')
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results: any) => {
+        const rows = results.data
+        if (rows.length === 0) {
+          toast.error('No data found in CSV')
+          return
+        }
+
+        const loader = toast.loading('Importing users...')
+        try {
+          const res = await fetch('/api/admin/users/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ users: rows }),
+          })
+          const j = await res.json()
+          if (res.ok && j.ok) {
+            toast.success(`Imported: ${j.createdCount} created, ${j.skippedCount} skipped`, { id: loader })
+            load()
+          } else {
+            toast.error(j.error || 'Failed to import', { id: loader })
+          }
+        } catch {
+          toast.error('Failed to upload', { id: loader })
+        }
+      },
+    })
+  }
+
   if (loading) return <CenteredLoader />
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">User Management</h2>
-          <p className="text-sm text-slate-500">{users.length} registered users</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search users by name, email, phone..."
+            className="pl-8 text-xs"
+          />
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {/* CSV File Input */}
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleCsvUpload}
+            id="csv-upload"
+            className="hidden"
+          />
+          <Button asChild size="sm" variant="outline" className="gap-1.5 cursor-pointer">
+            <label htmlFor="csv-upload" className="flex items-center gap-1.5 cursor-pointer">
+              <Upload className="h-3.5 w-3.5 text-slate-500" />
+              <span>Bulk CSV Upload</span>
+            </label>
+          </Button>
+
           <Button onClick={() => setCreateOpen(true)} size="sm" className="gap-1.5 gradient-brand text-white">
             <UserPlus className="h-3.5 w-3.5" /> Create User
           </Button>
@@ -549,12 +787,13 @@ function UsersTab() {
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
                 <th className="p-3">User</th>
                 <th className="hidden p-3 sm:table-cell">Role</th>
+                <th className="hidden p-3 sm:table-cell">Plan Tier</th>
                 <th className="hidden p-3 md:table-cell">Listings</th>
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {users.map((u) => (
+              {filteredUsers.map((u) => (
                 <tr key={u.id} className="hover:bg-white/50">
                   <td className="p-3">
                     <div className="flex items-center gap-2">
@@ -589,11 +828,34 @@ function UsersTab() {
                       </SelectContent>
                     </Select>
                   </td>
+                  <td className="hidden p-3 sm:table-cell">
+                    <Select
+                      value={u.planTier || 'FREE'}
+                      onValueChange={(v) => {
+                        act(u.id, 'update_tier', { planTier: v })
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-28 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="FREE">FREE</SelectItem>
+                        <SelectItem value="BASIC">BASIC</SelectItem>
+                        <SelectItem value="PRO">PRO</SelectItem>
+                        <SelectItem value="PREMIUM">PREMIUM</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </td>
                   <td className="hidden p-3 text-slate-600 md:table-cell">
                     {u._count.listings} listings · {u._count.realEstates} RE
                   </td>
                   <td className="p-3">
                     <div className="flex justify-end gap-1">
+                      <IconBtn
+                        icon={Store}
+                        label="View Listings"
+                        tone="blue"
+                        disabled={busy === u.id}
+                        onClick={() => setListingsUser(u)}
+                      />
                       {u.isBanned ? (
                         <IconBtn icon={ShieldCheck} label="Unban" tone="green" disabled={busy === u.id} onClick={() => act(u.id, 'unban')} />
                       ) : (
@@ -611,8 +873,8 @@ function UsersTab() {
 
       {/* Reset password modal */}
       {resetId ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setResetId(null)}>
-          <div className="w-full max-w-sm rounded-3xl glass-strong p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 animate-in fade-in duration-200" onClick={() => setResetId(null)}>
+          <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="flex items-center gap-2 font-bold text-slate-900">
               <KeyRound className="h-4 w-4 text-blue-600" /> Reset Password
             </h3>
@@ -638,6 +900,35 @@ function UsersTab() {
 
       {/* Create user modal */}
       <CreateUserModal open={createOpen} onOpenChange={setCreateOpen} onCreated={load} />
+
+      {/* View listings modal */}
+      <UserListingsDialog
+        user={listingsUser}
+        onClose={() => setListingsUser(null)}
+        categories={categories}
+        villages={villages}
+        onEdit={(item) => {
+          setEditingItem(item)
+          setEditModalOpen(true)
+        }}
+      />
+
+      {/* Add listing modal in edit mode */}
+      <AddListingModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        categories={categories}
+        villages={villages}
+        editingItem={editingItem}
+        onSuccess={() => {
+          if (listingsUser) {
+            const old = listingsUser
+            setListingsUser(null)
+            setTimeout(() => setListingsUser(old), 50)
+          }
+          load()
+        }}
+      />
     </div>
   )
 }
@@ -789,6 +1080,55 @@ function SettingsTab() {
             />
           </div>
         ) : null}
+      </div>
+
+      {/* Social Media Links */}
+      <div className="rounded-3xl glass p-5">
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
+          <Megaphone className="h-4 w-4 text-blue-500" /> Social Media Links
+        </h3>
+        <div className="space-y-3">
+          <div>
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">Facebook Page URL</Label>
+            <Input
+              value={settings.social_facebook ?? ''}
+              onChange={(e) => update('social_facebook', e.target.value)}
+              placeholder="https://facebook.com/..."
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">Instagram Handle URL</Label>
+            <Input
+              value={settings.social_instagram ?? ''}
+              onChange={(e) => update('social_instagram', e.target.value)}
+              placeholder="https://instagram.com/..."
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">YouTube Channel URL</Label>
+            <Input
+              value={settings.social_youtube ?? ''}
+              onChange={(e) => update('social_youtube', e.target.value)}
+              placeholder="https://youtube.com/..."
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">WhatsApp Community Invite URL</Label>
+            <Input
+              value={settings.social_whatsapp_community ?? ''}
+              onChange={(e) => update('social_whatsapp_community', e.target.value)}
+              placeholder="https://chat.whatsapp.com/..."
+            />
+          </div>
+          <div>
+            <Label className="mb-1 block text-xs font-semibold text-slate-600">WhatsApp Channel URL</Label>
+            <Input
+              value={settings.social_whatsapp_channel ?? ''}
+              onChange={(e) => update('social_whatsapp_channel', e.target.value)}
+              placeholder="https://whatsapp.com/channel/..."
+            />
+          </div>
+        </div>
       </div>
 
       {/* Integrations: API keys, GA4, FB Pixel */}

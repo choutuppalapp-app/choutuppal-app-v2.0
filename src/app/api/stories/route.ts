@@ -59,7 +59,7 @@ export async function GET() {
     where: { ownerId: auth.user.id },
     orderBy: { createdAt: 'desc' },
     include: {
-      _count: { select: { storyViews: true, storyReplies: true } },
+      _count: { select: { storyViews: true, storyReplies: true, storyLikes: true } },
     },
   })
   return NextResponse.json({ ok: true, stories })

@@ -54,6 +54,17 @@ export function DashboardShell({ data }: DashboardShellProps) {
   const [tab, setTab] = useState<TabId>('overview')
   const [addOpen, setAddOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<any>(null)
+
+  const openAdd = () => {
+    setEditingItem(null)
+    setAddOpen(true)
+  }
+
+  const openEdit = (item: any) => {
+    setEditingItem(item)
+    setAddOpen(true)
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50">
@@ -73,7 +84,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
 
           <div className="ml-auto flex items-center gap-2">
             <Button
-              onClick={() => setAddOpen(true)}
+              onClick={openAdd}
               size="sm"
               className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/30"
             >
@@ -167,14 +178,14 @@ export function DashboardShell({ data }: DashboardShellProps) {
         {/* Main content */}
         <main className="min-w-0 flex-1 pb-24 lg:pb-6">
           {tab === 'overview' ? (
-            <Overview data={data} onTab={setTab} onAdd={() => setAddOpen(true)} />
+            <Overview data={data} onTab={setTab} onAdd={openAdd} />
           ) : null}
           {tab === 'profile' ? <ProfileSection user={data.user} villages={data.villages} /> : null}
           {tab === 'listings' ? (
-            <MyListings listings={data.listings} onAdd={() => setAddOpen(true)} />
+            <MyListings listings={data.listings} onAdd={openAdd} onEdit={openEdit} />
           ) : null}
           {tab === 'realestate' ? (
-            <MyRealEstate realEstates={data.realEstates} onAdd={() => setAddOpen(true)} />
+            <MyRealEstate realEstates={data.realEstates} onAdd={openAdd} onEdit={openEdit} />
           ) : null}
           {tab === 'media' ? <MyBannersStories banners={data.banners} stories={data.stories} /> : null}
           {tab === 'community' ? <MyCommunityPosts posts={data.communityPosts} /> : null}
@@ -184,13 +195,15 @@ export function DashboardShell({ data }: DashboardShellProps) {
       </div>
 
       {/* Mobile bottom nav */}
-      <MobileBottomNav tab={tab} onTab={setTab} onAdd={() => setAddOpen(true)} />
+      <MobileBottomNav tab={tab} onTab={setTab} onAdd={openAdd} />
 
       <AddListingModal
         open={addOpen}
         onOpenChange={setAddOpen}
         villages={data.villages}
         categories={data.categories}
+        editingItem={editingItem}
+        onSuccess={() => window.location.reload()}
       />
     </div>
   )

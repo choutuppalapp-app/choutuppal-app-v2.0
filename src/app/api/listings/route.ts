@@ -88,14 +88,22 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ ok: true, listing }, { status: 201 })
 }
 
-/** GET /api/listings — list the current user's listings. */
-export async function GET() {
+/** GET /api/listings — list listings. Supports filtering by userId for admins. */
+export async function GET(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
+
+  const { searchParams } = new URL(request.url)
+  const queryUserId = searchParams.get('userId')
+  let targetUserId = auth.user.id
+  if (queryUserId && isAdminRole(auth.user.role)) {
+    targetUserId = queryUserId
+  }
+
   const listings = await prisma.listing.findMany({
-    where: { ownerId: auth.user.id },
+    where: { ownerId: targetUserId },
     orderBy: { createdAt: 'desc' },
     include: { category: true, village: true },
   })

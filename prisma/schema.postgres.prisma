@@ -1,0 +1,531 @@
+// ============================================================================
+// Choutuppal App v2.0 — PostgreSQL Prisma Schema
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// AUTH — NextAuth.js (PrismaAdapter) + custom password-reset flow
+// ----------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phone        String?  @unique
+  username     String?  @unique
+  name         String?
+  passwordHash String?
+  image        String?
+  coverImage   String?
+
+  role         String   @default("USER")
+  isPublic     Boolean  @default(false)
+  isBanned     Boolean  @default(false)
+  bio          String?
+  politicalTag String   @default("NONE")
+  villageId    String?
+  village      Village? @relation(fields: [villageId], references: [id])
+
+  spinCredits  Int       @default(1)
+  lastSpinAt   DateTime?
+
+  planTier      String    @default("FREE")
+  planExpiresAt DateTime?
+
+  listings          Listing[]
+  realEstates       RealEstate[]
+  stories           Story[]
+  banners           Banner[]
+  services          Service[]
+  shorts            Short[]
+  news              News[]
+  blogs             Blog[]
+  notifications     Notification[]
+  communityPosts    CommunityPost[]
+  communityComments CommunityComment[]
+  communityLikes    CommunityLike[]
+  storyViews        StoryView[]
+  storyReplies      StoryReply[]
+  storyLikes        StoryLike[]
+  leads             Lead[]             @relation("AgentLeads")
+  accounts          Account[]
+  sessions          Session[]
+  resetTokens       PasswordResetToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([isBanned])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  id          String   @id @default(cuid()) // Add id for postgres compatibility if unique is not primary
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expires   DateTime
+  used      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ----------------------------------------------------------------------------
+// TAXONOMY
+// ----------------------------------------------------------------------------
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  icon        String?
+  description String?
+  listings    Listing[]
+  createdAt   DateTime @default(now())
+}
+
+model Village {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  district    String?
+  state       String?
+  pincode     String?
+  users       User[]
+  listings    Listing[]
+  realEstates RealEstate[]
+  createdAt   DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// LISTINGS
+// ----------------------------------------------------------------------------
+
+model Listing {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+
+  status     String  @default("PENDING")
+  isFeatured Boolean @default(false)
+  isPremium  Boolean @default(false)
+
+  coverImage String?
+  logo       String?
+  gallery    Json?
+
+  phone    String?
+  whatsapp String?
+  email    String?
+  website  String?
+  address  String?
+  location String?
+  mapEmbed String?
+
+  businessHours   Json?
+  servicesCatalog Json?
+
+  views          Int @default(0)
+  clicks         Int @default(0)
+  whatsappClicks Int @default(0)
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  villageId  String?
+  village    Village?  @relation(fields: [villageId], references: [id])
+
+  ownerId String
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([isFeatured])
+  @@index([categoryId])
+  @@index([villageId])
+  @@index([ownerId])
+}
+
+// ----------------------------------------------------------------------------
+// REAL ESTATE
+// ----------------------------------------------------------------------------
+
+model RealEstate {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+
+  type        String @default("PLOT")
+  listingType String @default("SALE")
+
+  price      Float
+  negotiable Boolean @default(false)
+  areaSqft   Float?
+  bedrooms   Int?
+  bathrooms  Int?
+  furnished  Boolean @default(false)
+
+  images     Json?
+  coverImage String?
+
+  address         String
+  location        String?
+  mapEmbed        String?
+  contactPhone    String?
+  contactWhatsapp String?
+
+  status String @default("PENDING")
+  views  Int    @default(0)
+
+  villageId String?
+  village   Village? @relation(fields: [villageId], references: [id])
+
+  ownerId String
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([listingType])
+  @@index([villageId])
+  @@index([ownerId])
+}
+
+// ----------------------------------------------------------------------------
+// STORIES
+// ----------------------------------------------------------------------------
+
+model Story {
+  id        String   @id @default(cuid())
+  mediaUrl  String
+  mediaType String   @default("IMAGE")
+  caption   String?
+  link      String?
+  views     Int      @default(0)
+  expiresAt DateTime
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  storyViews   StoryView[]
+  storyReplies StoryReply[]
+  storyLikes   StoryLike[]
+
+  @@index([expiresAt])
+  @@index([ownerId])
+}
+
+model StoryView {
+  id        String   @id @default(cuid())
+  storyId   String
+  userId    String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([storyId, userId])
+  @@index([storyId])
+}
+
+model StoryReply {
+  id        String   @id @default(cuid())
+  storyId   String
+  userId    String
+  content   String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([storyId])
+  @@index([userId])
+}
+
+model StoryLike {
+  id        String   @id @default(cuid())
+  storyId   String
+  userId    String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([storyId, userId])
+  @@index([storyId])
+}
+
+// ----------------------------------------------------------------------------
+// BANNERS
+// ----------------------------------------------------------------------------
+
+model Banner {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  title     String?
+  link      String?
+  position  String   @default("HOME_TOP")
+  status    String   @default("PENDING")
+  clicks    Int      @default(0)
+  expiresAt DateTime
+  ownerId   String?
+  owner     User?    @relation(fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+  @@index([position])
+}
+
+// ----------------------------------------------------------------------------
+// SERVICES
+// ----------------------------------------------------------------------------
+
+model Service {
+  id              String   @id @default(cuid())
+  title           String
+  description     String?
+  price           Float?
+  image           String?
+  contactPhone    String?
+  contactWhatsapp String?
+  status          String   @default("PENDING")
+  ownerId         String
+  owner           User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@index([ownerId])
+}
+
+// ----------------------------------------------------------------------------
+// SHORTS
+// ----------------------------------------------------------------------------
+
+model Short {
+  id          String   @id @default(cuid())
+  videoUrl    String
+  platform    String   @default("YOUTUBE")
+  thumbnail   String?
+  title       String?
+  description String?
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  youtubeId   String?
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([youtubeId])
+  @@index([ownerId])
+}
+
+// ----------------------------------------------------------------------------
+// NEWS & BLOGS
+// ----------------------------------------------------------------------------
+
+model News {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  summary     String?
+  content     String
+  image       String?
+  tags        Json?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isPublished])
+  @@index([authorId])
+}
+
+model Blog {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  excerpt     String?
+  content     String
+  coverImage  String?
+  tags        Json?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isPublished])
+  @@index([authorId])
+}
+
+// ----------------------------------------------------------------------------
+// NOTIFICATIONS
+// ----------------------------------------------------------------------------
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+// ----------------------------------------------------------------------------
+// COMMUNITY
+// ----------------------------------------------------------------------------
+
+model CommunityPost {
+  id           String             @id @default(cuid())
+  content      String
+  politicalTag String             @default("NONE")
+  likes        Int                @default(0)
+  authorId     String
+  author       User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments     CommunityComment[]
+  likesRel     CommunityLike[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([politicalTag])
+  @@index([authorId])
+}
+
+model CommunityLike {
+  id        String        @id @default(cuid())
+  userId    String
+  postId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model CommunityComment {
+  id        String        @id @default(cuid())
+  content   String
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@index([postId])
+  @@index([authorId])
+}
+
+// ----------------------------------------------------------------------------
+// LEADS
+// ----------------------------------------------------------------------------
+
+model Lead {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  interest  String?
+  notes     String?
+  status    String   @default("NEW")
+  agentId   String
+  agent     User     @relation("AgentLeads", fields: [agentId], references: [id], onDelete: Cascade)
+  listingId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId])
+  @@index([status])
+}
+
+// ----------------------------------------------------------------------------
+// ADMIN SETTINGS
+// ----------------------------------------------------------------------------
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model SpinPrize {
+  id          String   @id @default(cuid())
+  label       String
+  type        String
+  value       String?
+  probability Float    @default(10)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// CITY EXPANSION INQUIRIES
+// ----------------------------------------------------------------------------
+
+model CityInquiry {
+  id        String   @id @default(cuid())
+  name      String
+  town      String
+  phone     String
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+
+  @@index([status])
+}

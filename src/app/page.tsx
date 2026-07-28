@@ -2,6 +2,7 @@ import { getHomePageData } from '@/lib/home-data'
 import { getCurrentUser } from '@/lib/session'
 import { Ticker } from '@/components/home/ticker'
 import { DiscoverSearch } from '@/components/home/discover-search'
+import { prisma } from '@/lib/prisma'
 import nextDynamic from 'next/dynamic'
 
 // Heavy client components — lazy-loaded to reduce initial JS bundle
@@ -23,6 +24,14 @@ export const dynamic = 'force-dynamic'
 export default async function Home() {
   const data = await getHomePageData()
   const viewer = await getCurrentUser()
+
+  // Fetch settings to check if spin is enabled
+  const settingsList = await prisma.setting.findMany()
+  const settings = settingsList.reduce((acc, row) => {
+    acc[row.key] = row.value
+    return acc
+  }, {} as Record<string, string>)
+  const spinEnabled = (settings.spin_enabled ?? 'true') !== 'false'
   const viewerInfo = viewer
     ? {
         isLoggedIn: true,
@@ -63,7 +72,7 @@ export default async function Home() {
           <RealEstateRail properties={data.realEstate} />
 
           {/* 7. Spin & Win */}
-          <SpinWin />
+          {spinEnabled ? <SpinWin /> : null}
 
           {/* 8. Shorts/Reels */}
           <div id="shorts">

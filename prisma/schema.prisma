@@ -384,6 +384,7 @@ model Service {
 model Short {
   id          String   @id @default(cuid())
   videoUrl    String
+  platform    String   @default("YOUTUBE") // YOUTUBE | INSTAGRAM
   thumbnail   String?
   title       String?
   description String?

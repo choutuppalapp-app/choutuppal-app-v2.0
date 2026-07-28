@@ -33,8 +33,12 @@ export default async function CommunityPage() {
       include: {
         author: {
           select: {
-            id: true, name: true, username: true, image: true,
-             bio: true,
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+            bio: true,
+            planTier: true,
           },
         },
         _count: { select: { comments: true } },
@@ -50,8 +54,13 @@ export default async function CommunityPage() {
       orderBy: { createdAt: 'desc' },
       take: 12,
       select: {
-        id: true, name: true, username: true, image: true, bio: true,
-         village: { select: { name: true } },
+        id: true,
+        name: true,
+        username: true,
+        image: true,
+        bio: true,
+        planTier: true,
+        village: { select: { name: true } },
       },
     }),
   ])

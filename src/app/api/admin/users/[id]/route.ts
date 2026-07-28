@@ -8,14 +8,15 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const PatchSchema = z.object({
-  action: z.enum(['ban', 'unban', 'promote_agent', 'promote_admin', 'demote_user', 'reset_password']),
+  action: z.enum(['ban', 'unban', 'promote_agent', 'promote_admin', 'demote_user', 'reset_password', 'update_tier']),
   password: z.string().min(6).max(72).optional(),
+  planTier: z.string().optional(),
 })
 
 /**
  * PATCH /api/admin/users/[id]
- * Body: { action, password? }
- *   ban / unban / promote_agent / promote_admin / demote_user / reset_password
+ * Body: { action, password?, planTier? }
+ *   ban / unban / promote_agent / promote_admin / demote_user / reset_password / update_tier
  */
 export async function PATCH(
   request: NextRequest,
@@ -30,7 +31,7 @@ export async function PATCH(
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
   }
-  const { action, password } = parsed.data
+  const { action, password, planTier } = parsed.data
 
   // Guard: don't let an admin ban/demote themselves.
   if (targetId === auth.user.id && (action === 'ban' || action === 'demote_user')) {
@@ -55,6 +56,10 @@ export async function PATCH(
       break
     case 'demote_user':
       await prisma.user.update({ where: { id: targetId }, data: { role: 'USER' } })
+      break
+    case 'update_tier':
+      if (!planTier) return NextResponse.json({ error: 'planTier required' }, { status: 400 })
+      await prisma.user.update({ where: { id: targetId }, data: { planTier } })
       break
     case 'reset_password': {
       if (!password) return NextResponse.json({ error: 'Password required' }, { status: 400 })

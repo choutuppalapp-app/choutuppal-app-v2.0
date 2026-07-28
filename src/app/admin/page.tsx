@@ -9,7 +9,7 @@ export default async function AdminPage() {
   const user = await getCurrentUser()
   if (!user) redirect('/login')
   if (user.isBanned) redirect('/')
-  if (!isAdminRole(user.role)) redirect('/')
+  if (!isAdminRole(user.role)) redirect('/dashboard')
 
   return <AdminPanel adminName={user.name ?? user.username ?? 'Admin'} />
 }

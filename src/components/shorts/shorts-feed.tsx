@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import type { Short } from '@prisma/client'
+import Script from 'next/script'
 
 interface ShortsFeedProps {
   shorts: (Short & {
@@ -24,6 +25,18 @@ function embedUrl(youtubeId: string | null, videoUrl: string): string {
 
 export function ShortsFeed({ shorts }: ShortsFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    if (shorts[activeIndex]?.platform === 'INSTAGRAM') {
+      const timer = setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          // @ts-ignore
+          window.instgrm?.Embeds.process()
+        }
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [activeIndex, shorts])
 
   if (shorts.length === 0) {
     return (
@@ -54,6 +67,7 @@ export function ShortsFeed({ shorts }: ShortsFeedProps) {
         if (idx !== activeIndex) setActiveIndex(idx)
       }}
     >
+      <Script src="https://www.instagram.com/embed.js" strategy="afterInteractive" />
       <style>{`::-webkit-scrollbar { display: none; }`}</style>
 
       {/* Back button overlay */}
@@ -70,15 +84,31 @@ export function ShortsFeed({ shorts }: ShortsFeedProps) {
           key={s.id}
           className="relative flex h-screen w-full snap-start items-center justify-center"
         >
-          {/* In-app YouTube iframe — videos play inside the app */}
-          <iframe
-            src={i === activeIndex ? embedUrl(s.youtubeId, s.videoUrl) : undefined}
-            title={s.title ?? 'Short'}
-            className="h-full w-full"
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-            allowFullScreen
-            frameBorder="0"
-          />
+          {s.platform === 'INSTAGRAM' ? (
+            i === activeIndex ? (
+              <div className="w-[320px] h-[560px] overflow-y-auto fancy-scroll bg-white rounded-xl p-1 flex items-center justify-center">
+                <blockquote
+                  className="instagram-media"
+                  data-instgrm-permalink={s.videoUrl}
+                  data-instgrm-version="14"
+                  style={{ width: '320px', minHeight: '480px', border: 'none', margin: '0 auto' }}
+                />
+              </div>
+            ) : (
+              <div className="w-[320px] h-[560px] bg-slate-900 rounded-xl flex items-center justify-center text-white/50">
+                Loading Reel...
+              </div>
+            )
+          ) : (
+            <iframe
+              src={i === activeIndex ? embedUrl(s.youtubeId, s.videoUrl) : undefined}
+              title={s.title ?? 'Short'}
+              className="h-full w-full"
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              allowFullScreen
+              frameBorder="0"
+            />
+          )}
 
           {/* Title + channel at bottom */}
           <div className="pointer-events-none absolute bottom-24 left-4 z-10">

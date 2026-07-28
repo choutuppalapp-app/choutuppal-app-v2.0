@@ -69,19 +69,29 @@ async function resolveChannelId(
 }
 
 const AddSchema = z.object({
-  mode: z.enum(['channel', 'single']),
+  mode: z.enum(['channel', 'single']).optional().default('single'),
   input: z.string().min(1),
+  platform: z.enum(['YOUTUBE', 'INSTAGRAM']).optional().default('YOUTUBE'),
 })
+
+function cleanInstagramUrl(input: string): string | null {
+  const s = input.trim()
+  const m = s.match(/(?:instagram\.com\/p|instagram\.com\/reel)\/([A-Za-z0-9_-]+)/i)
+  if (m) {
+    return `https://www.instagram.com/reel/${m[1]}/`
+  }
+  return null
+}
 
 /**
  * POST /api/admin/shorts/youtube
- * Body: { mode: 'channel' | 'single', input: string }
+ * Body: { mode: 'channel' | 'single', input: string, platform: 'YOUTUBE' | 'INSTAGRAM' }
  *
- * - `single`: extracts the video ID, fetches title+thumbnail via oEmbed, saves
- *   one Short.
- * - `channel`: uses the YouTube Data API v3 (YOUTUBE_API_KEY from the Setting
- *   table or env) to fetch the latest 10-15 videos from the channel's uploads
- *   playlist and saves them as Shorts.
+ * - `YOUTUBE`:
+ *   - `single`: extracts the video ID, fetches title+thumbnail via oEmbed, saves one Short.
+ *   - `channel`: uses the YouTube Data API v3 to fetch/save multiple.
+ * - `INSTAGRAM`:
+ *   - Cleans the Instagram post/reel link and saves it directly.
  *
  * Requires ADMIN role. All saved Shorts are owned by the admin.
  */
@@ -95,9 +105,35 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
   }
 
-  const { mode, input } = parsed.data
+  const { mode, input, platform } = parsed.data
 
-  // ---- Single video mode (oEmbed — no API key needed) ----------------------
+  // ---- Instagram Reels / Posts mode ----------------------------------------
+  if (platform === 'INSTAGRAM') {
+    const cleanUrl = cleanInstagramUrl(input)
+    if (!cleanUrl) {
+      return NextResponse.json({ error: 'Could not extract an Instagram Reel ID or URL' }, { status: 400 })
+    }
+
+    // De-dupe: don't add the same Reel twice.
+    const existing = await prisma.short.findFirst({ where: { videoUrl: cleanUrl } })
+    if (existing) {
+      return NextResponse.json({ error: 'This Reel is already in the Shorts list' }, { status: 409 })
+    }
+
+    const short = await prisma.short.create({
+      data: {
+        videoUrl: cleanUrl,
+        platform: 'INSTAGRAM',
+        title: 'Instagram Reel',
+        thumbnail: null,
+        youtubeId: null,
+        ownerId: auth.user.id,
+      },
+    })
+    return NextResponse.json({ ok: true, added: 1, shorts: [short] }, { status: 201 })
+  }
+
+  // ---- YouTube Single video mode (oEmbed — no API key needed) --------------
   if (mode === 'single') {
     const videoId = extractVideoId(input)
     if (!videoId) {
@@ -114,6 +150,7 @@ export async function POST(request: NextRequest) {
     const short = await prisma.short.create({
       data: {
         videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
+        platform: 'YOUTUBE',
         youtubeId: videoId,
         title: meta?.title ?? `Video ${videoId}`,
         thumbnail: meta?.thumbnail ?? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,

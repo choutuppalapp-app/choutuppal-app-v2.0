@@ -18,9 +18,11 @@ function formatPrice(price: number, listingType: string) {
 export function MyRealEstate({
   realEstates,
   onAdd,
+  onEdit,
 }: {
   realEstates: Item[]
   onAdd: () => void
+  onEdit: (item: Item) => void
 }) {
   const [items, setItems] = useState<Item[]>(realEstates)
 
@@ -95,7 +97,7 @@ export function MyRealEstate({
                   <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {p.village?.name ?? '—'}</span>
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1 text-xs">Edit</Button>
+                  <Button size="sm" onClick={() => onEdit(p)} variant="outline" className="flex-1 text-xs">Edit</Button>
                   <Button
                     size="sm"
                     variant="outline"

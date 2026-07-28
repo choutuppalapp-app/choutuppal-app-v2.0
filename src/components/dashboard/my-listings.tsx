@@ -15,9 +15,11 @@ type Item = Listing & {
 export function MyListings({
   listings,
   onAdd,
+  onEdit,
 }: {
   listings: Item[]
   onAdd: () => void
+  onEdit: (item: Item) => void
 }) {
   const [items, setItems] = useState<Item[]>(listings)
 
@@ -85,9 +87,19 @@ export function MyListings({
                   <span className="text-slate-400">{l.category?.name ?? 'Business'}</span>
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1 gap-1.5 text-xs">
+                  <Button size="sm" variant="outline" onClick={() => onEdit(l)} className="flex-1 gap-1.5 text-xs">
                     Edit
                   </Button>
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(
+                      `Check out ${l.title} on Choutuppal App: ${typeof window !== 'undefined' ? window.location.origin : 'https://choutuppal.in'}/business/${l.slug}`,
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                  >
+                    Share
+                  </a>
                   <Button
                     size="sm"
                     variant="outline"

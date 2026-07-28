@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Megaphone, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const ANNOUNCEMENTS = [
+const DEFAULT_ANNOUNCEMENTS = [
   '🪔 Choutuppal App v2.0 is now live — list your business FREE!',
   '📅 Spin & Win daily rewards — 1 free spin every day for early users.',
   '🏠 List your property for sale or rent at zero cost.',
@@ -15,7 +15,30 @@ const ANNOUNCEMENTS = [
 
 export function Ticker() {
   const [paused, setPaused] = useState(false)
-  const items = [...ANNOUNCEMENTS, ...ANNOUNCEMENTS]
+  const [announcements, setAnnouncements] = useState<string[]>(DEFAULT_ANNOUNCEMENTS)
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((j) => {
+        if (active && j.ok && j.settings?.announcement_ticker) {
+          const split = j.settings.announcement_ticker
+            .split('|')
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+          if (split.length > 0) {
+            setAnnouncements(split)
+          }
+        }
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const items = [...announcements, ...announcements]
 
   return (
     <div className="border-y border-white/40 bg-white/60 backdrop-blur-xl">
@@ -50,3 +73,4 @@ export function Ticker() {
     </div>
   )
 }
+

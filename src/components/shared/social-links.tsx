@@ -1,17 +1,44 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Instagram, Facebook, Youtube, MessageCircle, Megaphone } from 'lucide-react'
 
-const LINKS = [
-  { icon: Instagram, label: 'Instagram', href: 'https://www.instagram.com/choutuppalapp/', color: 'bg-pink-600 text-white' },
-  { icon: Facebook, label: 'Facebook', href: 'https://www.facebook.com/Choutuppalapp/', color: 'bg-blue-600 text-white' },
-  { icon: Youtube, label: 'YouTube', href: 'https://www.youtube.com/@choutuppalapp', color: 'bg-red-600 text-white' },
-  { icon: MessageCircle, label: 'WhatsApp Community', href: 'https://chat.whatsapp.com/Lldpx4K3oECGGTD3ckBgM3', color: 'bg-green-500 text-white' },
-  { icon: Megaphone, label: 'WhatsApp Channel', href: 'https://whatsapp.com/channel/0029VbAyp614IBhHFXOBXv08', color: 'bg-green-700 text-white' },
+const DEFAULT_LINKS = [
+  { key: 'social_instagram', icon: Instagram, label: 'Instagram', defaultHref: 'https://www.instagram.com/choutuppalapp/', color: 'bg-pink-600 text-white' },
+  { key: 'social_facebook', icon: Facebook, label: 'Facebook', defaultHref: 'https://www.facebook.com/Choutuppalapp/', color: 'bg-blue-600 text-white' },
+  { key: 'social_youtube', icon: Youtube, label: 'YouTube', defaultHref: 'https://www.youtube.com/@choutuppalapp', color: 'bg-red-600 text-white' },
+  { key: 'social_whatsapp_community', icon: MessageCircle, label: 'WhatsApp Community', defaultHref: 'https://chat.whatsapp.com/Lldpx4K3oECGGTD3ckBgM3', color: 'bg-green-500 text-white' },
+  { key: 'social_whatsapp_channel', icon: Megaphone, label: 'WhatsApp Channel', defaultHref: 'https://whatsapp.com/channel/0029VbAyp614IBhHFXOBXv08', color: 'bg-green-700 text-white' },
 ]
 
 export function SocialLinks() {
+  const [links, setLinks] = useState(
+    DEFAULT_LINKS.map(l => ({ ...l, href: l.defaultHref }))
+  )
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((j) => {
+        if (active && j.ok && j.settings) {
+          setLinks(
+            DEFAULT_LINKS.map((l) => ({
+              ...l,
+              href: j.settings[l.key] || l.defaultHref,
+            }))
+          )
+        }
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <div className="flex items-center gap-3">
-      {LINKS.map((l) => {
+      {links.map((l) => {
         const Icon = l.icon
         return (
           <a
@@ -30,3 +57,4 @@ export function SocialLinks() {
     </div>
   )
 }
+

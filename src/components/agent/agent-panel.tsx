@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { signOut } from 'next-auth/react'
 import {
   UploadCloud,
   FileSpreadsheet,
@@ -17,6 +18,7 @@ import {
   MousePointerClick,
   Download,
   Home,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -40,16 +42,28 @@ export function AgentPanel({ agentName }: { agentName: string }) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50">
       <header className="sticky top-0 z-30 border-b border-white/50 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-3 sm:px-4 lg:px-6">
-          <Link href="/" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200">
+          <Link href="/" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200" title="Back to home">
             <ChevronLeft className="h-4 w-4" />
           </Link>
           <img src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
-          <Link
-            href="/dashboard"
-            className="ml-auto hidden items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 sm:flex"
-          >
-            <Home className="h-3.5 w-3.5" /> Dashboard
-          </Link>
+          <span className="font-bold text-slate-900">Agent Panel</span>
+          <div className="ml-auto flex items-center gap-2">
+            <Link
+              href="/dashboard"
+              className="hidden items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 sm:flex"
+            >
+              <Home className="h-3.5 w-3.5" /> Dashboard
+            </Link>
+            <Button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              variant="outline"
+              size="sm"
+              className="gap-1.5 border-slate-200"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
+          </div>
         </div>
       </header>
 

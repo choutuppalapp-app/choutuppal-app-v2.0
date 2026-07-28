@@ -62,6 +62,15 @@ export function ProfileSection({
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim() || undefined,
+          username: username.trim() || undefined,
+          bio: bio.trim() || undefined,
+          phone: phone.trim() || undefined,
+          image,
+          coverImage,
+          isPublic,
+        }),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to save')

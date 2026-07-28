@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Loader2, Plus, Trash2, Save, Building2, Wrench, Home, Star } from 'lucide-react'
 import {
   Dialog,
@@ -38,6 +38,9 @@ interface AddListingModalProps {
   onOpenChange: (open: boolean) => void
   villages: Pick<Village, 'id' | 'name' | 'slug'>[]
   categories: Pick<Category, 'id' | 'name' | 'slug'>[]
+  defaultType?: ListingType
+  editingItem?: any
+  onSuccess?: () => void
 }
 
 export function AddListingModal({
@@ -45,8 +48,11 @@ export function AddListingModal({
   onOpenChange,
   villages,
   categories,
+  defaultType,
+  editingItem,
+  onSuccess,
 }: AddListingModalProps) {
-  const [type, setType] = useState<ListingType>('business')
+  const [type, setType] = useState<ListingType>(defaultType ?? 'business')
   const [saving, setSaving] = useState(false)
 
   // shared
@@ -56,6 +62,7 @@ export function AddListingModal({
   const [whatsapp, setWhatsapp] = useState('')
   const [address, setAddress] = useState('')
   const [mapLink, setMapLink] = useState('')
+  const [businessHours, setBusinessHours] = useState('')
   const [villageId, setVillageId] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [rating, setRating] = useState('')
@@ -77,9 +84,50 @@ export function AddListingModal({
     { name: '', price: '', description: '' },
   ])
 
+  // Reset type when open or defaultType/editingItem changes
+  useEffect(() => {
+    if (open) {
+      if (editingItem) {
+        setTitle(editingItem.title ?? '')
+        setDescription(editingItem.description ?? '')
+        setPhone(editingItem.phone ?? editingItem.contactPhone ?? '')
+        setWhatsapp(editingItem.whatsapp ?? editingItem.contactWhatsapp ?? '')
+        setAddress(editingItem.address ?? '')
+        setMapLink(editingItem.mapEmbed ?? '')
+        setVillageId(editingItem.villageId ?? '')
+        
+        if ('listingType' in editingItem) {
+          setType('realestate')
+          setReType(editingItem.type ?? 'HOUSE')
+          setListingType(editingItem.listingType ?? 'SALE')
+          setPrice(editingItem.price ? String(editingItem.price) : '')
+          setAreaSqft(editingItem.areaSqft ? String(editingItem.areaSqft) : '')
+          setBedrooms(editingItem.bedrooms ? String(editingItem.bedrooms) : '')
+          setBathrooms(editingItem.bathrooms ? String(editingItem.bathrooms) : '')
+          setNegotiable(editingItem.negotiable ?? false)
+          setCover(editingItem.coverImage ?? null)
+          setGallery(Array.isArray(editingItem.images) ? editingItem.images : [])
+        } else {
+          setType(editingItem.categoryId ? 'business' : 'service')
+          setCategoryId(editingItem.categoryId ?? '')
+          setLogo(editingItem.logo ?? null)
+          setCover(editingItem.coverImage ?? null)
+          setGallery(Array.isArray(editingItem.gallery) ? editingItem.gallery : [])
+          setServices(Array.isArray(editingItem.servicesCatalog) ? editingItem.servicesCatalog : [{ name: '', price: '', description: '' }])
+          setBusinessHours(editingItem.businessHours ? (typeof editingItem.businessHours === 'string' ? editingItem.businessHours : String(editingItem.businessHours)) : '')
+        }
+      } else {
+        reset()
+        if (defaultType) {
+          setType(defaultType)
+        }
+      }
+    }
+  }, [open, editingItem, defaultType])
+
   function reset() {
     setTitle(''); setDescription(''); setPhone(''); setWhatsapp(''); setAddress('')
-    setMapLink(''); setVillageId(''); setCategoryId(''); setRating('')
+    setMapLink(''); setBusinessHours(''); setVillageId(''); setCategoryId(''); setRating('')
     setLogo(null); setCover(null); setGallery([])
     setReType('HOUSE'); setListingType('SALE'); setPrice(''); setAreaSqft('')
     setBedrooms(''); setBathrooms(''); setNegotiable(false)
@@ -94,67 +142,130 @@ export function AddListingModal({
     }
     setSaving(true)
     try {
-      if (type === 'realestate') {
-        if (!price || !address) {
-          toast.error('Price and Address are required for real estate')
-          setSaving(false)
-          return
+      if (editingItem) {
+        if (type === 'realestate') {
+          const res = await fetch(`/api/real-estate/${editingItem.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title,
+              description,
+              type: reType,
+              listingType,
+              price: Number(price),
+              negotiable,
+              areaSqft: areaSqft ? Number(areaSqft) : undefined,
+              bedrooms: bedrooms ? Number(bedrooms) : undefined,
+              bathrooms: bathrooms ? Number(bathrooms) : undefined,
+              coverImage: cover,
+              images: gallery,
+              address,
+              mapEmbed: mapLink,
+              contactPhone: phone,
+              contactWhatsapp: whatsapp,
+              villageId: villageId || undefined,
+            }),
+          })
+          const json = await res.json()
+          if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to update')
+          toast.success('Property updated!')
+        } else {
+          const cleanServices = services
+            .filter((s) => s.name.trim())
+            .map((s) => ({ name: s.name, price: s.price || undefined, description: s.description || undefined }))
+          const res = await fetch(`/api/listings/${editingItem.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title,
+              description,
+              coverImage: cover,
+              logo,
+              gallery,
+              phone,
+              whatsapp,
+              address,
+              mapEmbed: mapLink,
+              servicesCatalog: cleanServices.length ? cleanServices : undefined,
+              businessHours: businessHours ? businessHours : undefined,
+              categoryId: categoryId || undefined,
+              villageId: villageId || undefined,
+            }),
+          })
+          const json = await res.json()
+          if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to update')
+          toast.success('Listing updated!')
         }
-        const res = await fetch('/api/real-estate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title,
-            description,
-            type: reType,
-            listingType,
-            price: Number(price),
-            negotiable,
-            areaSqft: areaSqft ? Number(areaSqft) : undefined,
-            bedrooms: bedrooms ? Number(bedrooms) : undefined,
-            bathrooms: bathrooms ? Number(bathrooms) : undefined,
-            coverImage: cover,
-            images: gallery.length ? gallery : undefined,
-            address,
-            mapEmbed: mapLink,
-            contactPhone: phone,
-            contactWhatsapp: whatsapp,
-            villageId: villageId || undefined,
-          }),
-        })
-        const json = await res.json()
-        if (!res.ok || !json.ok) throw new Error(json.error || 'Failed')
-        toast.success('Property submitted for approval!')
+        if (onSuccess) onSuccess()
         onOpenChange(false)
         reset()
       } else {
-        // business or service → listing
-        const cleanServices = services
-          .filter((s) => s.name.trim())
-          .map((s) => ({ name: s.name, price: s.price || undefined, description: s.description || undefined }))
-        const res = await fetch('/api/listings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title,
-            description,
-            coverImage: cover,
-            logo,
-            gallery: gallery.length ? gallery : undefined,
-            phone,
-            whatsapp,
-            address,
-            mapEmbed: mapLink,
-            servicesCatalog: cleanServices.length ? cleanServices : undefined,
-            categoryId: categoryId || undefined,
-            villageId: villageId || undefined,
-          }),
-        })
-        const json = await res.json()
-        if (!res.ok || !json.ok) throw new Error(json.error || 'Failed')
-        toast.success(`${type === 'business' ? 'Business' : 'Service'} submitted for approval!`)
-        onOpenChange(false)
-        reset()
+        // Create mode
+        if (type === 'realestate') {
+          if (!price || !address) {
+            toast.error('Price and Address are required for real estate')
+            setSaving(false)
+            return
+          }
+          const res = await fetch('/api/real-estate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title,
+              description,
+              type: reType,
+              listingType,
+              price: Number(price),
+              negotiable,
+              areaSqft: areaSqft ? Number(areaSqft) : undefined,
+              bedrooms: bedrooms ? Number(bedrooms) : undefined,
+              bathrooms: bathrooms ? Number(bathrooms) : undefined,
+              coverImage: cover,
+              images: gallery.length ? gallery : undefined,
+              address,
+              mapEmbed: mapLink,
+              contactPhone: phone,
+              contactWhatsapp: whatsapp,
+              villageId: villageId || undefined,
+            }),
+          })
+          const json = await res.json()
+          if (!res.ok || !json.ok) throw new Error(json.error || 'Failed')
+          toast.success('Property submitted for approval!')
+          if (onSuccess) onSuccess()
+          onOpenChange(false)
+          reset()
+        } else {
+          // business or service → listing
+          const cleanServices = services
+            .filter((s) => s.name.trim())
+            .map((s) => ({ name: s.name, price: s.price || undefined, description: s.description || undefined }))
+          const res = await fetch('/api/listings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title,
+              description,
+              coverImage: cover,
+              logo,
+              gallery: gallery.length ? gallery : undefined,
+              phone,
+              whatsapp,
+              address,
+              mapEmbed: mapLink,
+              servicesCatalog: cleanServices.length ? cleanServices : undefined,
+              businessHours: businessHours ? businessHours : undefined,
+              categoryId: categoryId || undefined,
+              villageId: villageId || undefined,
+            }),
+          })
+          const json = await res.json()
+          if (!res.ok || !json.ok) throw new Error(json.error || 'Failed')
+          toast.success(`${type === 'business' ? 'Business' : 'Service'} submitted for approval!`)
+          if (onSuccess) onSuccess()
+          onOpenChange(false)
+          reset()
+        }
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Submission failed')
@@ -162,13 +273,12 @@ export function AddListingModal({
       setSaving(false)
     }
   }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto rounded-3xl p-0 fancy-scroll">
         <DialogHeader className="sticky top-0 z-10 border-b border-slate-100 bg-white/95 px-6 py-4 backdrop-blur">
           <DialogTitle className="text-lg font-black text-slate-900">
-            Add New Listing
+            {editingItem ? 'Edit Listing' : 'Add New Listing'}
           </DialogTitle>
           <DialogDescription className="text-xs">
             List a business, service or property. Images are compressed to ~500KB before upload.
@@ -232,11 +342,41 @@ export function AddListingModal({
               </Field>
             )}
             <Field label="Phone">
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9441348175" />
+              <Input
+                value={phone}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setPhone(val)
+                  if (!whatsapp && val) {
+                    setWhatsapp(val.length === 10 ? `91${val}` : val)
+                  }
+                }}
+                placeholder="9441348175"
+              />
             </Field>
             <Field label="WhatsApp">
-              <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919441348175" />
+              <div className="relative">
+                <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919441348175" />
+                {!whatsapp && phone ? (
+                  <button
+                    type="button"
+                    onClick={() => setWhatsapp(phone.length === 10 ? `91${phone}` : phone)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-blue-600 hover:underline"
+                  >
+                    Copy Phone
+                  </button>
+                ) : null}
+              </div>
             </Field>
+            {type !== 'realestate' ? (
+              <Field label="Business Hours">
+                <Input
+                  value={businessHours}
+                  onChange={(e) => setBusinessHours(e.target.value)}
+                  placeholder="e.g. 9:00 AM - 9:00 PM (Mon-Sat)"
+                />
+              </Field>
+            ) : null}
             <Field label="Village">
               <Select value={villageId} onValueChange={setVillageId}>
                 <SelectTrigger><SelectValue placeholder="Select village" /></SelectTrigger>

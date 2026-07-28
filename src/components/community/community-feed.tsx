@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   Search,
   Loader2,
+  Crown,
+  BadgeCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -32,6 +34,7 @@ interface FeedAuthor {
   username: string | null
   image: string | null
   bio: string | null
+  planTier?: string | null
 }
 interface FeedPost {
   id: string
@@ -49,6 +52,7 @@ interface Person {
   image: string | null
   bio: string | null
   village: { name: string } | null
+  planTier?: string | null
 }
 interface Comment {
   id: string
@@ -142,7 +146,14 @@ export function CommunityFeed({
                               {(p.name ?? 'U').charAt(0).toUpperCase()}
                             </span>
                           )}
-                          <p className="mt-2 text-sm font-bold text-slate-900">{p.name ?? p.username}</p>
+                          <p className="mt-2 text-sm font-bold text-slate-900 flex items-center justify-center gap-1">
+                            <span className="truncate">{p.name ?? p.username}</span>
+                            {p.planTier === 'PREMIUM' ? (
+                              <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-400 shrink-0" />
+                            ) : p.planTier === 'PRO' ? (
+                              <BadgeCheck className="h-3.5 w-3.5 text-blue-500 fill-blue-100 shrink-0" />
+                            ) : null}
+                          </p>
                           <p className="w-full truncate text-xs text-slate-500">{p.bio ?? p.village?.name ?? `@${p.username}`}</p>
                           
                           <Link
@@ -326,12 +337,22 @@ function PostCard({
     }
   }
 
+  const isPremium = post.author.planTier === 'PREMIUM'
+  const isPro = post.author.planTier === 'PRO'
+
   return (
-    <article className="rounded-3xl glass p-4">
+    <article
+      className={cn(
+        "rounded-3xl border p-4 shadow-sm transition-all duration-300",
+        isPremium
+          ? "bg-amber-500/5 border-amber-200/40 shadow-[0_4px_15px_rgba(245,158,11,0.1)]"
+          : "glass"
+      )}
+    >
       {/* Author header */}
       <div className="flex items-start gap-3">
         <Link href={post.author.username ? `/profile/${post.author.username}` : '#'}>
-          <Avatar className="h-11 w-11 border-2 border-white shadow">
+          <Avatar className={cn("h-11 w-11 border-2 shadow", isPremium ? "border-amber-300" : "border-white")}>
             <AvatarImage src={post.author.image ?? undefined} />
             <AvatarFallback className="gradient-brand text-white">
               {(post.author.name ?? post.author.username ?? 'U').charAt(0).toUpperCase()}
@@ -339,13 +360,18 @@ function PostCard({
           </Avatar>
         </Link>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <Link
               href={post.author.username ? `/profile/${post.author.username}` : '#'}
               className="truncate font-bold text-slate-900 hover:text-blue-600"
             >
               {post.author.name ?? post.author.username ?? 'Anonymous'}
             </Link>
+            {isPremium ? (
+              <Crown className="h-4 w-4 text-amber-500 fill-amber-400 shrink-0" />
+            ) : isPro ? (
+              <BadgeCheck className="h-4 w-4 text-blue-500 fill-blue-100 shrink-0" />
+            ) : null}
             
           </div>
           <p className="text-[11px] text-slate-400">
@@ -476,9 +502,14 @@ function CommentSection({
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1 rounded-xl bg-white px-3 py-2 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-slate-900">
-                      {c.author.name ?? c.author.username}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-bold text-slate-900 flex items-center gap-1">
+                      <span>{c.author.name ?? c.author.username}</span>
+                      {c.author.planTier === 'PREMIUM' ? (
+                        <Crown className="h-3 w-3 text-amber-500 fill-amber-400 shrink-0" />
+                      ) : c.author.planTier === 'PRO' ? (
+                        <BadgeCheck className="h-3 w-3 text-blue-500 fill-blue-100 shrink-0" />
+                      ) : null}
                     </span>
                     
                     <span className="text-slate-300">·</span>
@@ -543,8 +574,13 @@ function PeopleDirectory({ people }: { people: Person[] }) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-900">
-                    {p.name ?? p.username}
+                  <p className="truncate text-sm font-semibold text-slate-900 flex items-center gap-1">
+                    <span className="truncate">{p.name ?? p.username}</span>
+                    {p.planTier === 'PREMIUM' ? (
+                      <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-400 shrink-0" />
+                    ) : p.planTier === 'PRO' ? (
+                      <BadgeCheck className="h-3.5 w-3.5 text-blue-500 fill-blue-100 shrink-0" />
+                    ) : null}
                   </p>
                   <p className="truncate text-[11px] text-slate-400">
                     {p.bio ?? p.village?.name ?? `@${p.username}`}
