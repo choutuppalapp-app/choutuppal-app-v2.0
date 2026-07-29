@@ -20,13 +20,13 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
   const parsed = SignupSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid input' },
+      { error: parsed.error.issues[0]?.message ?? 'Invalid input details provided.' },
       { status: 400 },
     )
   }
@@ -34,42 +34,66 @@ export async function POST(request: NextRequest) {
   const key = identifier.trim()
   const isEmail = key.includes('@')
 
-  // Uniqueness checks
   const email = isEmail ? key.toLowerCase() : undefined
   const phone = isEmail ? undefined : key
 
-  if (email) {
-    const exists = await prisma.user.findUnique({ where: { email } })
-    if (exists) {
-      return NextResponse.json({ error: 'Email already registered' }, { status: 409 })
+  try {
+    // Uniqueness checks
+    if (email) {
+      const exists = await prisma.user.findUnique({ where: { email } })
+      if (exists) {
+        return NextResponse.json({ error: 'This email address is already registered.' }, { status: 409 })
+      }
     }
-  }
-  if (phone) {
-    const exists = await prisma.user.findUnique({ where: { phone } })
-    if (exists) {
-      return NextResponse.json({ error: 'Phone already registered' }, { status: 409 })
+    if (phone) {
+      const exists = await prisma.user.findFirst({
+        where: {
+          OR: [{ phone }, { email: `${phone}@phone.local` }],
+        },
+      })
+      if (exists) {
+        return NextResponse.json({ error: 'This phone number is already registered.' }, { status: 409 })
+      }
     }
-  }
-  if (username) {
-    const exists = await prisma.user.findUnique({ where: { username } })
-    if (exists) {
-      return NextResponse.json({ error: 'Username taken' }, { status: 409 })
+    if (username) {
+      const exists = await prisma.user.findUnique({ where: { username } })
+      if (exists) {
+        return NextResponse.json({ error: 'This username is already taken. Please choose another.' }, { status: 409 })
+      }
     }
-  }
 
-  const passwordHash = await hashPassword(password)
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email: email ?? `${phone}@phone.local`, // email is NOT NULL; phone users get a placeholder
-      phone: phone ?? null,
-      username: username ?? null,
-      passwordHash,
-      role: 'USER',
-      villageId: villageId ?? null,
-    },
-    select: { id: true, email: true, username: true, name: true },
-  })
+    const passwordHash = await hashPassword(password)
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email: email ?? `${phone}@phone.local`,
+        phone: phone ?? null,
+        username: username ?? null,
+        passwordHash,
+        role: 'USER',
+        villageId: villageId ?? null,
+      },
+      select: { id: true, email: true, username: true, name: true },
+    })
 
-  return NextResponse.json({ ok: true, user }, { status: 201 })
+    return NextResponse.json({ ok: true, user }, { status: 201 })
+  } catch (err: any) {
+    console.error('[SignupAPI] Error during signup:', err)
+    if (err?.code === 'P2002') {
+      const target = err?.meta?.target
+      if (Array.isArray(target) && target.includes('email')) {
+        return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 })
+      }
+      if (Array.isArray(target) && target.includes('phone')) {
+        return NextResponse.json({ error: 'An account with this phone number already exists.' }, { status: 409 })
+      }
+      if (Array.isArray(target) && target.includes('username')) {
+        return NextResponse.json({ error: 'This username is already taken.' }, { status: 409 })
+      }
+    }
+    return NextResponse.json(
+      { error: err?.message || 'Failed to create account. Please try again.' },
+      { status: 500 },
+    )
+  }
 }

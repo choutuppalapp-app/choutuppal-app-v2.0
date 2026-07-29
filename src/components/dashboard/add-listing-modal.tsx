@@ -55,6 +55,37 @@ export function AddListingModal({
   const [type, setType] = useState<ListingType>(defaultType ?? 'business')
   const [saving, setSaving] = useState(false)
 
+  const [localVillages, setLocalVillages] = useState(villages || [])
+  const [localCategories, setLocalCategories] = useState(categories || [])
+
+  useEffect(() => {
+    if (villages && villages.length > 0) {
+      setLocalVillages(villages)
+    } else {
+      fetch('/api/villages')
+        .then((r) => r.json())
+        .then((j) => {
+          const list = j.villages || j.data || (Array.isArray(j) ? j : [])
+          if (Array.isArray(list) && list.length > 0) setLocalVillages(list)
+        })
+        .catch(() => {})
+    }
+  }, [villages])
+
+  useEffect(() => {
+    if (categories && categories.length > 0) {
+      setLocalCategories(categories)
+    } else {
+      fetch('/api/categories')
+        .then((r) => r.json())
+        .then((j) => {
+          const list = j.categories || j.data || (Array.isArray(j) ? j : [])
+          if (Array.isArray(list) && list.length > 0) setLocalCategories(list)
+        })
+        .catch(() => {})
+    }
+  }, [categories])
+
   // shared
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -381,7 +412,7 @@ export function AddListingModal({
               <Select value={villageId} onValueChange={setVillageId}>
                 <SelectTrigger><SelectValue placeholder="Select village" /></SelectTrigger>
                 <SelectContent>
-                  {villages.map((v) => (
+                  {localVillages.map((v) => (
                     <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
                   ))}
                 </SelectContent>

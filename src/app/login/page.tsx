@@ -111,7 +111,12 @@ function LoginInner() {
     let active = true
     fetch('/api/villages')
       .then((r) => r.json())
-      .then((j) => { if (active && j.ok) setVillages(j.villages) })
+      .then((j) => {
+        if (active) {
+          const list = j?.villages || j?.data || (Array.isArray(j) ? j : [])
+          if (Array.isArray(list)) setVillages(list)
+        }
+      })
       .catch(() => {})
     return () => { active = false }
   }, [])
