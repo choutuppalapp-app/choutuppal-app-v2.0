@@ -78,8 +78,11 @@ export const viewport: Viewport = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const gaId = process.env.NEXT_PUBLIC_GA4_ID
-  const fbPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID
+  const rawGa = process.env.NEXT_PUBLIC_GA4_ID?.trim()
+  const gaId = rawGa && !rawGa.includes('XXXXX') && rawGa.length > 5 ? rawGa : null
+
+  const rawFb = process.env.NEXT_PUBLIC_FB_PIXEL_ID?.trim()
+  const fbPixelId = rawFb && !rawFb.includes('XXXXX') && rawFb.length > 5 ? rawFb : null
 
   return (
     <html lang="te" suppressHydrationWarning>

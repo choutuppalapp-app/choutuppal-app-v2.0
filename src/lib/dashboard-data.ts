@@ -3,8 +3,16 @@ import type { User } from '@prisma/client'
 
 /** Fetch everything the dashboard needs in one pass (for the server component). */
 export async function getDashboardData(user: User) {
-  const [listings, realEstates, banners, stories, villages, categories, communityPosts] =
-    await Promise.all([
+  let listings: any[] = []
+  let realEstates: any[] = []
+  let banners: any[] = []
+  let stories: any[] = []
+  let villages: any[] = []
+  let categories: any[] = []
+  let communityPosts: any[] = []
+
+  try {
+    const res = await Promise.all([
       prisma.listing.findMany({
         where: { ownerId: user.id },
         orderBy: { createdAt: 'desc' },
@@ -36,6 +44,16 @@ export async function getDashboardData(user: User) {
         },
       }),
     ])
+    listings = res[0]
+    realEstates = res[1]
+    banners = res[2]
+    stories = res[3]
+    villages = res[4]
+    categories = res[5]
+    communityPosts = res[6]
+  } catch (err) {
+    console.error('[DashboardData] DB query error:', err)
+  }
 
   // Analytics (aggregated from the user's content)
   const totalViews = listings.reduce((s, l) => s + l.views, 0)

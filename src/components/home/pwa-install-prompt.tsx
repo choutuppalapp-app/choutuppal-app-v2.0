@@ -41,6 +41,13 @@ export function PwaInstallPrompt() {
     const choice = await promptEvent.userChoice
     if (choice.outcome === 'accepted') {
       setVisible(false)
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+        try {
+          await Notification.requestPermission()
+        } catch (err) {
+          console.error('[PWA] Failed to request notification permission:', err)
+        }
+      }
     }
     setPromptEvent(null)
   }

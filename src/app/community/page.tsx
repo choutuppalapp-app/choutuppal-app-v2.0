@@ -22,56 +22,68 @@ export const metadata: Metadata = {
 }
 
 export default async function CommunityPage() {
-  const viewer = await getCurrentUser()
+  let viewer: any = null
+  try {
+    viewer = await getCurrentUser()
+  } catch (err) {
+    console.error('[CommunityPage] getCurrentUser error:', err)
+  }
 
-  // Fetch initial posts (public authors only) + people directory in parallel.
-  const [posts, people] = await Promise.all([
-    prisma.communityPost.findMany({
-      where: { author: { isPublic: true, isBanned: false } },
-      orderBy: { createdAt: 'desc' },
-      take: 30,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            image: true,
-            bio: true,
-            planTier: true,
+  let posts: any[] = []
+  let people: any[] = []
+  try {
+    const res = await Promise.all([
+      prisma.communityPost.findMany({
+        where: { author: { isPublic: true, isBanned: false } },
+        orderBy: { createdAt: 'desc' },
+        take: 30,
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              image: true,
+              bio: true,
+              planTier: true,
+            },
           },
+          _count: { select: { comments: true } },
+          likesRel: viewer ? { where: { userId: viewer.id }, select: { id: true } } : false,
         },
-        _count: { select: { comments: true } },
-        likesRel: viewer ? { where: { userId: viewer.id }, select: { id: true } } : false,
-      },
-    }),
-    prisma.user.findMany({
-      where: {
-        isPublic: true,
-        isBanned: false,
-        ...(viewer ? { id: { not: viewer.id } } : {}),
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 12,
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        image: true,
-        bio: true,
-        planTier: true,
-        village: { select: { name: true } },
-      },
-    }),
-  ])
+      }),
+      prisma.user.findMany({
+        where: {
+          isPublic: true,
+          isBanned: false,
+          ...(viewer ? { id: { not: viewer.id } } : {}),
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 12,
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          image: true,
+          bio: true,
+          planTier: true,
+          village: { select: { name: true } },
+        },
+      }),
+    ])
+    posts = res[0]
+    people = res[1]
+  } catch (err) {
+    console.error('[CommunityPage] DB query error:', err)
+  }
 
   const serialisedPosts = posts.map((p) => ({
     id: p.id,
     content: p.content,
     likes: p.likes,
-    commentCount: p._count.comments,
-    likedByMe: viewer ? p.likesRel.length > 0 : false,
-    createdAt: p.createdAt.toISOString(),
+    commentCount: p._count?.comments ?? 0,
+    likedByMe: viewer && Array.isArray(p.likesRel) ? p.likesRel.length > 0 : false,
+    createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
     author: p.author,
   }))
 

@@ -13,13 +13,19 @@ export const metadata: Metadata = {
 }
 
 export default async function NewsPage() {
-  const news = await prisma.news.findMany({
-    where: { isPublished: true },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true, slug: true, title: true, summary: true, image: true,
-      createdAt: true,
-    },
-  })
-  return <NewsList articles={news.map(n => ({ ...n, createdAt: n.createdAt.toISOString() }))} />
+  let news: any[] = []
+  try {
+    news = await prisma.news.findMany({
+      where: { isPublished: true },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, slug: true, title: true, summary: true, image: true,
+        createdAt: true,
+      },
+    })
+  } catch (err) {
+    console.error('[NewsPage] DB query error:', err)
+  }
+
+  return <NewsList articles={news.map(n => ({ ...n, createdAt: n.createdAt ? new Date(n.createdAt).toISOString() : new Date().toISOString() }))} />
 }

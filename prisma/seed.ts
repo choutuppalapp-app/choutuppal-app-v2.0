@@ -75,73 +75,69 @@ async function main() {
   }
 
   // -------------------------------------------------------------------
-  // Demo owner user (with a known password so the login flow is testable).
-  //   email:    demo@choutuppal.app
-  //   password: demo1234
+  // 1. Admin User: admin@choutuppal.in / Admin@123 / ADMIN
   // -------------------------------------------------------------------
-  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12)
-  const owner = await prisma.user.upsert({
-    where: { email: 'demo@choutuppal.app' },
-    update: { passwordHash, role: 'ADMIN', isPublic: true },
+  const adminPasswordHash = await bcrypt.hash('Admin@123', 12)
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@choutuppal.in' },
+    update: { passwordHash: adminPasswordHash, role: 'ADMIN', isPublic: true },
     create: {
-      email: 'demo@choutuppal.app',
+      email: 'admin@choutuppal.in',
       phone: '+919441348175',
-      username: 'choutuppal_demo',
-      name: 'Choutuppal Demo',
+      username: 'admin',
+      name: 'Choutuppal Admin',
       role: 'ADMIN',
       isPublic: true,
-      passwordHash,
-      bio: 'Official demo account for Choutuppal App.',
-      villageId: (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!.id,
+      passwordHash: adminPasswordHash,
+      bio: 'Official Super Admin for Choutuppal App.',
+      villageId: (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))?.id ?? null,
     },
   })
 
   // -------------------------------------------------------------------
-  // Test user (normal USER role, non-premium, public profile).
-  //   email:    user@choutuppal.app
-  //   password: user1234
-  // Used to test the non-premium story flow and community interactions.
+  // 2. Agent User: agent@choutuppal.in / Agent@123 / AGENT
   // -------------------------------------------------------------------
-  const userPasswordHash = await bcrypt.hash('user1234', 12)
+  const agentPasswordHash = await bcrypt.hash('Agent@123', 12)
   await prisma.user.upsert({
-    where: { email: 'user@choutuppal.app' },
-    update: { passwordHash: userPasswordHash, role: 'USER', isPublic: true, planTier: 'FREE' },
-    create: {
-      email: 'user@choutuppal.app',
-      phone: '+919912353706',
-      username: 'test_user',
-      name: 'Test User',
-      role: 'USER',
-      isPublic: true,
-      planTier: 'FREE',
-      passwordHash: userPasswordHash,
-      bio: 'Test user for trying out the community and stories.',
-      villageId: (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!.id,
-    },
-  })
-
-  // -------------------------------------------------------------------
-  // Agent user (AGENT role, can access /agent panel).
-  //   email:    agenttest@choutuppal.app
-  //   password: agent123
-  // -------------------------------------------------------------------
-  const agentPasswordHash = await bcrypt.hash('agent123', 12)
-  await prisma.user.upsert({
-    where: { email: 'agenttest@choutuppal.app' },
+    where: { email: 'agent@choutuppal.in' },
     update: { passwordHash: agentPasswordHash, role: 'AGENT', isPublic: true, planTier: 'PRO' },
     create: {
-      email: 'agenttest@choutuppal.app',
+      email: 'agent@choutuppal.in',
       phone: '+919912353707',
-      username: 'test_agent',
-      name: 'Test Agent',
+      username: 'choutuppal_agent',
+      name: 'Choutuppal Agent',
       role: 'AGENT',
       isPublic: true,
       planTier: 'PRO',
       passwordHash: agentPasswordHash,
-      bio: 'Test agent for CSV uploads and lead tracking.',
-      villageId: (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!.id,
+      bio: 'Official field agent for CSV business onboarding.',
+      villageId: (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))?.id ?? null,
     },
   })
+
+  // -------------------------------------------------------------------
+  // 3. Normal User: user@choutuppal.in / User@123 / USER
+  // -------------------------------------------------------------------
+  const userPasswordHash = await bcrypt.hash('User@123', 12)
+  await prisma.user.upsert({
+    where: { email: 'user@choutuppal.in' },
+    update: { passwordHash: userPasswordHash, role: 'USER', isPublic: true, planTier: 'FREE' },
+    create: {
+      email: 'user@choutuppal.in',
+      phone: '+919912353706',
+      username: 'choutuppal_user',
+      name: 'Choutuppal User',
+      role: 'USER',
+      isPublic: true,
+      planTier: 'FREE',
+      passwordHash: userPasswordHash,
+      bio: 'Regular user account for Choutuppal App.',
+      villageId: (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))?.id ?? null,
+    },
+  })
+
+  // Alias owner reference for seed listings to adminUser
+  const owner = adminUser
 
   const panthangi = (await prisma.village.findUnique({ where: { slug: 'panthangi' } }))!
   const malkapur = (await prisma.village.findUnique({ where: { slug: 'malkapur' } }))!

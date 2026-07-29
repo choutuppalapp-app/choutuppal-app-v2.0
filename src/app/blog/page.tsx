@@ -13,13 +13,19 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
-  const blogs = await prisma.blog.findMany({
-    where: { isPublished: true },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true, slug: true, title: true, excerpt: true, coverImage: true,
-      createdAt: true,
-    },
-  })
-  return <BlogList posts={blogs.map(b => ({ ...b, createdAt: b.createdAt.toISOString() }))} />
+  let blogs: any[] = []
+  try {
+    blogs = await prisma.blog.findMany({
+      where: { isPublished: true },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, slug: true, title: true, excerpt: true, coverImage: true,
+        createdAt: true,
+      },
+    })
+  } catch (err) {
+    console.error('[BlogPage] DB query error:', err)
+  }
+
+  return <BlogList posts={blogs.map(b => ({ ...b, createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : new Date().toISOString() }))} />
 }
