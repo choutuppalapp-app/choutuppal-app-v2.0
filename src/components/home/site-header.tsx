@@ -3,11 +3,17 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LogIn, LogOut, Menu, X, Home, Newspaper, BookOpen, Users, Info, FileText, Shield } from 'lucide-react'
+import { LogIn, LogOut, Menu, X, Home, Newspaper, BookOpen, Users, Info, FileText, Shield, Download, Sparkles } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { NotificationBell } from '@/components/home/notification-bell'
+import { toast } from 'sonner'
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
 
 /**
  * Global site header — renders on every page via layout.tsx.
@@ -17,6 +23,28 @@ export function SiteHeader() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [pwaEvent, setPwaEvent] = useState<BeforeInstallPromptEvent | null>(null)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault()
+      setPwaEvent(e as BeforeInstallPromptEvent)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  async function triggerPwaInstall() {
+    if (pwaEvent) {
+      await pwaEvent.prompt()
+      const choice = await pwaEvent.userChoice
+      if (choice.outcome === 'accepted') {
+        setPwaEvent(null)
+      }
+    } else {
+      toast.info('To install, tap your browser menu (⋮ or Share) and select "Add to Home Screen".')
+    }
+  }
 
   // Hide on admin/agent/dashboard routes — they have dedicated panel headers
   if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/dashboard')) return null
@@ -73,11 +101,11 @@ export function SiteHeader() {
               </Button>
             </>
           ) : (
-            /* Logged out: Login button only */
+            /* Logged out: Login button (desktop only — hidden on mobile to avoid duplication) */
             <Button
               asChild
               size="sm"
-              className="gap-2 gradient-brand text-white shadow-md shadow-blue-500/30"
+              className="hidden gap-2 gradient-brand text-white shadow-md shadow-blue-500/30 md:inline-flex"
             >
               <Link href="/login">
                 <LogIn className="h-4 w-4" />
@@ -103,11 +131,11 @@ export function SiteHeader() {
       {/* Mobile menu drawer */}
       <div
         className={cn(
-          'border-t border-white/40 bg-white/80 px-3 py-3 backdrop-blur-xl md:hidden',
+          'border-t border-slate-100 bg-white/95 px-4 py-4 backdrop-blur-xl md:hidden',
           mobileOpen ? 'block' : 'hidden',
         )}
       >
-        <nav className="grid grid-cols-2 gap-1.5">
+        <nav className="grid grid-cols-2 gap-2">
           <MobileLink href="/" icon={Home} label="హోమ్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/news" icon={Newspaper} label="న్యూస్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/blog" icon={BookOpen} label="బ్లాగ్స్" onClick={() => setMobileOpen(false)} />
@@ -115,21 +143,48 @@ export function SiteHeader() {
           <MobileLink href="/about" icon={Info} label="అబౌట్ అస్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/terms" icon={FileText} label="టర్మ్స్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/privacy" icon={Shield} label="ప్రైవసీ" onClick={() => setMobileOpen(false)} />
+        </nav>
+
+        {/* Dedicated Bottom Actions Section */}
+        <div className="mt-4 space-y-2 border-t border-slate-100 pt-3">
+          {/* PWA Download Button */}
+          <button
+            onClick={() => { triggerPwaInstall(); setMobileOpen(false) }}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 via-amber-500 to-amber-400 font-bold text-white shadow-md shadow-blue-500/20 active:scale-[0.98]"
+          >
+            <Download className="h-4 w-4" />
+            <span className="text-sm">Install App (ఇన్‌స్టాల్ చేయండి)</span>
+          </button>
+
           {isLoggedIn ? (
-            <>
-              <MobileLink href="/dashboard" icon={Home} label="డాష్‌బోర్డ్" onClick={() => setMobileOpen(false)} />
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50/80 font-bold text-blue-700 active:scale-[0.98]"
+              >
+                <Home className="h-4 w-4 text-blue-600" />
+                <span className="text-sm">Dashboard</span>
+              </Link>
               <button
                 onClick={() => { signOut({ callbackUrl: '/' }); setMobileOpen(false) }}
-                className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                className="flex h-11 items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 font-bold text-red-600 active:scale-[0.98]"
               >
                 <LogOut className="h-4 w-4 text-red-500" />
-                <span className="font-telugu">లాగౌట్</span>
+                <span className="text-sm">Logout</span>
               </button>
-            </>
+            </div>
           ) : (
-            <MobileLink href="/login" icon={LogIn} label="లాగిన్" onClick={() => setMobileOpen(false)} />
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 to-blue-500 font-bold text-white shadow-md shadow-blue-500/20 active:scale-[0.98]"
+            >
+              <LogIn className="h-4 w-4" />
+              <span className="text-sm">Login / Sign Up</span>
+            </Link>
           )}
-        </nav>
+        </div>
       </div>
     </header>
   )
@@ -150,10 +205,10 @@ function MobileLink({
     <Link
       href={href}
       onClick={onClick}
-      className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-600"
+      className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-blue-300 hover:text-blue-600 active:bg-slate-50"
     >
       <Icon className="h-4 w-4 text-blue-500" />
-      <span className="font-telugu">{label}</span>
+      <span className="font-telugu text-xs">{label}</span>
     </Link>
   )
 }
