@@ -19,10 +19,24 @@ import { authConfig } from '@/lib/auth.config'
  * is still wired up so OAuth accounts/users/sessions are persisted to the DB.
  */
 
+const useSecure = process.env.NODE_ENV === 'production' || process.env.NEXTAUTH_URL?.startsWith('https://')
+
 export const authOptions: NextAuthOptions = {
   ...authConfig,
   secret: process.env.NEXTAUTH_SECRET || 'ChoutuppalAppV2SecretKey2026StableAndPersistentValueX9m2k7p4q',
   adapter: PrismaAdapter(prisma),
+  useSecureCookies: useSecure,
+  cookies: {
+    sessionToken: {
+      name: useSecure ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: useSecure,
+      },
+    },
+  },
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || 'dummy_google_client_id',

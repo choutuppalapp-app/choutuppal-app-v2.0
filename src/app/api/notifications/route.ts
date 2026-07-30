@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 /** GET /api/notifications — unread count + latest 5 notifications for the current user. */
 export async function GET(request: NextRequest) {
   const auth = await requireApiUser()
-  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+  if (!auth.ok) return NextResponse.json({ ok: true, unreadCount: 0, notifications: [] }, { status: 200 })
 
   const limit = Number(request.nextUrl.searchParams.get('limit') ?? 5)
 
