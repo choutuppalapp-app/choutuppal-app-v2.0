@@ -21,7 +21,7 @@ import { authConfig } from '@/lib/auth.config'
 
 export const authOptions: NextAuthOptions = {
   ...authConfig,
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'ChoutuppalAppV2SecretKey2026StableAndPersistentValueX9m2k7p4q',
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({

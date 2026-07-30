@@ -84,6 +84,10 @@ export async function getDashboardData(user: User) {
       
       planExpiresAt: user.planExpiresAt ? user.planExpiresAt.toISOString() : null,
       villageId: user.villageId,
+      facebookUrl: (user as any).facebookUrl ?? null,
+      instagramUrl: (user as any).instagramUrl ?? null,
+      youtubeUrl: (user as any).youtubeUrl ?? null,
+      twitterUrl: (user as any).twitterUrl ?? null,
     },
     listings,
     realEstates,

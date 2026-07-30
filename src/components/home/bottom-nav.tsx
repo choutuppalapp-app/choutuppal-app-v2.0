@@ -72,7 +72,7 @@ export function BottomNav() {
       {/* Center FAB — Add */}
       <div className="flex items-center justify-center">
         <Link
-          href="/dashboard"
+          href="/dashboard?tab=add-listing"
           aria-label="Add new listing"
           className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 text-white shadow-lg transition active:scale-95"
         >

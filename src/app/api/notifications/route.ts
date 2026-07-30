@@ -12,18 +12,23 @@ export async function GET(request: NextRequest) {
 
   const limit = Number(request.nextUrl.searchParams.get('limit') ?? 5)
 
-  const [unreadCount, recent] = await Promise.all([
-    prisma.notification.count({
-      where: { userId: auth.user.id, isRead: false },
-    }),
-    prisma.notification.findMany({
-      where: { userId: auth.user.id },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-    }),
-  ])
+  try {
+    const [unreadCount, recent] = await Promise.all([
+      prisma.notification.count({
+        where: { userId: auth.user.id, isRead: false },
+      }),
+      prisma.notification.findMany({
+        where: { userId: auth.user.id },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      }),
+    ])
 
-  return NextResponse.json({ ok: true, unreadCount, notifications: recent })
+    return NextResponse.json({ ok: true, unreadCount, notifications: recent })
+  } catch (err) {
+    console.error('[Notifications GET] Error fetching notifications:', err)
+    return NextResponse.json({ ok: true, unreadCount: 0, notifications: [] })
+  }
 }
 
 /** PATCH /api/notifications — mark all (or specific) notifications as read. */
