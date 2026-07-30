@@ -51,7 +51,11 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         const identifier = credentials?.identifier?.trim()
         const password = credentials?.password
-        if (!identifier || !password) return null
+        console.log('[Auth authorize] Attempt identifier:', identifier)
+        if (!identifier || !password) {
+          console.log('[Auth authorize] Missing identifier or password')
+          return null
+        }
 
         const key = identifier.toLowerCase()
         const user = await prisma.user.findFirst({
@@ -64,10 +68,15 @@ export const authOptions: NextAuthOptions = {
           },
         })
 
+        console.log('[Auth authorize] DB user lookup:', user ? `Found user ${user.id} (${user.email})` : 'User not found')
         if (!user || !user.passwordHash) return null
-        if (user.isBanned) return null
+        if (user.isBanned) {
+          console.log('[Auth authorize] User is banned:', user.email)
+          return null
+        }
 
         const ok = await bcrypt.compare(password, user.passwordHash)
+        console.log('[Auth authorize] Password match:', ok)
         if (!ok) return null
 
         return {
