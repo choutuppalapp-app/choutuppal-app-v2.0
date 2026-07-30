@@ -230,7 +230,7 @@ export function ListingDetailView({
                   rel="noopener noreferrer"
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 px-5 py-3 text-xs font-bold text-white shadow-md transition active:scale-[0.98] sm:text-sm md:w-auto"
                 >
-                  <img src="/whatsapp.png" alt="WhatsApp" className="h-4 w-4 shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                  <MessageCircle className="h-4 w-4 shrink-0 text-white" />
                   <span>WhatsApp లో వివరాలు అడగండి</span>
                 </a>
               </div>

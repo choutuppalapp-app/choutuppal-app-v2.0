@@ -423,6 +423,7 @@ function LoginInner() {
                   <Label htmlFor="login-identifier">Email or Phone</Label>
                   <Input
                     id="login-identifier"
+                    name="identifier"
                     type="text"
                     autoComplete="username"
                     placeholder="you@example.com or +91…"
@@ -447,6 +448,7 @@ function LoginInner() {
                   <div className="relative">
                     <Input
                       id="login-password"
+                      name="password"
                       type={showPwd ? 'text' : 'password'}
                       autoComplete="current-password"
                       placeholder="••••••••"
@@ -528,6 +530,7 @@ function LoginInner() {
                   <Label htmlFor="su-name">Full Name</Label>
                   <Input
                     id="su-name"
+                    name="name"
                     type="text"
                     autoComplete="name"
                     placeholder="Your full name"
@@ -550,6 +553,7 @@ function LoginInner() {
                   </Label>
                   <Input
                     id="su-username"
+                    name="username"
                     type="text"
                     autoComplete="username"
                     placeholder="username (a-z, 0-9, _ .)"
@@ -564,6 +568,7 @@ function LoginInner() {
                   <Label htmlFor="su-identifier">Email or Phone</Label>
                   <Input
                     id="su-identifier"
+                    name="identifier"
                     type="text"
                     autoComplete="email"
                     placeholder="you@example.com or +91…"
@@ -579,6 +584,7 @@ function LoginInner() {
                   <div className="relative">
                     <Input
                       id="su-password"
+                      name="password"
                       type={showSuPwd ? 'text' : 'password'}
                       autoComplete="new-password"
                       placeholder="Min 6 characters"
@@ -607,6 +613,7 @@ function LoginInner() {
                   <Label htmlFor="su-confirm">Confirm Password</Label>
                   <Input
                     id="su-confirm"
+                    name="confirmPassword"
                     type={showSuPwd ? 'text' : 'password'}
                     autoComplete="new-password"
                     placeholder="Re-enter password"
@@ -622,6 +629,7 @@ function LoginInner() {
                   <Label htmlFor="su-village">Village</Label>
                   <select
                     id="su-village"
+                    name="villageId"
                     value={suVillage}
                     onChange={(e) => setSuVillage(e.target.value)}
                     disabled={suLoading || suGoogleLoading || villages.length === 0}

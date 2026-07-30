@@ -36,7 +36,7 @@ export async function GET() {
 
     return NextResponse.json({ ok: true, settings })
   } catch (error) {
-    console.error('Error fetching settings:', error)
-    return NextResponse.json({ ok: false, error: 'Database error' }, { status: 500 })
+    console.error('[Settings GET] Error fetching settings, returning defaults:', error)
+    return NextResponse.json({ ok: true, settings: DEFAULTS }, { status: 200 })
   }
 }

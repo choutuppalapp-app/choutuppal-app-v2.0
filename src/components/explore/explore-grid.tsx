@@ -315,7 +315,7 @@ export function ExploreGrid({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full border border-blue-600 bg-white/80 px-4 py-1.5 text-sm font-medium text-blue-600 shadow-sm backdrop-blur transition-all hover:bg-blue-50"
           >
-            <img src="/whatsapp.png" alt="WhatsApp" className="h-4 w-4 shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+            <MessageCircle className="h-4 w-4 shrink-0 text-emerald-600" />
             <span>మీ బిజినెస్ జోడించండి</span>
           </a>
         </div>
