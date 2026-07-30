@@ -306,6 +306,19 @@ export function ExploreGrid({
             </div>
           )
         ) : null}
+
+        {/* Lead CTA Button below explore cards */}
+        <div className="mt-8 flex justify-center">
+          <a
+            href={`https://wa.me/919441348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, మీ యాప్ లో బిజినెస్ లిస్ట్ చేయాలనుకుంటున్నాను. దయచేసి మార్గనిర్దేశనం చేయండి.')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-600 bg-white/90 px-4 py-2.5 text-xs font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 md:w-auto"
+          >
+            <img src="/whatsapp.png" alt="WhatsApp" className="h-4 w-4 shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+            <span>నమస్కారం చౌటుప్పల్ యాప్, మీ యాప్ లో బిజినెస్ లిస్ట్ చేయాలనుకుంటున్నాను</span>
+          </a>
+        </div>
       </main>
     </div>
   )

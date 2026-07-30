@@ -139,7 +139,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
         ) : null}
       </div>
 
-      {/* CTA buttons — BELOW the banner, clearly visible */}
+      {/* CTA buttons — BELOW the banner */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
         {current?.link ? (
           <Link href={current.link} onClick={trackClick}>
@@ -149,12 +149,15 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             </Button>
           </Link>
         ) : null}
-        <Link href="/dashboard">
-          <Button variant="outline" size="lg" className="gap-2 border-blue-200 text-blue-700 hover:bg-blue-50">
-            <Megaphone className="h-4 w-4" />
-            Promote Your Business
-          </Button>
-        </Link>
+        <a
+          href={`https://wa.me/919441348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, నా బిజినెస్ కోసం బ్యానర్ అడ్ ఇవ్వాలనుకుంటున్నాను. వివరాలు దయచేసి పంచండి.')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-600 bg-white/90 px-4 py-2.5 text-xs font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 md:w-auto"
+        >
+          <img src="/whatsapp.png" alt="WhatsApp" className="h-4 w-4 shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+          <span>నమస్కారం చౌటుప్పల్ యాప్, నా బిజినెస్ కోసం బ్యానర్ అడ్ ఇవ్వాలనుకుంటున్నాను</span>
+        </a>
       </div>
     </section>
   )

@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button'
 
 const AGENT_WA_LINK =
   'https://wa.me/919441348175?text=' +
-  encodeURIComponent('నేను చౌటుప్పల్ యాప్ ఏజెంట్ గా చేరాలనుకుంటున్నాను')
+  encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, ఏజెంట్ గా పనిచేయాలనుకుంటున్నాను. వివరాలు తెలపండి.')
 
 const CITY_WA_LINK =
   'https://wa.me/919441348175?text=' +
-  encodeURIComponent('నేను మా ఊరి కోసం ఈ యాప్ సెటప్ చేయాలనుకుంటున్నాను')
+  encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, వైట్ లేబుల్ గా మా ఊరి కోసం పనిచేయాలనుకుంటున్నాను. వివరాలు తెలపండి.')
 
 export function AgentCityCTA() {
   return (

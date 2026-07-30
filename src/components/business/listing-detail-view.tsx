@@ -217,6 +217,25 @@ export function ListingDetailView({
               </section>
             ) : null}
 
+            {/* Customer to Business Owner WhatsApp CTA (Type 1 Blue-to-Gold Gradient) */}
+            {listing.whatsapp || listing.phone ? (
+              <div className="mt-4 flex justify-center">
+                <a
+                  href={`https://wa.me/${(listing.whatsapp || listing.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(
+                    (listing as any).listingType
+                      ? `నమస్కారం, మీ ప్రాపర్టీ (${(listing as any).listingType === 'RENT' ? 'అద్దెకు' : 'అమ్మకానికి'}) గురించి చౌటుప్పల్ యాప్ లో చూశాను. వివరాలు కావాలి.`
+                      : `నమస్కారం ${listing.title}, మీ బిజినెస్ ను చౌటుప్పల్ యాప్ లో చూశాను. మీ సర్వీసుల గురించి తెలుసుకోవాలనుకుంటున్నాను.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 px-5 py-3 text-xs font-bold text-white shadow-md transition active:scale-[0.98] sm:text-sm md:w-auto"
+                >
+                  <img src="/whatsapp.png" alt="WhatsApp" className="h-4 w-4 shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                  <span>WhatsApp లో వివరాలు అడగండి</span>
+                </a>
+              </div>
+            ) : null}
+
             {/* Gallery */}
             {gallery.length > 0 ? (
               <section>

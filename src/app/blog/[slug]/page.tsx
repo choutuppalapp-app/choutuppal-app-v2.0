@@ -98,6 +98,31 @@ export default async function BlogDetailPage({
         {post.excerpt ? (
           <p className="mt-4 text-sm italic text-slate-500">{post.excerpt}</p>
         ) : null}
+
+        {/* WhatsApp Action Buttons */}
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
+          {/* Share on WhatsApp */}
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(`చౌటుప్పల్ యాప్ లో ఈ బ్లాగ్ చూడండి: ${post.title} - ${SITE_URL}/blog/${post.slug}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 px-4 py-3 text-xs font-bold text-white shadow-md transition active:scale-[0.98] sm:w-auto text-center"
+          >
+            <img src="/whatsapp.png" alt="WhatsApp" className="h-4 w-4 shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+            <span>WhatsApp లో షేర్ చేయండి</span>
+          </a>
+
+          {/* Send Us News / Article (Lead CTA to Admin) */}
+          <a
+            href={`https://wa.me/919441348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, మా బ్లాగ్ / ఆర్టికల్ పంపాలనుకుంటున్నాను.')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-600 bg-white/90 px-4 py-3 text-xs font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 sm:w-auto text-center"
+          >
+            <img src="/whatsapp.png" alt="WhatsApp" className="h-4 w-4 shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+            <span>ఆర్టికల్ పంపండి</span>
+          </a>
+        </div>
       </article>
     </div>
   )
