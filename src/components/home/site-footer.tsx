@@ -6,11 +6,11 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-white/40 bg-white/70 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid gap-8 md:grid-cols-4">
+        <div className="flex flex-col space-y-8 md:grid md:grid-cols-4 md:space-y-0">
           {/* Section 1 — PAGES */}
-          <div className="space-y-3">
+          <div className="space-y-3 py-4 md:py-0">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Choutuppal App" className="h-10 w-auto" />
+              <img src="/logo.png" alt="Choutuppal App" className="h-10 w-auto" loading="lazy" />
             </div>
             <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
               PAGES
@@ -24,7 +24,7 @@ export function SiteFooter() {
           </div>
 
           {/* Section 2 — COMPANY */}
-          <div className="space-y-3">
+          <div className="space-y-3 py-4 md:py-0">
             <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
               COMPANY
             </h4>
@@ -37,7 +37,7 @@ export function SiteFooter() {
           </div>
 
           {/* Section 3 — CONTACT */}
-          <div className="space-y-3">
+          <div className="space-y-3 py-4 md:py-0">
             <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
               CONTACT
             </h4>
@@ -75,7 +75,7 @@ export function SiteFooter() {
           </div>
 
           {/* Section 4 — Connect With Us */}
-          <div className="space-y-3 text-center md:text-left">
+          <div className="space-y-3 py-4 text-center md:py-0 md:text-left">
             <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
               Connect With Us
             </h4>

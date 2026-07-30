@@ -21,21 +21,30 @@ import { authConfig } from '@/lib/auth.config'
 
 export const authOptions: NextAuthOptions = {
   ...authConfig,
+  secret: process.env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+      clientId: process.env.GOOGLE_CLIENT_ID || 'dummy_google_client_id',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy_google_client_secret',
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+          redirect_uri: `${(process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')}/api/auth/callback/google`,
+        },
+      },
     }),
     CredentialsProvider({
       id: 'credentials',
       name: 'Email or Phone',
       credentials: {
         identifier: {
-          label: 'Email or Phone',
+          label: 'Email, Phone or Username',
           type: 'text',
-          placeholder: 'you@example.com or +91…',
+          placeholder: 'you@example.com, phone, or username',
         },
         password: { label: 'Password', type: 'password' },
       },
@@ -44,11 +53,15 @@ export const authOptions: NextAuthOptions = {
         const password = credentials?.password
         if (!identifier || !password) return null
 
-        const isEmail = identifier.includes('@')
+        const key = identifier.toLowerCase()
         const user = await prisma.user.findFirst({
-          where: isEmail
-            ? { email: identifier.toLowerCase() }
-            : { phone: identifier },
+          where: {
+            OR: [
+              { email: key },
+              { phone: identifier },
+              { username: key },
+            ],
+          },
         })
 
         if (!user || !user.passwordHash) return null

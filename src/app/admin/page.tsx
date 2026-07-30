@@ -1,15 +1,14 @@
-import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/session'
-import { isAdminRole } from '@/lib/session'
+import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { AdminPanel } from '@/components/admin/admin-panel'
+import { AdminLoginForm } from '@/components/admin/admin-login-form'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
   const user = await getCurrentUser()
-  if (!user) redirect('/login')
-  if (user.isBanned) redirect('/')
-  if (!isAdminRole(user.role)) redirect('/dashboard')
+  if (!user || user.isBanned || !isAdminRole(user.role)) {
+    return <AdminLoginForm />
+  }
 
   return <AdminPanel adminName={user.name ?? user.username ?? 'Admin'} />
 }

@@ -1,0 +1,16 @@
+import { Loader2 } from 'lucide-react'
+
+export default function ExploreLoading() {
+  return (
+    <div className="grid min-h-[70vh] place-items-center p-4">
+      <div className="flex flex-col items-center gap-3">
+        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-500/10 text-blue-600">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+        <p className="font-telugu text-xs font-semibold text-slate-500">
+          ఎక్స్‌ప్లోర్ లోడ్ అవుతోంది…
+        </p>
+      </div>
+    </div>
+  )
+}
