@@ -117,10 +117,10 @@ export default async function BlogDetailPage({
             href={`https://wa.me/919441348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, మా బ్లాగ్ / ఆర్టికల్ పంపాలనుకుంటున్నాను.')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-600 bg-white/90 px-4 py-3 text-xs font-semibold text-blue-600 shadow-sm transition hover:bg-blue-50 sm:w-auto text-center"
+            className="inline-flex items-center gap-2 rounded-full border border-blue-600 bg-white/80 px-4 py-1.5 text-sm font-medium text-blue-600 shadow-sm backdrop-blur transition-all hover:bg-blue-50"
           >
             <img src="/whatsapp.png" alt="WhatsApp" className="h-4 w-4 shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-            <span>ఆర్టికల్ పంపండి</span>
+            <span>Send News</span>
           </a>
         </div>
       </article>
