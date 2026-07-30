@@ -36,8 +36,8 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
       <div className="no-scrollbar mt-5 flex gap-4 overflow-x-auto pb-2">
         {listings.map((l, i) => {
           const initial = l.title.charAt(0).toUpperCase()
-          // deterministic pseudo-rating for demo
-          const rating = (4 + ((i * 7) % 10) / 10).toFixed(1)
+          // rating from database or fallback
+          const rating = ((l as any).avgRating ?? (4 + ((i * 7) % 10) / 10)).toFixed(1)
           return (
             <Link
               key={l.id}

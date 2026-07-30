@@ -51,6 +51,11 @@ export function ProfileSection({
   const [image, setImage] = useState<string | null>(user.image)
   const [coverImage, setCoverImage] = useState<string | null>(user.coverImage)
   const [isPublic, setIsPublic] = useState(user.isPublic)
+  const [facebookUrl, setFacebookUrl] = useState((user as any).facebookUrl ?? '')
+  const [instagramUrl, setInstagramUrl] = useState((user as any).instagramUrl ?? '')
+  const [youtubeUrl, setYoutubeUrl] = useState((user as any).youtubeUrl ?? '')
+  const [twitterUrl, setTwitterUrl] = useState((user as any).twitterUrl ?? '')
+
   const [saving, setSaving] = useState(false)
   const [pwOpen, setPwOpen] = useState(false)
   const [pwEmail, setPwEmail] = useState(user.email)
@@ -70,6 +75,10 @@ export function ProfileSection({
           image,
           coverImage,
           isPublic,
+          facebookUrl: facebookUrl.trim() || null,
+          instagramUrl: instagramUrl.trim() || null,
+          youtubeUrl: youtubeUrl.trim() || null,
+          twitterUrl: twitterUrl.trim() || null,
         }),
       })
       const json = await res.json()
@@ -205,6 +214,27 @@ export function ProfileSection({
           />
           <p className="mt-1 text-right text-[11px] text-slate-400">{bio.length}/280</p>
         </Field>
+      </div>
+
+      {/* Social Media Links */}
+      <div className="rounded-3xl glass p-5">
+        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-700">
+          Social Media Accounts
+        </h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Facebook Profile / Page URL">
+            <Input value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} placeholder="https://facebook.com/..." />
+          </Field>
+          <Field label="Instagram Profile URL">
+            <Input value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} placeholder="https://instagram.com/..." />
+          </Field>
+          <Field label="YouTube Channel URL">
+            <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="https://youtube.com/@..." />
+          </Field>
+          <Field label="X / Twitter Profile URL">
+            <Input value={twitterUrl} onChange={(e) => setTwitterUrl(e.target.value)} placeholder="https://x.com/..." />
+          </Field>
+        </div>
       </div>
 
       {/* Privacy + Upgrade */}

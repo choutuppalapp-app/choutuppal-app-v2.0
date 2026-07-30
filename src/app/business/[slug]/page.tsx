@@ -15,7 +15,7 @@ async function getListing(slug: string) {
     include: {
       category: true,
       village: true,
-      owner: { select: { id: true, name: true, username: true, phone: true, image: true } },
+      owner: { select: { id: true, name: true, username: true, phone: true, image: true, facebookUrl: true, instagramUrl: true, youtubeUrl: true, twitterUrl: true } },
     },
   })
   if (!listing) return null

@@ -60,6 +60,10 @@ interface Profile {
   image: string | null
   coverImage: string | null
   isPublic: boolean
+  facebookUrl?: string | null
+  instagramUrl?: string | null
+  youtubeUrl?: string | null
+  twitterUrl?: string | null
   villageId: string | null
   village: { name: string } | null
   createdAt: Date
@@ -167,6 +171,33 @@ export function ProfileView({
                 {profile.bio}
               </p>
             ) : null}
+
+            {/* Social Media Links */}
+            {profile.facebookUrl || profile.instagramUrl || profile.youtubeUrl || profile.twitterUrl ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {profile.facebookUrl ? (
+                  <a href={profile.facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-100">
+                    Facebook
+                  </a>
+                ) : null}
+                {profile.instagramUrl ? (
+                  <a href={profile.instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-600 transition hover:bg-pink-100">
+                    Instagram
+                  </a>
+                ) : null}
+                {profile.youtubeUrl ? (
+                  <a href={profile.youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-100">
+                    YouTube
+                  </a>
+                ) : null}
+                {profile.twitterUrl ? (
+                  <a href={profile.twitterUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-200">
+                    X / Twitter
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="mt-3 flex gap-4 text-xs text-slate-500">
               <span><strong className="text-slate-900">{profile.posts.length}</strong> Posts</span>
               <span><strong className="text-slate-900">{profile.listings.length}</strong> Listings</span>

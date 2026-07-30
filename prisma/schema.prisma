@@ -39,6 +39,11 @@ model User {
   planTier      String    @default("FREE")
   planExpiresAt DateTime?
 
+  facebookUrl  String?
+  instagramUrl String?
+  youtubeUrl   String?
+  twitterUrl   String?
+
   listings          Listing[]
   realEstates       RealEstate[]
   stories           Story[]
@@ -54,6 +59,7 @@ model User {
   storyViews        StoryView[]
   storyReplies      StoryReply[]
   storyLikes        StoryLike[]
+  reviews           Review[]
   leads             Lead[]             @relation("AgentLeads")
   accounts          Account[]
   sessions          Session[]
@@ -175,6 +181,7 @@ model Listing {
   views          Int @default(0)
   clicks         Int @default(0)
   whatsappClicks Int @default(0)
+  avgRating      Float?
 
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
@@ -183,6 +190,8 @@ model Listing {
 
   ownerId String
   owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  reviews Review[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -529,3 +538,23 @@ model CityInquiry {
 
   @@index([status])
 }
+
+// ----------------------------------------------------------------------------
+// REVIEWS & RATINGS
+// ----------------------------------------------------------------------------
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      @default(5)
+  comment   String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+  @@index([listingId])
+  @@index([userId])
+}
+

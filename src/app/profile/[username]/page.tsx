@@ -16,6 +16,7 @@ async function getProfile(username: string) {
       id: true, name: true, username: true, bio: true, image: true,
       coverImage: true, isPublic: true, 
       villageId: true, village: { select: { name: true } },
+      facebookUrl: true, instagramUrl: true, youtubeUrl: true, twitterUrl: true,
       createdAt: true,
     },
   })

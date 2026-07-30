@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Phone,
@@ -304,6 +304,40 @@ export function ListingDetailView({
                 </div>
               ) : null}
             </section>
+
+            {/* Owner Social Media Links */}
+            {((listing.owner as any).facebookUrl || (listing.owner as any).instagramUrl || (listing.owner as any).youtubeUrl || (listing.owner as any).twitterUrl) ? (
+              <section className="rounded-2xl glass p-4">
+                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-600">
+                  Connect with Owner
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {(listing.owner as any).facebookUrl ? (
+                    <a href={(listing.owner as any).facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-100">
+                      Facebook
+                    </a>
+                  ) : null}
+                  {(listing.owner as any).instagramUrl ? (
+                    <a href={(listing.owner as any).instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-600 transition hover:bg-pink-100">
+                      Instagram
+                    </a>
+                  ) : null}
+                  {(listing.owner as any).youtubeUrl ? (
+                    <a href={(listing.owner as any).youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-100">
+                      YouTube
+                    </a>
+                  ) : null}
+                  {(listing.owner as any).twitterUrl ? (
+                    <a href={(listing.owner as any).twitterUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-200">
+                      X / Twitter
+                    </a>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
+
+            {/* Star Rating & Review Section */}
+            <ListingReviewSection listingId={listing.id} initialAvgRating={(listing as any).avgRating ?? 4.5} />
           </div>
 
           {/* Desktop sticky sidebar — Glassmorphism card */}
@@ -667,4 +701,127 @@ async function shareListing(listing: ListingDetailData['listing']) {
     // Fallback to WhatsApp
     window.open(`https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareText + ' ' + url)}`, '_blank')
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Star Rating & Review Component                                              */
+/* -------------------------------------------------------------------------- */
+
+function ListingReviewSection({
+  listingId,
+  initialAvgRating,
+}: {
+  listingId: string
+  initialAvgRating: number
+}) {
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [avgRating, setAvgRating] = useState(initialAvgRating)
+  const [reviews, setReviews] = useState<Array<{ id: string; rating: number; comment: string | null; createdAt: string; user: { name: string | null; username: string | null } }>>([])
+
+  useEffect(() => {
+    fetch(`/api/listings/${listingId}/reviews`)
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.ok && Array.isArray(j.reviews)) setReviews(j.reviews)
+      })
+      .catch(() => {})
+  }, [listingId])
+
+  async function submitReview(e: React.FormEvent) {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      const res = await fetch(`/api/listings/${listingId}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, comment }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to submit review')
+      toast.success('Thank you for rating!')
+      if (json.avgRating) setAvgRating(json.avgRating)
+      setComment('')
+      // Refresh reviews list
+      const fresh = await fetch(`/api/listings/${listingId}/reviews`).then((r) => r.json())
+      if (fresh.ok && Array.isArray(fresh.reviews)) setReviews(fresh.reviews)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Please log in to submit a rating')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <section className="rounded-3xl glass p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-700">
+          Ratings & Reviews
+        </h2>
+        <div className="flex items-center gap-1 font-bold text-amber-600">
+          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+          <span>{avgRating.toFixed(1)} / 5</span>
+        </div>
+      </div>
+
+      {/* Rating Form */}
+      <form onSubmit={submitReview} className="mt-4 rounded-2xl bg-white/60 p-4 space-y-3">
+        <p className="text-xs font-semibold text-slate-700">Rate this business:</p>
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => setRating(star)}
+              className="p-1 transition hover:scale-110"
+            >
+              <Star
+                className={`h-6 w-6 ${
+                  star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'
+                }`}
+              />
+            </button>
+          ))}
+          <span className="ml-2 text-xs font-bold text-slate-600">{rating} Star{rating > 1 ? 's' : ''}</span>
+        </div>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Write your review or experience (optional)…"
+          rows={2}
+          className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+        />
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-amber-500 px-4 py-2 text-xs font-bold text-white shadow transition active:scale-95 disabled:opacity-50"
+        >
+          {submitting ? 'Submitting…' : 'Submit Review'}
+        </button>
+      </form>
+
+      {/* Existing Reviews */}
+      {reviews.length > 0 ? (
+        <div className="mt-4 space-y-3">
+          {reviews.map((rev) => (
+            <div key={rev.id} className="rounded-xl border border-slate-100 bg-white/40 p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800">
+                  {rev.user.name ?? rev.user.username ?? 'Anonymous User'}
+                </span>
+                <div className="flex items-center gap-0.5 text-xs font-bold text-amber-500">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  <span>{rev.rating}</span>
+                </div>
+              </div>
+              {rev.comment ? (
+                <p className="mt-1 text-xs text-slate-600">{rev.comment}</p>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  )
 }

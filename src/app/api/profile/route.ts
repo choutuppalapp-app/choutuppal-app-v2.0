@@ -15,6 +15,10 @@ const Schema = z.object({
   image: z.string().nullable().optional(),
   coverImage: z.string().nullable().optional(),
   isPublic: z.boolean().optional(),
+  facebookUrl: z.string().nullable().optional(),
+  instagramUrl: z.string().nullable().optional(),
+  youtubeUrl: z.string().nullable().optional(),
+  twitterUrl: z.string().nullable().optional(),
 })
 
 /** PATCH /api/profile — update the current user's profile. */
@@ -60,6 +64,7 @@ export async function PATCH(request: NextRequest) {
     select: {
       id: true, name: true, username: true, email: true, phone: true, bio: true,
       image: true, coverImage: true, isPublic: true, role: true, planTier: true,
+      facebookUrl: true, instagramUrl: true, youtubeUrl: true, twitterUrl: true,
     },
   })
   return NextResponse.json({ ok: true, user: updated })
@@ -75,6 +80,7 @@ export async function GET() {
       id: true, name: true, username: true, email: true, phone: true, bio: true,
       image: true, coverImage: true, isPublic: true, role: true, planTier: true,
       planExpiresAt: true, spinCredits: true, createdAt: true, villageId: true,
+      facebookUrl: true, instagramUrl: true, youtubeUrl: true, twitterUrl: true,
     },
   })
   return NextResponse.json({ ok: true, user })
