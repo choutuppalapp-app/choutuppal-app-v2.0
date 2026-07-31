@@ -145,14 +145,14 @@ export function ProfileView({
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           </div>
           <div className="px-5 pb-5">
-            <div className="-mt-14 flex items-end gap-4 sm:-mt-16">
+            <div className="-mt-12 flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 sm:-mt-16">
               <Avatar className="h-24 w-24 shrink-0 border-4 border-white shadow-lg sm:h-32 sm:w-32">
                 <AvatarImage src={profile.image ?? undefined} />
                 <AvatarFallback className="gradient-brand text-3xl font-black text-white sm:text-4xl">
                   {(profile.name ?? profile.username ?? 'U').charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 pb-1">
+              <div className="min-w-0 flex-1 pb-1">
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
                     {profile.name ?? profile.username}

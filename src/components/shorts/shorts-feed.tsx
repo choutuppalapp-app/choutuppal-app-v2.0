@@ -104,6 +104,7 @@ export function ShortsFeed({ shorts }: ShortsFeedProps) {
               src={i === activeIndex ? embedUrl(s.youtubeId, s.videoUrl) : undefined}
               title={s.title ?? 'Short'}
               className="h-full w-full"
+              loading="lazy"
               allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
               allowFullScreen
               frameBorder="0"

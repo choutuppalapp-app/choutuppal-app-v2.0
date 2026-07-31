@@ -136,6 +136,7 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
                 src={embedUrl(shorts[active].youtubeId, shorts[active].videoUrl)}
                 title={shorts[active].title ?? 'Short'}
                 className="h-full w-full"
+                loading="lazy"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />

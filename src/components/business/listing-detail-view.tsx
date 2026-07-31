@@ -108,7 +108,7 @@ export function ListingDetailView({
 
                 {/* Overlapping logo */}
                 <div className="px-5 pb-5">
-                  <div className="-mt-12 flex items-end gap-4">
+                  <div className="-mt-10 flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
                     <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg sm:h-28 sm:w-28">
                       {listing.logo ? (
                          
@@ -119,7 +119,7 @@ export function ListingDetailView({
                         </div>
                       )}
                     </div>
-                    <div className="flex-1 pb-1">
+                    <div className="min-w-0 flex-1 pb-1">
                       <h1 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
                         {listing.title}
                       </h1>
