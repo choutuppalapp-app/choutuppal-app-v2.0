@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/session'
 import { getDashboardData } from '@/lib/dashboard-data'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
+import { Loader2 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,5 +25,13 @@ export default async function DashboardPage() {
     console.error('[DashboardPage] getDashboardData error:', err)
   }
 
-  return <DashboardShell data={data} />
+  return (
+    <Suspense fallback={
+      <div className="grid min-h-screen place-items-center bg-slate-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    }>
+      <DashboardShell data={data} />
+    </Suspense>
+  )
 }

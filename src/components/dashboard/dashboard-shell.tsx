@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import {
   LayoutDashboard,
@@ -51,10 +52,25 @@ interface DashboardShellProps {
 }
 
 export function DashboardShell({ data }: DashboardShellProps) {
-  const [tab, setTab] = useState<TabId>('overview')
-  const [addOpen, setAddOpen] = useState(false)
+  const searchParams = useSearchParams()
+  const rawTab = searchParams.get('tab')
+
+  const [tab, setTab] = useState<TabId>(() => {
+    const validTabs: TabId[] = ['overview', 'profile', 'listings', 'realestate', 'media', 'analytics', 'community', 'notifications']
+    return (rawTab && validTabs.includes(rawTab as TabId)) ? (rawTab as TabId) : 'overview'
+  })
+  const [addOpen, setAddOpen] = useState(rawTab === 'add-listing')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
+
+  useEffect(() => {
+    const t = searchParams.get('tab')
+    if (t === 'add-listing') {
+      setAddOpen(true)
+    } else if (t && ['overview', 'profile', 'listings', 'realestate', 'media', 'analytics', 'community', 'notifications'].includes(t)) {
+      setTab(t as TabId)
+    }
+  }, [searchParams])
 
   const openAdd = () => {
     setEditingItem(null)
