@@ -95,23 +95,32 @@ export default async function BusinessPage({
   const data = await getListing(slug)
   if (!data) notFound()
 
-  // Fetch 6 related listings from the same category (excluding current).
-  const related = data.listing.categoryId
-    ? await prisma.listing.findMany({
-        where: {
-          status: 'APPROVED',
-          categoryId: data.listing.categoryId,
-          id: { not: data.listing.id },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 6,
-        select: {
-          id: true, slug: true, title: true, coverImage: true, logo: true,
-          views: true, isFeatured: true,
-          village: { select: { name: true } },
-        },
-      })
-    : []
+  // Fetch up to 5 related listings from the same category or village (excluding current).
+  const relatedCondition: any[] = []
+  if (data.listing.categoryId) relatedCondition.push({ categoryId: data.listing.categoryId })
+  if (data.listing.villageId) relatedCondition.push({ villageId: data.listing.villageId })
+
+  const related = await prisma.listing
+    .findMany({
+      where: {
+        status: 'APPROVED',
+        id: { not: data.listing.id },
+        ...(relatedCondition.length > 0 ? { OR: relatedCondition } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        coverImage: true,
+        logo: true,
+        views: true,
+        isFeatured: true,
+        village: { select: { name: true } },
+      },
+    })
+    .catch(() => [])
 
   return <ListingDetailView data={data} related={related} />
 }
