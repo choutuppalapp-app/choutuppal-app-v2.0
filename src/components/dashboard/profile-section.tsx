@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Camera, Loader2, Save, Crown, Shield, Eye, EyeOff, Check, KeyRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -57,9 +58,26 @@ export function ProfileSection({
   const [twitterUrl, setTwitterUrl] = useState((user as any).twitterUrl ?? '')
 
   const [saving, setSaving] = useState(false)
+  const [upgrading, setUpgrading] = useState(false)
   const [pwOpen, setPwOpen] = useState(false)
   const [pwEmail, setPwEmail] = useState(user.email)
   const [pwBusy, setPwBusy] = useState(false)
+  const router = useRouter()
+
+  async function handleUpgrade() {
+    setUpgrading(true)
+    try {
+      const res = await fetch('/api/upgrade', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to upgrade')
+      toast.success(data.message || 'Congratulations! Account upgraded to PREMIUM!')
+      router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upgrade failed')
+    } finally {
+      setUpgrading(false)
+    }
+  }
 
   async function save() {
     setSaving(true)
@@ -273,8 +291,15 @@ export function ProfileSection({
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50">
-              <Crown className="h-3.5 w-3.5" /> Upgrade to Premium
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleUpgrade}
+              disabled={upgrading || user.planTier === 'PREMIUM'}
+              className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50"
+            >
+              {upgrading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Crown className="h-3.5 w-3.5" />}
+              {user.planTier === 'PREMIUM' ? 'PREMIUM Active' : 'Upgrade to Premium'}
             </Button>
             <Button size="sm" variant="outline" className="gap-1.5 border-blue-300 text-blue-700 hover:bg-blue-50">
               Become Agent
