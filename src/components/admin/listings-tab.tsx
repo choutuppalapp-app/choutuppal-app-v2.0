@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Store, Search, Star, Trash2, Check, X, Shield, RefreshCw, Loader2, ExternalLink, Crown } from 'lucide-react'
+import { Store, Search, Star, Trash2, Check, X, Shield, RefreshCw, Loader2, ExternalLink, Crown, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { AddListingModal } from '@/components/dashboard/add-listing-modal'
 
 interface ListingItem {
   id: string
@@ -28,6 +29,10 @@ export function AdminListingsTab() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [villages, setVillages] = useState<Array<{ id: string; name: string; slug: string }>>([])
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
+
   const load = useCallback(() => {
     setLoading(true)
     fetch('/api/admin/listings')
@@ -41,6 +46,8 @@ export function AdminListingsTab() {
 
   useEffect(() => {
     load()
+    fetch('/api/villages').then((r) => r.json()).then((j) => j.ok && setVillages(j.villages)).catch(() => {})
+    fetch('/api/admin/content').then((r) => r.json()).then((j) => j.ok && setCategories(j.categories)).catch(() => {})
   }, [load])
 
   async function toggleFeatured(item: ListingItem) {
@@ -128,6 +135,9 @@ export function AdminListingsTab() {
           <p className="text-sm text-slate-500">Manage all business and service listings ({listings.length} total)</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button onClick={() => setAddModalOpen(true)} className="gap-1.5 gradient-brand text-white shadow shrink-0">
+            <Plus className="h-4 w-4" /> Add Listing
+          </Button>
           <div className="relative flex-1 sm:w-64">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
@@ -247,6 +257,15 @@ export function AdminListingsTab() {
           </table>
         </div>
       </div>
+
+      <AddListingModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        villages={villages}
+        categories={categories}
+        defaultType="business"
+        onSuccess={load}
+      />
     </div>
   )
 }
