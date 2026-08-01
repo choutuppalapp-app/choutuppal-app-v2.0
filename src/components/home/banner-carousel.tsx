@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Banner } from '@prisma/client'
 
+import Image from 'next/image'
+
 interface BannerCarouselProps {
   banners: Banner[]
 }
@@ -75,12 +77,13 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
         onTouchEnd={onTouchEnd}
       >
         {current?.imageUrl ? (
-          <img
+          <Image
             src={current.imageUrl}
             alt={current.title ?? 'Banner Ad'}
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
             className="absolute inset-0 h-full w-full object-cover"
-            loading="eager"
-            fetchPriority="high"
           />
         ) : null}
         {/* Gloss overlay */}

@@ -70,6 +70,8 @@ model User {
 
   @@index([role])
   @@index([isBanned])
+  @@index([email])
+  @@index([username])
 }
 
 model Account {

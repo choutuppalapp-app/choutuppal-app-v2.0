@@ -13,7 +13,10 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
     remotePatterns: [
+      { protocol: "https", hostname: "images.choutuppal.in" },
+      { protocol: "https", hostname: "*.r2.dev" },
       { protocol: "https", hostname: "*.r2.cloudflarestorage.com" },
+      { protocol: "https", hostname: "*.supabase.co" },
       { protocol: "https", hostname: "media.choutuppal.com" },
       { protocol: "https", hostname: "img.youtube.com" },
       { protocol: "https", hostname: "*.cdninstagram.com" },

@@ -13,11 +13,13 @@ import { WhatsAppFloat } from '@/components/home/whatsapp-float'
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+  display: 'swap',
 })
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+  display: 'swap',
 })
 
 const notoTelugu = Noto_Sans_Telugu({
@@ -94,9 +96,9 @@ export default function RootLayout({
             <>
               <Script
                 src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-                strategy="afterInteractive"
+                strategy="lazyOnload"
               />
-              <Script id="google-analytics" strategy="afterInteractive">
+              <Script id="google-analytics" strategy="lazyOnload">
                 {`
                   window.dataLayer = window.dataLayer || [];
                   function gtag(){dataLayer.push(arguments);}
@@ -110,7 +112,7 @@ export default function RootLayout({
           ) : null}
 
           {fbPixelId ? (
-            <Script id="fb-pixel" strategy="afterInteractive">
+            <Script id="fb-pixel" strategy="lazyOnload">
               {`
                 !function(f,b,e,v,n,t,s)
                 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
