@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Briefcase,
   MessageCircle,
+  ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -96,9 +97,18 @@ export function DashboardShell({ data }: DashboardShellProps) {
           >
             {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
+            </Link>
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/90 px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm transition hover:bg-blue-100 active:scale-95"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to Home</span>
+            </Link>
+          </div>
 
           <div className="ml-auto flex items-center gap-2">
             <Button

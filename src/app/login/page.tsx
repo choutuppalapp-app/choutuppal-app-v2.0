@@ -178,8 +178,12 @@ function LoginInner() {
 
       if (res?.ok && !res.error) {
         toast.success('Logged in! Redirecting…')
-        const dest = await fetchRoleRedirect()
-        router.push(dest)
+        try {
+          const dest = await fetchRoleRedirect()
+          router.push(dest || '/dashboard')
+        } catch {
+          router.push('/dashboard')
+        }
         return
       }
 

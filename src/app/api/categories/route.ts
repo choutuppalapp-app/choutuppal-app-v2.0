@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 /** GET /api/categories — public list of all categories. */
 export async function GET() {
@@ -11,9 +12,15 @@ export async function GET() {
       orderBy: { name: 'asc' },
       select: { id: true, name: true, slug: true, icon: true, description: true },
     })
-    return NextResponse.json({ ok: true, categories, data: categories })
+    return NextResponse.json(
+      { ok: true, categories, data: categories },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' } }
+    )
   } catch (err) {
     console.error('[CategoriesAPI] Error fetching categories:', err)
-    return NextResponse.json({ ok: false, categories: [], data: [] }, { status: 500 })
+    return NextResponse.json(
+      { ok: true, categories: [], data: [] },
+      { status: 200, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' } }
+    )
   }
 }
