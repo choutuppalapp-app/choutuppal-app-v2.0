@@ -38,6 +38,19 @@ export const authConfig = {
       }
       return session
     },
+    /** Hardened redirect callback — prevents invalid DB URL or protocol redirects. */
+    async redirect({ url, baseUrl }) {
+      if (!url || url.startsWith('postgresql://') || url.startsWith('postgres://')) {
+        return baseUrl
+      }
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      try {
+        if (new URL(url).origin === new URL(baseUrl).origin) return url
+      } catch {
+        return baseUrl
+      }
+      return baseUrl
+    },
     // NOTE: The `authorized` callback was removed — it's a `withAuth` middleware
     // concept, not a standard NextAuth callback. Route protection is handled by
     // the Server Components (getCurrentUser → redirect /login).
