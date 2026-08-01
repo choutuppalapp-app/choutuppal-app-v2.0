@@ -24,15 +24,17 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { DashboardData } from '@/lib/dashboard-data'
+import nextDynamic from 'next/dynamic'
 import { ProfileSection } from './profile-section'
 import { MyListings } from './my-listings'
-import { MyRealEstate } from './my-real-estate'
-import { MyBannersStories } from './my-banners-stories'
-import { Analytics } from './analytics'
-import { AddListingModal } from './add-listing-modal'
 import { MyCommunityPosts } from './my-community-posts'
 import { MyNotifications } from './my-notifications'
 import { Bell } from 'lucide-react'
+
+const Analytics = nextDynamic(() => import('./analytics').then(m => ({ default: m.Analytics })), { ssr: false })
+const AddListingModal = nextDynamic(() => import('./add-listing-modal').then(m => ({ default: m.AddListingModal })), { ssr: false })
+const MyRealEstate = nextDynamic(() => import('./my-real-estate').then(m => ({ default: m.MyRealEstate })), { ssr: false })
+const MyBannersStories = nextDynamic(() => import('./my-banners-stories').then(m => ({ default: m.MyBannersStories })), { ssr: false })
 
 type TabId = 'overview' | 'profile' | 'listings' | 'realestate' | 'media' | 'analytics' | 'community' | 'notifications'
 
@@ -192,7 +194,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
         ) : null}
 
         {/* Main content */}
-        <main className="min-w-0 flex-1 pb-24 lg:pb-6">
+        <main className="min-w-0 flex-1 pb-28 lg:pb-6">
           {tab === 'overview' ? (
             <Overview data={data} onTab={setTab} onAdd={openAdd} />
           ) : null}
@@ -471,7 +473,7 @@ function MobileBottomNav({
   ]
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/50 bg-white/90 backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-white/50 bg-white/90 backdrop-blur-xl lg:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Dashboard mobile navigation"
     >

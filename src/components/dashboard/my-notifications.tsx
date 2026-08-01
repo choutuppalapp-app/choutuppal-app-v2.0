@@ -24,7 +24,8 @@ export function MyNotifications() {
     let active = true
     fetch('/api/notifications?limit=100')
       .then((r) => r.json())
-      .then((j) => { if (active && j.ok) setItems(j.notifications) })
+      .then((j) => { if (active) setItems(Array.isArray(j?.notifications) ? j.notifications : []) })
+      .catch(() => { if (active) setItems([]) })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])

@@ -135,9 +135,9 @@ export function ProfileSection({
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           </div>
           <div className="px-5 pb-5">
-            <div className="-mt-12 flex items-end gap-4">
-              <div className="relative">
-                <div className="h-24 w-24 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg">
+            <div className="-mt-14 sm:-mt-16 flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 relative z-10">
+              <div className="relative shrink-0">
+                <div className="h-24 w-24 sm:h-28 sm:w-28 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg relative z-10">
                   {image ? (
                      
                     <img loading="lazy" decoding="async" src={image} alt="avatar" className="h-full w-full object-cover" />

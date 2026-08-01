@@ -16,11 +16,23 @@ const SignupSchema = z.object({
 
 /** POST /api/auth/signup — register with email-or-phone + password. */
 export async function POST(request: NextRequest) {
-  let body: unknown
+  let body: any
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+
+  // Automatic Username Sanitization (lower-case, remove spaces & special characters)
+  if (body && typeof body.username === 'string' && body.username.trim()) {
+    const sanitized = body.username.toLowerCase().trim().replace(/[^a-z0-9_.]/g, '')
+    if (!sanitized || sanitized.length < 3) {
+      return NextResponse.json(
+        { error: 'Username must contain at least 3 valid characters (letters, numbers, underscores, or dots).' },
+        { status: 400 },
+      )
+    }
+    body.username = sanitized
   }
 
   const parsed = SignupSchema.safeParse(body)
