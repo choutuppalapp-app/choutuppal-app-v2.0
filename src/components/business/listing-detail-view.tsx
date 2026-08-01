@@ -63,15 +63,34 @@ export function ListingDetailView({
     { open: string; close: string }
   > | null
 
+  // Business Hours calculation
+  const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+  const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+  const todayKey = dayKeys[todayIndex]
+  const todayHours = hours ? hours[todayKey] : null
+
+  let isOpenNow = false
+  if (todayHours?.open && todayHours?.close) {
+    const now = new Date()
+    const currentMin = now.getHours() * 60 + now.getMinutes()
+    const [openH, openM] = todayHours.open.split(':').map(Number)
+    const [closeH, closeM] = todayHours.close.split(':').map(Number)
+    const openMin = openH * 60 + openM
+    const closeMin = closeH * 60 + closeM
+    isOpenNow = currentMin >= openMin && currentMin <= closeMin
+  }
+
+  const avgRatingDisplay = ((listing as any).avgRating ?? 4.5).toFixed(1)
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50 pb-32 md:pb-10">
-      {/* Top nav */}
-      <header className="sticky top-0 z-30 border-b border-white/50 bg-white/80 backdrop-blur-xl">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50 pb-28 md:pb-12">
+      {/* Top Header */}
+      <header className="sticky top-0 z-40 border-b border-white/50 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-3 sm:px-4">
-          <Link href="/" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200">
-            <ChevronLeft className="h-4 w-4" />
+          <Link href="/" className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50">
+            <ChevronLeft className="h-4 w-4 text-slate-700" />
           </Link>
-          <span className="grid h-9 w-9 place-items-center rounded-xl gradient-brand text-base font-black text-white">
+          <span className="grid h-9 w-9 place-items-center rounded-xl gradient-brand text-base font-black text-white shadow-md">
             C
           </span>
           <span className="truncate text-sm font-bold text-slate-900">
@@ -85,131 +104,141 @@ export function ListingDetailView({
         </div>
       </header>
 
+      {/* Main Container */}
       <div className="mx-auto max-w-6xl px-3 py-4 sm:px-4 lg:px-6">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          {/* Main column (2/3 width on desktop) */}
-          <div className="min-w-0 space-y-6 md:col-span-2">
-            {/* Cover + Logo */}
-            <div className="overflow-hidden rounded-3xl glass">
-              <div className="relative">
-                <div className="relative aspect-[16/9] w-full">
-                  {listing.coverImage ? (
-                     
+        
+        {/* 1. Header Section: Cover + Overlapping Logo + Info */}
+        <div className="mb-6 overflow-hidden rounded-3xl glass">
+          <div className="relative">
+            {/* Cover Image (16:9 aspect ratio) */}
+            <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
+              {listing.coverImage ? (
+                <img
+                  src={listing.coverImage}
+                  alt={`${listing.title} cover`}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full gradient-brand" />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            </div>
+
+            {/* Overlapping Logo (Centered on mobile, left on desktop) + Title & Info */}
+            <div className="px-5 pb-5">
+              <div className="-mt-12 sm:-mt-16 relative z-10 flex flex-col items-center text-center sm:flex-row sm:items-end sm:text-left gap-3 sm:gap-5">
+                
+                {/* Logo (1:1 aspect ratio) */}
+                <div className="h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg relative z-10">
+                  {listing.logo ? (
                     <img
-                      src={listing.coverImage}
-                      alt={`${listing.title} cover`}
+                      loading="lazy"
+                      decoding="async"
+                      src={listing.logo}
+                      alt={listing.title}
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="h-full w-full gradient-brand" />
+                    <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white sm:text-4xl">
+                      {listing.title.charAt(0).toUpperCase()}
+                    </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                 </div>
 
-                {/* Overlapping logo */}
-                <div className="px-5 pb-5">
-                  <div className="-mt-10 flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
-                    <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg sm:h-28 sm:w-28">
-                      {listing.logo ? (
-                         
-                        <img loading="lazy" decoding="async" src={listing.logo} alt={listing.title} className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white sm:text-4xl">
-                          {listing.title.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1 pb-1">
+                {/* Business Title, Category, Rating & Hours */}
+                <div className="min-w-0 flex-1 pb-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
                       <h1 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
                         {listing.title}
                       </h1>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <div className="mt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2">
                         {listing.category ? (
-                          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
+                          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 font-semibold">
                             {listing.category.name}
                           </Badge>
                         ) : null}
                         {listing.isFeatured ? (
-                          <span className="flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                            <BadgeCheck className="h-3 w-3 text-blue-600" /> Featured
+                          <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                            <BadgeCheck className="h-3 w-3 text-amber-600" /> Featured
                           </span>
                         ) : null}
                       </div>
                     </div>
+
+                    {/* Rating & Hours badges */}
+                    <div className="flex items-center justify-center sm:justify-end gap-2.5">
+                      {/* Rating */}
+                      <div className="flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-700 shadow-sm">
+                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        <span>{avgRatingDisplay} ⭐</span>
+                      </div>
+
+                      {/* Hours / Open status */}
+                      {todayHours ? (
+                        <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 shadow-sm">
+                          <Clock className="h-3.5 w-3.5 text-blue-600" />
+                          <span>{todayHours.open} - {todayHours.close}</span>
+                          <span className={`ml-1 rounded-full px-1.5 py-0.2 text-[9px] font-bold ${isOpenNow ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {isOpenNow ? 'Open' : 'Closed'}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
+
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Business Hours card */}
-            {hours ? (
-              <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-                <Clock className="h-5 w-5 shrink-0 text-blue-500" />
-                <div className="flex-1 text-xs text-slate-600">
-                  <span className="font-semibold text-slate-800">Today:</span>{' '}
-                  {hours[(new Date().getDay() === 0 ? 'sun' : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][new Date().getDay() - 1])]?.open ?? '9:00'} –{' '}
-                  {hours[(new Date().getDay() === 0 ? 'sun' : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][new Date().getDay() - 1])]?.close ?? '9:00'}
-                </div>
-                {(() => {
-                  const day = new Date().getDay() === 0 ? 'sun' : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][new Date().getDay() - 1]
-                  const todayHours = hours[day]
-                  const now = new Date()
-                  const currentMinutes = now.getHours() * 60 + now.getMinutes()
-                  const [openH, openM] = (todayHours?.open ?? '9:00').split(':').map(Number)
-                  const [closeH, closeM] = (todayHours?.close ?? '21:00').split(':').map(Number)
-                  const openMinutes = openH * 60 + openM
-                  const closeMinutes = closeH * 60 + closeM
-                  const isOpen = currentMinutes >= openMinutes && currentMinutes <= closeMinutes
-                  return (
-                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {isOpen ? 'Open Now' : 'Closed'}
-                    </span>
-                  )
-                })()}
-              </div>
-            ) : null}
-
-            {/* Info row */}
+        {/* 2 & 3. Desktop 2-Column (w-full md:w-2/3 and w-full md:w-1/3) & Mobile Single Column Stack */}
+        <div className="flex flex-col md:flex-row gap-6">
+          
+          {/* Left Column (w-full md:w-2/3) */}
+          <div className="w-full md:w-2/3 space-y-6">
+            
+            {/* Quick Info Tiles */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <InfoTile icon={Star} label="Rating" value="4.5" accent="amber" />
-              <InfoTile icon={Eye} label="Views" value={listing.views.toString()} accent="blue" />
-              <InfoTile icon={Clock} label="Open" value="9–9" accent="green" />
-              <InfoTile icon={MapPin} label="Area" value={listing.village?.name ?? 'Choutuppal'} accent="blue" />
+              <InfoTile icon={Star} label="Rating" value={`${avgRatingDisplay} / 5`} accent="amber" />
+              <InfoTile icon={Eye} label="Total Views" value={listing.views.toString()} accent="blue" />
+              <InfoTile icon={Clock} label="Business Hours" value={todayHours ? `${todayHours.open} - ${todayHours.close}` : '9 AM - 9 PM'} accent="green" />
+              <InfoTile icon={MapPin} label="Location" value={listing.village?.name ?? 'Choutuppal'} accent="blue" />
             </div>
 
-            {/* About */}
+            {/* About Section */}
             <section className="rounded-3xl glass p-5">
               <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-700">
-                About
+                About Business
               </h2>
               <div
-                className="prose prose-sm max-w-none text-slate-700"
+                className="prose prose-sm max-w-none text-slate-700 leading-relaxed"
                 dangerouslySetInnerHTML={{
-                  __html: listing.description
-                    .replace(/\n/g, '<br/>'),
+                  __html: listing.description.replace(/\n/g, '<br/>'),
                 }}
               />
             </section>
 
-            {/* Services catalog */}
+            {/* Services Catalog (Clean cards layout) */}
             {services.length > 0 ? (
-              <section>
-                <h2 className="mb-3 px-1 text-sm font-bold uppercase tracking-wide text-slate-700">
+              <section className="rounded-3xl glass p-5">
+                <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-700">
                   Services Catalog
                 </h2>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {services.map((s, i) => (
-                    <div key={i} className="hover-lift rounded-2xl glass p-4">
+                    <div key={i} className="hover-lift rounded-2xl border border-white/40 bg-white/60 p-4 shadow-sm backdrop-blur-md">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-bold text-slate-900">{s.name}</h3>
                         {s.price ? (
-                          <span className="shrink-0 rounded-full gradient-brand px-2.5 py-0.5 text-xs font-bold text-white">
+                          <span className="shrink-0 rounded-full gradient-brand px-2.5 py-0.5 text-xs font-bold text-white shadow-sm">
                             {s.price}
                           </span>
                         ) : null}
                       </div>
                       {s.description ? (
-                        <p className="mt-1 text-xs text-slate-500">{s.description}</p>
+                        <p className="mt-1.5 text-xs text-slate-600 leading-normal">{s.description}</p>
                       ) : null}
                     </div>
                   ))}
@@ -217,44 +246,41 @@ export function ListingDetailView({
               </section>
             ) : null}
 
-            {/* Customer to Business Owner WhatsApp CTA (Type 1 Blue-to-Gold Gradient) */}
+            {/* Customer to Business Owner Direct WhatsApp Button */}
             {listing.whatsapp || listing.phone ? (
-              <div className="mt-4 flex justify-center">
+              <div className="flex justify-center">
                 <a
                   href={`https://wa.me/${(listing.whatsapp || listing.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(
-                    (listing as any).listingType
-                      ? `నమస్కారం, మీ ప్రాపర్టీ (${(listing as any).listingType === 'RENT' ? 'అద్దెకు' : 'అమ్మకానికి'}) గురించి చౌటుప్పల్ యాప్ లో చూశాను. వివరాలు కావాలి.`
-                      : `నమస్కారం ${listing.title}, మీ బిజినెస్ ను చౌటుప్పల్ యాప్ లో చూశాను. మీ సర్వీసుల గురించి తెలుసుకోవాలనుకుంటున్నాను.`
+                    `నమస్కారం ${listing.title}, మీ బిజినెస్ ను చౌటుప్పల్ యాప్ లో చూశాను. వివరాలు తెలుసుకోవాలనుకుంటున్నాను.`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 px-5 py-3 text-xs font-bold text-white shadow-md transition active:scale-[0.98] sm:text-sm md:w-auto"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-yellow-500 px-5 py-3.5 text-sm font-bold text-white shadow-md transition active:scale-[0.98]"
                 >
-                  <MessageCircle className="h-4 w-4 shrink-0 text-white" />
+                  <MessageCircle className="h-5 w-5 shrink-0 text-white" />
                   <span>WhatsApp లో వివరాలు అడగండి</span>
                 </a>
               </div>
             ) : null}
 
-            {/* Gallery */}
+            {/* Gallery Section */}
             {gallery.length > 0 ? (
-              <section>
-                <h2 className="mb-3 flex items-center gap-2 px-1 text-sm font-bold uppercase tracking-wide text-slate-700">
-                  <ImageIcon className="h-4 w-4 text-blue-500" /> Gallery
+              <section className="rounded-3xl glass p-5">
+                <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
+                  <ImageIcon className="h-4 w-4 text-blue-600" /> Gallery
                 </h2>
-                <div className="no-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-2">
+                <div className="no-scrollbar -mx-2 flex gap-3 overflow-x-auto px-2 pb-2">
                   {gallery.map((url, i) => (
                     <a
                       key={i}
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="relative h-40 w-40 shrink-0 overflow-hidden rounded-2xl glass sm:h-44 sm:w-44"
+                      className="relative h-40 w-40 shrink-0 overflow-hidden rounded-2xl border border-white/50 bg-white/30 shadow-sm sm:h-44 sm:w-44"
                     >
-                      { }
                       <img
                         src={url}
-                        alt={`${listing.title} gallery ${i + 1}`}
+                        alt={`${listing.title} gallery image ${i + 1}`}
                         className="h-full w-full object-cover transition hover:scale-105"
                       />
                     </a>
@@ -263,12 +289,12 @@ export function ListingDetailView({
               </section>
             ) : null}
 
-            {/* Address + Hours */}
+            {/* Address & Business Hours Detail */}
             <section className="grid gap-3 sm:grid-cols-2">
               {listing.address ? (
-                <div className="rounded-2xl glass p-4">
+                <div className="rounded-3xl glass p-5">
                   <h3 className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-600">
-                    <MapPin className="h-3.5 w-3.5 text-blue-500" /> Address
+                    <MapPin className="h-3.5 w-3.5 text-blue-600" /> Address
                   </h3>
                   <p className="text-sm text-slate-700">{listing.address}</p>
                   {listing.mapEmbed ? (
@@ -276,7 +302,7 @@ export function ListingDetailView({
                       href={listing.mapEmbed}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline"
+                      className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline"
                     >
                       Open in Google Maps <ExternalLink className="h-3 w-3" />
                     </a>
@@ -284,17 +310,17 @@ export function ListingDetailView({
                 </div>
               ) : null}
               {hours ? (
-                <div className="rounded-2xl glass p-4">
+                <div className="rounded-3xl glass p-5">
                   <h3 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-600">
-                    <Clock className="h-3.5 w-3.5 text-amber-500" /> Business Hours
+                    <Clock className="h-3.5 w-3.5 text-amber-600" /> Weekly Schedule
                   </h3>
                   <ul className="space-y-1 text-xs text-slate-700">
-                    {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((d) => {
+                    {dayKeys.map((d) => {
                       const h = hours[d]
                       return (
                         <li key={d} className="flex justify-between capitalize">
                           <span>{d}</span>
-                          <span className="font-medium">
+                          <span className="font-semibold">
                             {h ? `${h.open} – ${h.close}` : 'Closed'}
                           </span>
                         </li>
@@ -307,28 +333,28 @@ export function ListingDetailView({
 
             {/* Owner Social Media Links */}
             {((listing.owner as any).facebookUrl || (listing.owner as any).instagramUrl || (listing.owner as any).youtubeUrl || (listing.owner as any).twitterUrl) ? (
-              <section className="rounded-2xl glass p-4">
-                <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-600">
-                  Connect with Owner
+              <section className="rounded-3xl glass p-5">
+                <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-600">
+                  Connect with Business Owner
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {(listing.owner as any).facebookUrl ? (
-                    <a href={(listing.owner as any).facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-100">
+                    <a href={(listing.owner as any).facebookUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-xs font-bold text-blue-600 transition hover:bg-blue-100">
                       Facebook
                     </a>
                   ) : null}
                   {(listing.owner as any).instagramUrl ? (
-                    <a href={(listing.owner as any).instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-xs font-semibold text-pink-600 transition hover:bg-pink-100">
+                    <a href={(listing.owner as any).instagramUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-pink-200 bg-pink-50 px-3.5 py-1.5 text-xs font-bold text-pink-600 transition hover:bg-pink-100">
                       Instagram
                     </a>
                   ) : null}
                   {(listing.owner as any).youtubeUrl ? (
-                    <a href={(listing.owner as any).youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-100">
+                    <a href={(listing.owner as any).youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-100">
                       YouTube
                     </a>
                   ) : null}
                   {(listing.owner as any).twitterUrl ? (
-                    <a href={(listing.owner as any).twitterUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:bg-slate-200">
+                    <a href={(listing.owner as any).twitterUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-200">
                       X / Twitter
                     </a>
                   ) : null}
@@ -336,54 +362,71 @@ export function ListingDetailView({
               </section>
             ) : null}
 
-            {/* Star Rating & Review Section */}
+            {/* Ratings & Reviews */}
             <ListingReviewSection listingId={listing.id} initialAvgRating={(listing as any).avgRating ?? 4.5} />
           </div>
 
-          {/* Desktop sticky sidebar — Glassmorphism card */}
-          <aside className="hidden md:col-span-1 md:block">
-            <div className="w-full rounded-2xl border border-white/30 bg-white/20 p-6 shadow-xl backdrop-blur-lg md:sticky md:top-24">
-              <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-700">
-                Get in Touch
+          {/* Right Column Desktop View (w-full md:w-1/3 sticky top-24 h-fit) */}
+          <aside className="w-full md:w-1/3 hidden md:block">
+            <div className="sticky top-24 h-fit rounded-3xl border border-white/30 bg-white/30 p-6 shadow-xl backdrop-blur-xl">
+              <h3 className="mb-4 text-center text-sm font-black uppercase tracking-wider text-slate-800">
+                GET IN TOUCH
               </h3>
+              
+              {/* Vertical Stacked Buttons */}
               <div className="flex flex-col gap-3">
+                {/* 1. Call */}
                 <DesktopActionButton
-                  icon={Phone} label="Call" color="bg-emerald-500 hover:bg-emerald-600"
+                  icon={Phone} label="Call Now" color="bg-emerald-500 hover:bg-emerald-600"
                   href={listing.phone ? `tel:${listing.phone}` : null}
+                  onClick={() => !listing.phone && toast.error('No phone number provided')}
                 />
+                
+                {/* 2. WhatsApp */}
                 <DesktopActionButton
                   icon={MessageCircle} label="WhatsApp" color="bg-green-600 hover:bg-green-700"
                   href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}` : null}
+                  onClick={() => !listing.whatsapp && toast.error('No WhatsApp number provided')}
                 />
+                
+                {/* 3. Share */}
                 <button
                   onClick={() => shareListing(listing)}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 py-3 text-sm font-bold text-white shadow transition hover:opacity-95 active:scale-[0.98]"
                 >
-                  <Share2 className="h-4 w-4" /> Share
+                  <Share2 className="h-4 w-4" />
+                  <span>Share</span>
                 </button>
+                
+                {/* 4. Save Contact */}
                 <DesktopActionButton
-                  icon={UserPlus} label="Save Contact" color="bg-slate-500 hover:bg-slate-600"
+                  icon={UserPlus} label="Save Contact" color="bg-slate-700 hover:bg-slate-800"
                   onClick={() => downloadVcf(listing)}
                 />
+                
+                {/* 5. Location */}
                 <DesktopActionButton
-                  icon={MapPin} label="Location" color="bg-red-500 hover:bg-red-600"
+                  icon={MapPin} label="Location" color="bg-amber-500 hover:bg-amber-600"
                   href={listing.mapEmbed ?? `https://maps.google.com/?q=${encodeURIComponent(listing.address ?? listing.title)}`}
                 />
               </div>
-              {listing.phone || listing.whatsapp ? (
-                <div className="mt-4 rounded-xl bg-white/40 p-3 text-center text-xs text-slate-500">
-                  <p className="font-semibold text-slate-700">{listing.owner.name ?? 'Business Owner'}</p>
-                  <p className="mt-1">Responds within a few hours</p>
+
+              {/* Owner Info badge */}
+              {listing.owner?.name ? (
+                <div className="mt-5 rounded-2xl bg-white/50 p-3 text-center text-xs text-slate-500">
+                  <p className="font-bold text-slate-800">{listing.owner.name}</p>
+                  <p className="mt-0.5 text-[11px]">Responds promptly to inquiries</p>
                 </div>
               ) : null}
             </div>
           </aside>
+
         </div>
       </div>
 
       {/* Related Listings — "ఇంకా ఇవి కూడా చూడండి" */}
       {related.length > 0 ? (
-        <section className="mx-auto max-w-6xl px-3 sm:px-4 lg:px-6">
+        <section className="mx-auto max-w-6xl px-3 mt-8 sm:px-4 lg:px-6">
           <h2 className="font-telugu mb-3 text-lg font-bold text-slate-900">
             ఇంకా ఇవి కూడా చూడండి
           </h2>
@@ -420,7 +463,7 @@ export function ListingDetailView({
         </section>
       ) : null}
 
-      {/* Sticky mobile action bar */}
+      {/* 3. Mobile View Sticky Bottom Bar (5 Buttons: Call, WhatsApp, Share FAB, Save, Location) */}
       <MobileActionBar listing={listing} />
     </div>
   )
@@ -559,7 +602,7 @@ function MobileActionBar({ listing }: { listing: ListingDetailData['listing'] })
   const mapLink = listing.mapEmbed ?? `https://maps.google.com/?q=${encodeURIComponent(listing.address ?? listing.title)}`
   return (
     <nav
-      className="fixed bottom-16 left-0 right-0 z-30 flex items-center justify-around bg-white py-3 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:hidden"
+      className="fixed bottom-16 left-0 right-0 z-50 flex items-center justify-around bg-white/95 backdrop-blur-md p-2 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.12)] border-t border-slate-100 md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Listing actions"
     >
