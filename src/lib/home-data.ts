@@ -62,6 +62,21 @@ export async function getVillages() {
   return prisma.village.findMany({ orderBy: { name: 'asc' } })
 }
 
+async function retryQuery<T>(label: string, fn: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await fn()
+  } catch (err1) {
+    console.warn(`[HomeData] ${label} attempt 1 failed, retrying in 1s...`, err1)
+    await new Promise((r) => setTimeout(r, 1000))
+    try {
+      return await fn()
+    } catch (err2) {
+      console.error(`[HomeData] ${label} attempt 2 failed, returning fallback:`, err2)
+      return fallback
+    }
+  }
+}
+
 export async function getHomePageData() {
   try {
     const [
@@ -73,13 +88,13 @@ export async function getHomePageData() {
       shorts,
       villages,
     ] = await Promise.all([
-      getActiveStories().catch((err) => { console.error('[HomeData] stories error:', err); return [] }),
-      getActiveBanners().catch((err) => { console.error('[HomeData] banners error:', err); return [] }),
-      getCategories().catch((err) => { console.error('[HomeData] categories error:', err); return [] }),
-      getFeaturedListings().catch((err) => { console.error('[HomeData] featured error:', err); return [] }),
-      getPremiumRealEstate().catch((err) => { console.error('[HomeData] realEstate error:', err); return [] }),
-      getShorts().catch((err) => { console.error('[HomeData] shorts error:', err); return [] }),
-      getVillages().catch((err) => { console.error('[HomeData] villages error:', err); return [] }),
+      retryQuery('stories', getActiveStories, []),
+      retryQuery('banners', getActiveBanners, []),
+      retryQuery('categories', getCategories, []),
+      retryQuery('featured', getFeaturedListings, []),
+      retryQuery('realEstate', getPremiumRealEstate, []),
+      retryQuery('shorts', getShorts, []),
+      retryQuery('villages', getVillages, []),
     ])
     return { stories, banners, categories, featured, realEstate, shorts, villages }
   } catch (err) {

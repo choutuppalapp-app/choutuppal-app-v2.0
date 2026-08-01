@@ -67,19 +67,19 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
         title="Browse Categories"
         subtitle="Everything in Choutuppal, one tap away."
       />
-      <div className="mt-5 grid grid-cols-3 gap-4 md:grid-cols-6">
+      <div className="mt-4 grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3 md:grid-cols-6">
         {cards.map((c) => {
           const Icon = ICON_MAP[c.icon ?? ''] ?? Store
           return (
             <Link
               key={c.id}
               href={`/explore?category=${c.slug}`}
-              className="group flex flex-col items-center justify-center rounded-2xl border border-white/30 bg-white/20 p-4 text-center backdrop-blur-lg transition-all hover:scale-105 hover:border-blue-500 hover:shadow-lg"
+              className="group flex flex-col items-center justify-center rounded-2xl border border-white/30 bg-white/20 p-3 text-center backdrop-blur-lg transition-all hover:scale-105 hover:border-blue-500 hover:shadow-lg"
             >
-              <span className="mb-2 grid h-12 w-12 place-items-center rounded-xl gradient-brand text-white shadow-md transition group-hover:shadow-lg">
-                <Icon className="h-6 w-6" />
+              <span className="mb-1.5 grid h-10 w-10 place-items-center rounded-xl gradient-brand text-white shadow-md transition group-hover:shadow-lg sm:h-12 sm:w-12">
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
               </span>
-              <span className="text-xs font-semibold text-slate-700 group-hover:text-blue-700">
+              <span className="text-[11px] font-semibold leading-tight text-slate-700 group-hover:text-blue-700 sm:text-xs">
                 {c.name}
               </span>
             </Link>

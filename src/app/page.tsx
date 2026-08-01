@@ -20,6 +20,7 @@ const SiteFooter = nextDynamic(() => import('@/components/home/site-footer').the
 
 // Home page is fully dynamic (DB-driven, no caching) so fresh content shows.
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function Home() {
   const data = await getHomePageData()
@@ -60,7 +61,7 @@ export default async function Home() {
       <Ticker />
 
       <main className="flex-1">
-        <div className="mx-auto flex max-w-7xl flex-col gap-10 px-3 py-6 sm:px-4 sm:py-8 lg:px-6 lg:py-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:gap-7 px-3 py-4 sm:px-4 sm:py-6 lg:px-6">
           {/* 1. Stories (Premium) — wrapped in overflow-hidden to isolate horizontal scroll */}
           <div className="relative w-full overflow-hidden">
             <StoriesRail stories={data.stories} viewer={viewerInfo} />
