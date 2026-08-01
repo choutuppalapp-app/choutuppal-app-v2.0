@@ -19,6 +19,8 @@ import {
   Download,
   Home,
   LogOut,
+  Store,
+  ImageIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -31,6 +33,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import { ImageUpload } from '@/components/dashboard/image-upload'
 import { RichTextEditor } from './rich-text-editor'
+import { AgentMyListingsTab } from './my-listings-tab'
+import { AgentMyRealEstateTab } from './my-real-estate-tab'
+import { AgentBannersTab } from './banners-tab'
 
 const CSV_TEMPLATE = `name,category,phone,whatsapp,address,village,description,website
 Sai Bhavan,Restaurants & Tiffin,9912345600,919912345600,Main Road,Choutuppal,Andhra meals & tiffin,
@@ -69,19 +74,31 @@ export function AgentPanel({ agentName }: { agentName: string }) {
 
       <main className="mx-auto max-w-6xl px-3 py-6 sm:px-4 lg:px-6">
         <Tabs defaultValue="csv" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="csv" className="gap-1.5 text-xs sm:text-sm">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6">
+            <TabsTrigger value="csv" className="gap-1.5 text-xs">
               <UploadCloud className="h-3.5 w-3.5" /> CSV Import
             </TabsTrigger>
-            <TabsTrigger value="leads" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="listings" className="gap-1.5 text-xs">
+              <Store className="h-3.5 w-3.5" /> My Listings
+            </TabsTrigger>
+            <TabsTrigger value="realestate" className="gap-1.5 text-xs">
+              <Home className="h-3.5 w-3.5" /> My Real Estate
+            </TabsTrigger>
+            <TabsTrigger value="banners" className="gap-1.5 text-xs">
+              <ImageIcon className="h-3.5 w-3.5" /> Banners
+            </TabsTrigger>
+            <TabsTrigger value="leads" className="gap-1.5 text-xs">
               <TrendingUp className="h-3.5 w-3.5" /> Leads
             </TabsTrigger>
-            <TabsTrigger value="editor" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="editor" className="gap-1.5 text-xs">
               <Newspaper className="h-3.5 w-3.5" /> News & Blog
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="csv"><CsvImportTab /></TabsContent>
+          <TabsContent value="listings"><AgentMyListingsTab /></TabsContent>
+          <TabsContent value="realestate"><AgentMyRealEstateTab /></TabsContent>
+          <TabsContent value="banners"><AgentBannersTab /></TabsContent>
           <TabsContent value="leads"><LeadsTab /></TabsContent>
           <TabsContent value="editor"><EditorTab /></TabsContent>
         </Tabs>
