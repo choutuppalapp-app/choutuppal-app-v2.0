@@ -180,9 +180,9 @@ function LoginInner() {
         toast.success('Logged in! Redirecting…')
         try {
           const dest = await fetchRoleRedirect()
-          router.push(dest || '/dashboard')
+          router.replace(dest || '/dashboard')
         } catch {
-          router.push('/dashboard')
+          router.replace('/dashboard')
         }
         return
       }
@@ -263,8 +263,12 @@ function LoginInner() {
 
       if (r?.ok && !r.error) {
         toast.success('Account created! Redirecting…')
-        const dest = await fetchRoleRedirect()
-        router.push(dest)
+        try {
+          const dest = await fetchRoleRedirect()
+          router.replace(dest || '/dashboard')
+        } catch {
+          router.replace('/dashboard')
+        }
         return
       }
 

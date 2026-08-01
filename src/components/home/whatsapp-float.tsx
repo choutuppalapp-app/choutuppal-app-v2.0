@@ -10,7 +10,7 @@ const WHATSAPP_LINK =
 export function WhatsAppFloat() {
   const pathname = usePathname()
 
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/dashboard')) return null
+  if (pathname.startsWith('/admin') || pathname.startsWith('/agent')) return null
 
   return (
     <a

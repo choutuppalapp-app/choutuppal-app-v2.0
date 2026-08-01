@@ -46,8 +46,8 @@ export function SiteHeader() {
     }
   }
 
-  // Hide on admin/agent/dashboard routes — they have dedicated panel headers
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/dashboard')) return null
+  // Hide on admin/agent routes — they have dedicated panel headers
+  if (pathname.startsWith('/admin') || pathname.startsWith('/agent')) return null
 
   const isLoggedIn = !!session?.user
 
