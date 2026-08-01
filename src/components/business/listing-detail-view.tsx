@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Phone,
@@ -15,6 +16,8 @@ import {
   ChevronLeft,
   ExternalLink,
   Image as ImageIcon,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -51,6 +54,28 @@ export function ListingDetailView({
   related?: RelatedListing[]
 }) {
   const { listing, isOwner, isAdmin } = data
+  const router = useRouter()
+  const [claiming, setClaiming] = useState(false)
+
+  async function handleClaim() {
+    setClaiming(true)
+    try {
+      const res = await fetch('/api/listings/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listingId: listing.id }),
+      })
+      const j = await res.json()
+      if (!res.ok || !j.ok) throw new Error(j.error || 'Failed to claim business')
+      toast.success(j.message || 'Business claimed successfully!')
+      router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to claim business')
+    } finally {
+      setClaiming(false)
+    }
+  }
+
   const gallery = (listing.gallery as string[] | null) ?? []
   const services = (listing.servicesCatalog as Array<{
     name: string
@@ -187,8 +212,29 @@ export function ListingDetailView({
                     </div>
                   </div>
                 </div>
-
               </div>
+
+              {/* Claim Listing Banner */}
+              {!isOwner ? (
+                <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-3 shadow-sm">
+                  <div className="flex items-center gap-2.5">
+                    <BadgeCheck className="h-5 w-5 text-amber-600 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold text-amber-900">మీదే ఈ బిజినెస్ అయితే క్లెయిమ్ చేయండి</p>
+                      <p className="text-[11px] text-amber-700">Is this your business? Claim ownership to update details.</p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleClaim}
+                    disabled={claiming}
+                    className="w-full sm:w-auto shrink-0 gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow"
+                  >
+                    {claiming ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                    Claim Business
+                  </Button>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

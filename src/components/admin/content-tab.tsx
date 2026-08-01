@@ -77,25 +77,6 @@ export function ContentTab() {
         </Button>
       </div>
 
-      {/* Quick Actions Card */}
-      <div className="rounded-3xl glass p-5">
-        <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-700">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Button onClick={() => openAddModal('business')} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
-            <Plus className="h-4 w-4" /> Add Listing
-          </Button>
-          <Button onClick={() => openAddModal('realestate')} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
-            <Plus className="h-4 w-4" /> Add Property
-          </Button>
-          <Button onClick={() => router.push('/admin/add-news')} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
-            <Plus className="h-4 w-4" /> Add News
-          </Button>
-          <Button onClick={() => router.push('/admin/add-blog')} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
-            <Plus className="h-4 w-4" /> Add Blog
-          </Button>
-        </div>
-      </div>
-
       <Tabs defaultValue="news">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
           <TabsTrigger value="news" className="gap-1 text-xs"><Newspaper className="h-3.5 w-3.5" /> News</TabsTrigger>

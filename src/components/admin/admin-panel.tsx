@@ -50,6 +50,8 @@ import { toast } from 'sonner'
 import { ContentTab } from './content-tab'
 import { CreateUserModal } from './create-user-modal'
 import { AddListingModal } from '@/components/dashboard/add-listing-modal'
+import { AdminListingsTab } from './listings-tab'
+import { AdminRealEstateTab } from './real-estate-tab'
 
 interface Stats {
   totalUsers: number
@@ -136,33 +138,41 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 
       <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 lg:px-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-7">
-            <TabsTrigger value="overview" className="gap-1.5 text-xs sm:text-sm">
-              <Home className="h-3.5 w-3.5" /> Overview
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-9">
+            <TabsTrigger value="overview" className="gap-1.5 text-xs">
+              <Home className="h-3 w-3" /> Overview
             </TabsTrigger>
-            <TabsTrigger value="approvals" className="gap-1.5 text-xs sm:text-sm">
-              <Clock className="h-3.5 w-3.5" /> Approvals
+            <TabsTrigger value="approvals" className="gap-1.5 text-xs">
+              <Clock className="h-3 w-3" /> Approvals
             </TabsTrigger>
-            <TabsTrigger value="content" className="gap-1.5 text-xs sm:text-sm">
-              <Newspaper className="h-3.5 w-3.5" /> Content
+            <TabsTrigger value="content" className="gap-1.5 text-xs">
+              <Newspaper className="h-3 w-3" /> Content
             </TabsTrigger>
-            <TabsTrigger value="stories" className="gap-1.5 text-xs sm:text-sm">
-              <ImageIcon className="h-3.5 w-3.5" /> Stories
+            <TabsTrigger value="listings" className="gap-1.5 text-xs">
+              <Store className="h-3 w-3" /> Listings
             </TabsTrigger>
-            <TabsTrigger value="users" className="gap-1.5 text-xs sm:text-sm">
-              <Users className="h-3.5 w-3.5" /> Users
+            <TabsTrigger value="realestate" className="gap-1.5 text-xs">
+              <Home className="h-3 w-3" /> Real Estate
             </TabsTrigger>
-            <TabsTrigger value="push" className="gap-1.5 text-xs sm:text-sm">
-              <Bell className="h-3.5 w-3.5" /> Push
+            <TabsTrigger value="stories" className="gap-1.5 text-xs">
+              <ImageIcon className="h-3 w-3" /> Stories
             </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-1.5 text-xs sm:text-sm">
-              <Megaphone className="h-3.5 w-3.5" /> Settings
+            <TabsTrigger value="users" className="gap-1.5 text-xs">
+              <Users className="h-3 w-3" /> Users
+            </TabsTrigger>
+            <TabsTrigger value="push" className="gap-1.5 text-xs">
+              <Bell className="h-3 w-3" /> Push
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-1.5 text-xs">
+              <Megaphone className="h-3 w-3" /> Settings
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview"><OverviewTab /></TabsContent>
           <TabsContent value="approvals"><ApprovalsTab /></TabsContent>
           <TabsContent value="content"><ContentTab /></TabsContent>
+          <TabsContent value="listings"><AdminListingsTab /></TabsContent>
+          <TabsContent value="realestate"><AdminRealEstateTab /></TabsContent>
           <TabsContent value="stories"><StoriesTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="push"><PushTab /></TabsContent>
@@ -226,24 +236,7 @@ function OverviewTab() {
         })}
       </div>
 
-      {/* Quick Actions */}
-      <div className="rounded-3xl glass p-5">
-        <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-700">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Button onClick={() => { setEditingItem(null); setAddListingOpen(true) }} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
-            <Plus className="h-4 w-4" /> Add Listing
-          </Button>
-          <Button onClick={() => { setEditingItem(null); setAddListingOpen(true) }} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
-            <Plus className="h-4 w-4" /> Add Property
-          </Button>
-          <Button onClick={() => window.location.href = '/admin/add-news'} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
-            <Plus className="h-4 w-4" /> Add News
-          </Button>
-          <Button onClick={() => window.location.href = '/admin/add-blog'} className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/10">
-            <Plus className="h-4 w-4" /> Add Blog
-          </Button>
-        </div>
-      </div>
+
 
       <div className="rounded-3xl glass-strong p-6">
         <h2 className="text-lg font-bold text-slate-900">Welcome, Admin 👋</h2>
