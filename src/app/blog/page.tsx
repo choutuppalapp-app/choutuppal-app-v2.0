@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { prisma } from '@/lib/prisma'
+import { prisma, safeDbQuery } from '@/lib/prisma'
 import { BlogList } from '@/components/content/blog-list'
 
 export const dynamic = 'force-dynamic'
@@ -13,19 +13,18 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
-  let blogs: any[] = []
-  try {
-    blogs = await prisma.blog.findMany({
-      where: { isPublished: true },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true, slug: true, title: true, excerpt: true, coverImage: true,
-        createdAt: true,
-      },
-    })
-  } catch (err) {
-    console.error('[BlogPage] DB query error:', err)
-  }
+  const blogs = await safeDbQuery(
+    () =>
+      prisma.blog.findMany({
+        where: { isPublished: true },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, slug: true, title: true, excerpt: true, coverImage: true,
+          createdAt: true,
+        },
+      }),
+    [],
+  )
 
   return <BlogList posts={blogs.map(b => ({ ...b, createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : new Date().toISOString() }))} />
 }

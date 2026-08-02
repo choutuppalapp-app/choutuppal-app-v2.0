@@ -2,11 +2,11 @@ import { Loader2 } from 'lucide-react'
 
 export default function Loading() {
   return (
-    <div className="grid min-h-[60vh] place-items-center bg-slate-50/50 px-4 py-12">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="text-sm font-semibold text-slate-600">బ్లాగులు లోడ్ అవుతున్నాయి...</p>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-6 text-center">
+      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-100 text-amber-600 shadow-sm">
+        <Loader2 className="h-6 w-6 animate-spin" />
       </div>
+      <p className="text-xs font-semibold text-slate-500">Loading blog posts…</p>
     </div>
   )
 }

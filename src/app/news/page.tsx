@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { prisma } from '@/lib/prisma'
+import { prisma, safeDbQuery } from '@/lib/prisma'
 import { NewsList } from '@/components/content/news-list'
 
 export const dynamic = 'force-dynamic'
@@ -13,19 +13,18 @@ export const metadata: Metadata = {
 }
 
 export default async function NewsPage() {
-  let news: any[] = []
-  try {
-    news = await prisma.news.findMany({
-      where: { isPublished: true },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true, slug: true, title: true, summary: true, image: true,
-        createdAt: true,
-      },
-    })
-  } catch (err) {
-    console.error('[NewsPage] DB query error:', err)
-  }
+  const news = await safeDbQuery(
+    () =>
+      prisma.news.findMany({
+        where: { isPublished: true },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, slug: true, title: true, summary: true, image: true,
+          createdAt: true,
+        },
+      }),
+    [],
+  )
 
   return <NewsList articles={news.map(n => ({ ...n, createdAt: n.createdAt ? new Date(n.createdAt).toISOString() : new Date().toISOString() }))} />
 }

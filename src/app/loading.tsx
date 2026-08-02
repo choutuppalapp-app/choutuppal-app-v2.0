@@ -6,7 +6,7 @@ export default function Loading() {
       <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-100 text-blue-600 shadow-sm">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
-      <p className="text-xs font-semibold text-slate-500">Loading latest news…</p>
+      <p className="text-xs font-semibold text-slate-500">Loading Choutuppal App…</p>
     </div>
   )
 }

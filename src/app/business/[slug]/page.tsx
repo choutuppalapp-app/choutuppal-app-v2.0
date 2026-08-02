@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { prisma } from '@/lib/prisma'
+import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { ListingDetailView } from '@/components/business/listing-detail-view'
 
@@ -10,18 +10,22 @@ const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/
 
 /** Fetch + access-control a listing by slug. Returns null for 404. */
 async function getListing(slug: string) {
-  const listing = await prisma.listing.findUnique({
-    where: { slug },
-    include: {
-      category: true,
-      village: true,
-      owner: { select: { id: true, name: true, username: true, phone: true, image: true, facebookUrl: true, instagramUrl: true, youtubeUrl: true, twitterUrl: true } },
-    },
-  })
+  const listing = await safeDbQuery(
+    () =>
+      prisma.listing.findUnique({
+        where: { slug },
+        include: {
+          category: true,
+          village: true,
+          owner: { select: { id: true, name: true, username: true, phone: true, image: true, facebookUrl: true, instagramUrl: true, youtubeUrl: true, twitterUrl: true } },
+        },
+      }),
+    null,
+  )
   if (!listing) return null
 
   // Access control: non-APPROVED listings are only visible to the owner or an admin.
-  const viewer = await getCurrentUser()
+  const viewer = await getCurrentUser().catch(() => null)
   const isOwner = viewer?.id === listing.ownerId
   const isAdmin = viewer ? isAdminRole(viewer.role) : false
   if (listing.status !== 'APPROVED' && !isOwner && !isAdmin) {
@@ -100,27 +104,29 @@ export default async function BusinessPage({
   if (data.listing.categoryId) relatedCondition.push({ categoryId: data.listing.categoryId })
   if (data.listing.villageId) relatedCondition.push({ villageId: data.listing.villageId })
 
-  const related = await prisma.listing
-    .findMany({
-      where: {
-        status: 'APPROVED',
-        id: { not: data.listing.id },
-        ...(relatedCondition.length > 0 ? { OR: relatedCondition } : {}),
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        coverImage: true,
-        logo: true,
-        views: true,
-        isFeatured: true,
-        village: { select: { name: true } },
-      },
-    })
-    .catch(() => [])
+  const related = await safeDbQuery(
+    () =>
+      prisma.listing.findMany({
+        where: {
+          status: 'APPROVED',
+          id: { not: data.listing.id },
+          ...(relatedCondition.length > 0 ? { OR: relatedCondition } : {}),
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          coverImage: true,
+          logo: true,
+          views: true,
+          isFeatured: true,
+          village: { select: { name: true } },
+        },
+      }),
+    [],
+  )
 
   return <ListingDetailView data={data} related={related} />
 }

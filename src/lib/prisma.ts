@@ -31,4 +31,28 @@ if (process.env.NODE_ENV !== 'production') {
 // Canonical export name used across the app.
 export const db = prisma
 
+/**
+ * Safe Database Query Wrapper with Automatic Retry & Fallback.
+ * Prevents 500 errors due to Supabase pooler connection limits (EMAXCONNSESSION) or timeouts.
+ */
+export async function safeDbQuery<T>(
+  queryFn: () => Promise<T>,
+  fallback: T,
+  maxRetries = 3,
+  delayMs = 1500
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await queryFn()
+    } catch (err) {
+      console.warn(`[DBQueryAttempt ${attempt}/${maxRetries} Failed]:`, err instanceof Error ? err.message : err)
+      if (attempt === maxRetries) {
+        return fallback
+      }
+      await new Promise((resolve) => setTimeout(resolve, delayMs))
+    }
+  }
+  return fallback
+}
+
 export default prisma

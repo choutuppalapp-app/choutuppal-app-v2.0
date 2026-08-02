@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { prisma } from '@/lib/prisma'
+import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
 import { CommunityFeed } from '@/components/community/community-feed'
 
@@ -22,17 +22,10 @@ export const metadata: Metadata = {
 }
 
 export default async function CommunityPage() {
-  let viewer: any = null
-  try {
-    viewer = await getCurrentUser()
-  } catch (err) {
-    console.error('[CommunityPage] getCurrentUser error:', err)
-  }
+  const viewer = await getCurrentUser().catch(() => null)
 
-  let posts: any[] = []
-  let people: any[] = []
-  try {
-    const res = await Promise.all([
+  const posts = await safeDbQuery(
+    () =>
       prisma.communityPost.findMany({
         where: { author: { isPublic: true, isBanned: false } },
         orderBy: { createdAt: 'desc' },
@@ -52,6 +45,11 @@ export default async function CommunityPage() {
           likesRel: viewer ? { where: { userId: viewer.id }, select: { id: true } } : false,
         },
       }),
+    [],
+  )
+
+  const people = await safeDbQuery(
+    () =>
       prisma.user.findMany({
         where: {
           isPublic: true,
@@ -70,12 +68,8 @@ export default async function CommunityPage() {
           village: { select: { name: true } },
         },
       }),
-    ])
-    posts = res[0]
-    people = res[1]
-  } catch (err) {
-    console.error('[CommunityPage] DB query error:', err)
-  }
+    [],
+  )
 
   const serialisedPosts = posts.map((p) => ({
     id: p.id,
