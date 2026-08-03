@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Megaphone, Sparkles, MessageCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -21,6 +21,7 @@ const DEFAULT_BANNERS = [
 
 export function BannerCarousel({ banners }: BannerCarouselProps) {
   const [index, setIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
   const active = banners.length > 0 ? banners : DEFAULT_BANNERS
@@ -32,6 +33,15 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     if (count === 0) return
     setIndex((i) => (i + dir + count) % count)
   }, [count])
+
+  // Auto-scroll every 4 seconds (pauses on hover)
+  useEffect(() => {
+    if (count <= 1 || isPaused) return
+    const timer = setInterval(() => {
+      setIndex((i) => (i + 1) % count)
+    }, 4000)
+    return () => clearInterval(timer)
+  }, [count, isPaused])
 
   // Touch swipe for mobile
   function onTouchStart(e: React.TouchEvent) {
@@ -75,6 +85,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
         className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl gradient-brand shimmer"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
       >
         {current?.imageUrl ? (
           <Image

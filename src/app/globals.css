@@ -266,3 +266,12 @@ body {
 .font-telugu {
   font-family: "Noto Sans Telugu", "Noto Sans", var(--font-geist-sans), sans-serif;
 }
+
+/* --- Hide scrollbars ------------------------------------------------------ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
