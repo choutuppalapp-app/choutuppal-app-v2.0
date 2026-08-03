@@ -1,10 +1,11 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { Star, MapPin, BadgeCheck, ChevronRight, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SectionHeading } from './section-heading'
-import type { Listing, Category, Village } from '@prisma/client'
+import type { Listing } from '@prisma/client'
 
 type FeaturedListing = Listing & {
   category: { name: string; slug: string } | null
@@ -36,8 +37,8 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
       <div className="no-scrollbar mt-5 flex gap-4 overflow-x-auto pb-2">
         {listings.map((l, i) => {
           const initial = l.title.charAt(0).toUpperCase()
-          // rating from database or fallback
           const rating = ((l as any).avgRating ?? (4 + ((i * 7) % 10) / 10)).toFixed(1)
+          const imgUrl = l.coverImage || l.logo
           return (
             <Link
               key={l.id}
@@ -46,15 +47,30 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
             >
               {/* cover */}
               <div className="relative aspect-[4/3] w-full overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-blue-400 to-amber-400" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_45%)]" />
-                <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-bold text-amber-700 backdrop-blur">
+                {imgUrl ? (
+                  <Image
+                    src={imgUrl}
+                    alt={l.title}
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="h-full w-full object-cover transition group-hover:scale-105"
+                  />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-blue-400 to-amber-400" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_45%)]" />
+                  </>
+                )}
+                <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-bold text-amber-700 backdrop-blur z-10">
                   <BadgeCheck className="h-3 w-3 text-blue-600" />
                   Featured
                 </span>
-                <span className="absolute bottom-3 left-3 grid h-12 w-12 place-items-center rounded-xl bg-white/90 text-2xl font-black text-blue-700 shadow">
-                  {initial}
-                </span>
+                {!imgUrl ? (
+                  <span className="absolute bottom-3 left-3 grid h-12 w-12 place-items-center rounded-xl bg-white/90 text-2xl font-black text-blue-700 shadow z-10">
+                    {initial}
+                  </span>
+                ) : null}
               </div>
 
               {/* body */}

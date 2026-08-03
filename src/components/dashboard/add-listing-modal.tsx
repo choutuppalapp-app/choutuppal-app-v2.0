@@ -87,13 +87,16 @@ export function AddListingModal({
   }, [categories])
 
   // shared
+  // shared
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [phone, setPhone] = useState('')
+  const [secondaryPhone, setSecondaryPhone] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
   const [address, setAddress] = useState('')
   const [mapLink, setMapLink] = useState('')
   const [businessHours, setBusinessHours] = useState('')
+  const [hoursOpenStatus, setHoursOpenStatus] = useState<'OPEN' | 'CLOSED'>('OPEN')
   const [villageId, setVillageId] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [rating, setRating] = useState('')
@@ -122,6 +125,7 @@ export function AddListingModal({
         setTitle(editingItem.title ?? '')
         setDescription(editingItem.description ?? '')
         setPhone(editingItem.phone ?? editingItem.contactPhone ?? '')
+        setSecondaryPhone(editingItem.secondaryPhone ?? '')
         setWhatsapp(editingItem.whatsapp ?? editingItem.contactWhatsapp ?? '')
         setAddress(editingItem.address ?? '')
         setMapLink(editingItem.mapEmbed ?? '')
@@ -146,6 +150,7 @@ export function AddListingModal({
           setGallery(Array.isArray(editingItem.gallery) ? editingItem.gallery : [])
           setServices(Array.isArray(editingItem.servicesCatalog) ? editingItem.servicesCatalog : [{ name: '', price: '', description: '' }])
           setBusinessHours(editingItem.businessHours ? (typeof editingItem.businessHours === 'string' ? editingItem.businessHours : String(editingItem.businessHours)) : '')
+          if (editingItem.businessHours === 'Closed') setHoursOpenStatus('CLOSED')
         }
       } else {
         reset()
@@ -157,8 +162,8 @@ export function AddListingModal({
   }, [open, editingItem, defaultType])
 
   function reset() {
-    setTitle(''); setDescription(''); setPhone(''); setWhatsapp(''); setAddress('')
-    setMapLink(''); setBusinessHours(''); setVillageId(''); setCategoryId(''); setRating('')
+    setTitle(''); setDescription(''); setPhone(''); setSecondaryPhone(''); setWhatsapp(''); setAddress('')
+    setMapLink(''); setBusinessHours(''); setHoursOpenStatus('OPEN'); setVillageId(''); setCategoryId(''); setRating('')
     setLogo(null); setCover(null); setGallery([])
     setReType('HOUSE'); setListingType('SALE'); setPrice(''); setAreaSqft('')
     setBedrooms(''); setBathrooms(''); setNegotiable(false)
@@ -208,19 +213,7 @@ export function AddListingModal({
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              title,
-              description,
-              coverImage: cover,
-              logo,
-              gallery,
-              phone,
-              whatsapp,
-              address,
-              mapEmbed: mapLink,
-              servicesCatalog: cleanServices.length ? cleanServices : undefined,
-              businessHours: businessHours ? businessHours : undefined,
-              categoryId: categoryId || undefined,
-              villageId: villageId || undefined,
+              title, description, coverImage: cover, logo, gallery, phone, secondaryPhone: secondaryPhone || undefined, whatsapp, address, mapEmbed: mapLink, servicesCatalog: cleanServices.length ? cleanServices : undefined, businessHours: hoursOpenStatus === 'CLOSED' ? 'Closed' : (businessHours ? businessHours : undefined), categoryId: categoryId || undefined, villageId: villageId || undefined,
             }),
           })
           const json = await res.json()
@@ -231,7 +224,6 @@ export function AddListingModal({
         onOpenChange(false)
         reset()
       } else {
-        // Create mode
         if (type === 'realestate') {
           if (!price || !address) {
             toast.error('Price and Address are required for real estate')
@@ -242,22 +234,7 @@ export function AddListingModal({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              title,
-              description,
-              type: reType,
-              listingType,
-              price: Number(price),
-              negotiable,
-              areaSqft: areaSqft ? Number(areaSqft) : undefined,
-              bedrooms: bedrooms ? Number(bedrooms) : undefined,
-              bathrooms: bathrooms ? Number(bathrooms) : undefined,
-              coverImage: cover,
-              images: gallery.length ? gallery : undefined,
-              address,
-              mapEmbed: mapLink,
-              contactPhone: phone,
-              contactWhatsapp: whatsapp,
-              villageId: villageId || undefined,
+              title, description, type: reType, listingType, price: Number(price), negotiable, areaSqft: areaSqft ? Number(areaSqft) : undefined, bedrooms: bedrooms ? Number(bedrooms) : undefined, bathrooms: bathrooms ? Number(bathrooms) : undefined, coverImage: cover, images: gallery.length ? gallery : undefined, address, mapEmbed: mapLink, contactPhone: phone, secondaryPhone: secondaryPhone || undefined, contactWhatsapp: whatsapp, villageId: villageId || undefined,
             }),
           })
           const json = await res.json()
@@ -267,74 +244,43 @@ export function AddListingModal({
           onOpenChange(false)
           reset()
         } else {
-          // business or service → listing
-          const cleanServices = services
-            .filter((s) => s.name.trim())
-            .map((s) => ({ name: s.name, price: s.price || undefined, description: s.description || undefined }))
+          const cleanServices = services.filter((s) => s.name.trim()).map((s) => ({ name: s.name, price: s.price || undefined, description: s.description || undefined }))
           const res = await fetch('/api/listings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              title,
-              description,
-              coverImage: cover,
-              logo,
-              gallery: gallery.length ? gallery : undefined,
-              phone,
-              whatsapp,
-              address,
-              mapEmbed: mapLink,
-              servicesCatalog: cleanServices.length ? cleanServices : undefined,
-              businessHours: businessHours ? businessHours : undefined,
-              categoryId: categoryId || undefined,
-              villageId: villageId || undefined,
+              title, description, coverImage: cover, logo, gallery: gallery.length ? gallery : undefined, phone, secondaryPhone: secondaryPhone || undefined, whatsapp, address, mapEmbed: mapLink, servicesCatalog: cleanServices.length ? cleanServices : undefined, businessHours: hoursOpenStatus === 'CLOSED' ? 'Closed' : (businessHours ? businessHours : undefined), categoryId: categoryId || undefined, villageId: villageId || undefined,
             }),
           })
           const json = await res.json()
           if (!res.ok || !json.ok) throw new Error(json.error || 'Failed')
-          toast.success(`${type === 'business' ? 'Business' : 'Service'} submitted for approval!`)
+          toast.success('Submitted for admin approval!')
           if (onSuccess) onSuccess()
           onOpenChange(false)
           reset()
         }
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Submission failed')
+      toast.error(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
       setSaving(false)
     }
   }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto rounded-3xl p-0 fancy-scroll">
-        <DialogHeader className="sticky top-0 z-10 border-b border-slate-100 bg-white/95 px-6 py-4 backdrop-blur">
-          <DialogTitle className="text-lg font-black text-slate-900">
-            {editingItem ? 'Edit Listing' : 'Add New Listing'}
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl fancy-scroll">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-slate-900">
+            {type === 'business' ? <Building2 className="h-5 w-5 text-blue-600" /> : type === 'service' ? <Wrench className="h-5 w-5 text-amber-600" /> : <Home className="h-5 w-5 text-emerald-600" />}
+            {editingItem ? 'Edit Listing' : type === 'business' ? 'Add Business Listing' : type === 'service' ? 'Add Service Listing' : 'List Real Estate Property'}
           </DialogTitle>
-          <DialogDescription className="text-xs">
-            List a business, service or property. Images are compressed to ~500KB before upload.
+          <DialogDescription>
+            {editingItem ? 'Update details below.' : 'Fill in the details below. Admin will review before publishing.'}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 px-6 py-5">
-          {/* Type selector */}
-          <div>
-            <Label className="mb-2 block text-xs font-semibold text-slate-600">Category Type</Label>
-            <Tabs value={type} onValueChange={(v) => setType(v as ListingType)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="business" className="gap-1.5 text-xs">
-                  <Building2 className="h-3.5 w-3.5" /> Business
-                </TabsTrigger>
-                <TabsTrigger value="service" className="gap-1.5 text-xs">
-                  <Wrench className="h-3.5 w-3.5" /> Service
-                </TabsTrigger>
-                <TabsTrigger value="realestate" className="gap-1.5 text-xs">
-                  <Home className="h-3.5 w-3.5" /> Real Estate
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-
+        <div className="space-y-4 py-2 font-sans">
           {/* Media uploads */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <ImageUpload value={logo} onChange={setLogo} folder="logos" aspect="square" label="Logo (1:1)" />
@@ -385,6 +331,13 @@ export function AddListingModal({
                 placeholder="9441348175"
               />
             </Field>
+            <Field label="Secondary Phone (Optional)">
+              <Input
+                value={secondaryPhone}
+                onChange={(e) => setSecondaryPhone(e.target.value)}
+                placeholder="9876543210"
+              />
+            </Field>
             <Field label="WhatsApp">
               <div className="relative">
                 <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919441348175" />
@@ -401,11 +354,27 @@ export function AddListingModal({
             </Field>
             {type !== 'realestate' ? (
               <Field label="Business Hours">
-                <Input
-                  value={businessHours}
-                  onChange={(e) => setBusinessHours(e.target.value)}
-                  placeholder="e.g. 9:00 AM - 9:00 PM (Mon-Sat)"
-                />
+                <div className="flex items-center gap-2">
+                  <Select value={hoursOpenStatus} onValueChange={(val) => setHoursOpenStatus(val as 'OPEN' | 'CLOSED')}>
+                    <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="OPEN">Open</SelectItem>
+                      <SelectItem value="CLOSED">Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {hoursOpenStatus === 'OPEN' ? (
+                    <Input
+                      value={businessHours}
+                      onChange={(e) => setBusinessHours(e.target.value)}
+                      placeholder="e.g. 9:00 AM - 9:00 PM (Mon-Sat)"
+                      className="flex-1"
+                    />
+                  ) : (
+                    <div className="flex-1 rounded-md bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-500">
+                      Closed for Business
+                    </div>
+                  )}
+                </div>
               </Field>
             ) : null}
             <Field label="Village">

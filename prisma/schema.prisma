@@ -169,8 +169,9 @@ model Listing {
   logo       String?
   gallery    Json?
 
-  phone    String?
-  whatsapp String?
+  phone          String?
+  secondaryPhone String?
+  whatsapp       String?
   email    String?
   website  String?
   address  String?

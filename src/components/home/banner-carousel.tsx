@@ -80,9 +80,9 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
         ) : null}
       </div>
 
-      {/* Banner image — 16:9, full width, touch swipe */}
+      {/* Banner image — 16:9, full width, constrained height on desktop */}
       <div
-        className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl gradient-brand shimmer"
+        className="relative aspect-[16/9] max-h-[380px] sm:max-h-[420px] w-full overflow-hidden rounded-3xl gradient-brand shimmer"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         onMouseEnter={() => setIsPaused(true)}

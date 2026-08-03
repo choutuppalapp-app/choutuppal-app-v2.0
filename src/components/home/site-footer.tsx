@@ -6,17 +6,18 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-white/40 bg-white/70 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex flex-col space-y-8 md:grid md:grid-cols-4 md:space-y-0">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
           {/* Section 1 — PAGES */}
-          <div className="space-y-3 py-4 md:py-0">
+          <div className="space-y-3 col-span-2 sm:col-span-1">
             <div className="flex items-center gap-2">
               <img src="/logo.png" alt="Choutuppal App" className="h-10 w-auto" loading="lazy" />
             </div>
-            <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
               PAGES
             </h4>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               <li><Link href="/" className="text-sm text-slate-600 transition hover:text-blue-600">Home</Link></li>
+              <li><Link href="/listings" className="text-sm text-slate-600 transition hover:text-blue-600">Listings</Link></li>
               <li><Link href="/news" className="text-sm text-slate-600 transition hover:text-blue-600">News</Link></li>
               <li><Link href="/blog" className="text-sm text-slate-600 transition hover:text-blue-600">Blog</Link></li>
               <li><Link href="/community" className="text-sm text-slate-600 transition hover:text-blue-600">Community</Link></li>
@@ -24,11 +25,11 @@ export function SiteFooter() {
           </div>
 
           {/* Section 2 — COMPANY */}
-          <div className="space-y-3 py-4 md:py-0">
-            <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
+          <div className="space-y-3">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
               COMPANY
             </h4>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               <li><Link href="/about" className="text-sm text-slate-600 transition hover:text-blue-600">About Us</Link></li>
               <li><Link href="/terms" className="text-sm text-slate-600 transition hover:text-blue-600">Terms &amp; Conditions</Link></li>
               <li><Link href="/privacy" className="text-sm text-slate-600 transition hover:text-blue-600">Privacy Policy</Link></li>
@@ -37,14 +38,14 @@ export function SiteFooter() {
           </div>
 
           {/* Section 3 — CONTACT */}
-          <div className="space-y-3 py-4 md:py-0">
-            <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
+          <div className="space-y-3 col-span-2 sm:col-span-1">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
               CONTACT
             </h4>
-            <ul className="space-y-3 text-sm text-slate-600">
+            <ul className="space-y-2 text-sm text-slate-600">
               <li className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
-                <span className="font-telugu">
+                <span className="font-telugu text-xs">
                   చౌటుప్పల్, యాదాద్రి, తెలంగాణ - 508252.
                 </span>
               </li>
@@ -65,21 +66,15 @@ export function SiteFooter() {
                   9441348175
                 </a>
               </li>
-              <li className="flex items-center gap-2">
-                <Mail className="h-4 w-4 shrink-0 text-blue-500" />
-                <a href="mailto:info@choutuppal.in" className="font-semibold text-slate-700 hover:text-blue-600">
-                  info@choutuppal.in
-                </a>
-              </li>
             </ul>
           </div>
 
           {/* Section 4 — Connect With Us */}
-          <div className="space-y-3 py-4 text-center md:py-0 md:text-left">
-            <h4 className="text-sm font-bold uppercase tracking-wide text-slate-900">
+          <div className="space-y-3 col-span-2 sm:col-span-1 text-center sm:text-left">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
               Connect With Us
             </h4>
-            <div className="flex justify-center md:justify-start">
+            <div className="flex justify-center sm:justify-start">
               <SocialLinks />
             </div>
           </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { BedDouble, Bath, Maximize, MapPin, ChevronRight, IndianRupee, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -50,14 +51,27 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
           return (
             <Link
               key={p.id}
-              href={`/business/${p.slug}`}
+              href={`/explore?tab=real-estate`}
               className="hover-lift group w-[270px] shrink-0 overflow-hidden rounded-2xl glass"
             >
               <div className="relative aspect-[16/10] w-full overflow-hidden">
-                <div className={`absolute inset-0 bg-gradient-to-br ${grad}`} />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(255,255,255,0.35),transparent_45%)]" />
+                {p.coverImage ? (
+                  <Image
+                    src={p.coverImage}
+                    alt={p.title}
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="h-full w-full object-cover transition group-hover:scale-105"
+                  />
+                ) : (
+                  <>
+                    <div className={`absolute inset-0 bg-gradient-to-br ${grad}`} />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(255,255,255,0.35),transparent_45%)]" />
+                  </>
+                )}
                 <Badge
-                  className={`absolute left-3 top-3 ${
+                  className={`absolute left-3 top-3 z-10 ${
                     p.listingType === 'SALE'
                       ? 'bg-emerald-500 text-white hover:bg-emerald-500'
                       : 'bg-amber-500 text-white hover:bg-amber-500'
@@ -65,7 +79,7 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
                 >
                   For {p.listingType === 'SALE' ? 'Sale' : 'Rent'}
                 </Badge>
-                <span className="absolute bottom-3 right-3 rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold uppercase text-blue-700 backdrop-blur">
+                <span className="absolute bottom-3 right-3 z-10 rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold uppercase text-blue-700 backdrop-blur">
                   {p.type}
                 </span>
               </div>

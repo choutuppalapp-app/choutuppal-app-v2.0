@@ -11,9 +11,9 @@ const nextConfig: NextConfig = {
     ],
   },
   images: {
-    unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "images.choutuppal.in" },
+      { protocol: "https", hostname: "*.r2.dev text/html" },
       { protocol: "https", hostname: "*.r2.dev" },
       { protocol: "https", hostname: "*.r2.cloudflarestorage.com" },
       { protocol: "https", hostname: "*.supabase.co" },
