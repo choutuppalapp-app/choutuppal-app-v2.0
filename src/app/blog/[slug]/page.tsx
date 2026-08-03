@@ -15,6 +15,9 @@ async function getPost(slug: string) {
   })
 }
 
+import { applyAutoLinks } from '@/lib/autolinks'
+import { ArticleFooter } from '@/components/news/article-footer'
+
 export async function generateMetadata({
   params,
 }: {
@@ -59,6 +62,25 @@ export default async function BlogDetailPage({
   const post = await getPost(slug)
   if (!post || !post.isPublished) notFound()
 
+  // Fetch AutoLinks & Related Blogs
+  const [autoLinks, relatedBlogs] = await Promise.all([
+    prisma.autoLink.findMany().catch(() => []),
+    prisma.blog.findMany({
+      where: {
+        isPublished: true,
+        id: { not: post.id },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 4,
+      select: { id: true, title: true, slug: true, excerpt: true, coverImage: true, createdAt: true },
+    }).catch(() => []),
+  ])
+
+  // Process Auto-Linking
+  const processedContent = applyAutoLinks(post.content, autoLinks)
+  const tagsArray = Array.isArray(post.tags) ? (post.tags as string[]) : []
+  const postUrl = `${SITE_URL}/blog/${post.slug}`
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50 pb-24 md:pb-10">
       <header className="sticky top-0 z-30 border-b border-white/50 bg-white/80 backdrop-blur-xl">
@@ -82,47 +104,32 @@ export default async function BlogDetailPage({
         </h1>
         <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
           <span className="flex items-center gap-1">
-            <User className="h-3.5 w-3.5" /> {post.author.name ?? 'Choutuppal'}
+            <User className="h-3.5 w-3.5 text-blue-600" /> {post.author.name ?? 'Choutuppal'}
           </span>
           <span className="flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5" />
+            <Calendar className="h-3.5 w-3.5 text-amber-600" />
             {new Date(post.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
         </div>
 
+        {/* Content with Auto Links */}
         <div
           className="prose prose-sm mt-5 max-w-none [&_h1]:text-2xl [&_h1]:font-black [&_h2]:text-xl [&_h2]:font-bold [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-blue-300 [&_blockquote]:bg-blue-50/50 [&_blockquote]:py-2 [&_blockquote]:pl-4 [&_blockquote]:italic [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-xl"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: processedContent }}
         />
 
         {post.excerpt ? (
           <p className="mt-4 text-sm italic text-slate-500">{post.excerpt}</p>
         ) : null}
 
-        {/* WhatsApp Action Buttons */}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
-          {/* Share on WhatsApp */}
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(`చౌటుప్పల్ యాప్ లో ఈ బ్లాగ్ చూడండి: ${post.title} - ${SITE_URL}/blog/${post.slug}`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 px-4 py-3 text-xs font-bold text-white shadow-md transition active:scale-[0.98] sm:w-auto text-center"
-          >
-            <MessageCircle className="h-4 w-4 shrink-0 text-white" />
-            <span>WhatsApp లో షేర్ చేయండి</span>
-          </a>
-
-          {/* Send Us News / Article (Lead CTA to Admin) */}
-          <a
-            href={`https://wa.me/919441348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, మా బ్లాగ్ / ఆర్టికల్ పంపాలనుకుంటున్నాను.')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-blue-600 bg-white/80 px-4 py-1.5 text-sm font-medium text-blue-600 shadow-sm backdrop-blur transition-all hover:bg-blue-50"
-          >
-            <MessageCircle className="h-4 w-4 shrink-0 text-emerald-600" />
-            <span>వార్త పంపండి</span>
-          </a>
-        </div>
+        {/* Article Footer with Share, Tags, & Related Posts */}
+        <ArticleFooter
+          articleUrl={postUrl}
+          articleTitle={post.title}
+          tags={tagsArray}
+          relatedPosts={relatedBlogs}
+          type="blog"
+        />
       </article>
     </div>
   )

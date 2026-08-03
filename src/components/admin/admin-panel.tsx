@@ -53,6 +53,8 @@ import { AddListingModal } from '@/components/dashboard/add-listing-modal'
 import { AdminListingsTab } from './listings-tab'
 import { AdminRealEstateTab } from './real-estate-tab'
 import { AdminBannersTab } from './banners-tab'
+import { AutoLinksTab } from './auto-links-tab'
+import { Link2 } from 'lucide-react'
 
 interface Stats {
   totalUsers: number
@@ -139,7 +141,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 
       <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 lg:px-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-10">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-11">
             <TabsTrigger value="overview" className="gap-1.5 text-xs">
               <Home className="h-3 w-3" /> Overview
             </TabsTrigger>
@@ -167,6 +169,9 @@ export function AdminPanel({ adminName }: { adminName: string }) {
             <TabsTrigger value="push" className="gap-1.5 text-xs">
               <Bell className="h-3 w-3" /> Push
             </TabsTrigger>
+            <TabsTrigger value="autolinks" className="gap-1.5 text-xs">
+              <Link2 className="h-3 w-3 text-blue-600" /> Auto Links
+            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-1.5 text-xs">
               <Megaphone className="h-3 w-3" /> Settings
             </TabsTrigger>
@@ -181,6 +186,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           <TabsContent value="banners"><AdminBannersTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="push"><PushTab /></TabsContent>
+          <TabsContent value="autolinks"><AutoLinksTab /></TabsContent>
           <TabsContent value="settings"><SettingsTab /></TabsContent>
         </Tabs>
       </main>

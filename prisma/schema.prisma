@@ -561,3 +561,16 @@ model Review {
   @@index([userId])
 }
 
+// ----------------------------------------------------------------------------
+// AUTO LINKS (Affiliate & Internal SEO)
+// ----------------------------------------------------------------------------
+
+model AutoLink {
+  id        String   @id @default(cuid())
+  keyword   String   @unique
+  url       String
+  type      String   @default("affiliate")
+  createdAt DateTime @default(now())
+}
+
+
