@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Store, Search, Star, Trash2, Check, X, Shield, RefreshCw, Loader2, ExternalLink, Crown, Plus } from 'lucide-react'
+import { Store, Search, Star, Trash2, Check, X, Shield, RefreshCw, Loader2, ExternalLink, Crown, Plus, Edit3 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -30,6 +30,7 @@ export function AdminListingsTab() {
   const [search, setSearch] = useState('')
 
   const [addModalOpen, setAddModalOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<any>(null)
   const [villages, setVillages] = useState<Array<{ id: string; name: string; slug: string }>>([])
   const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
 
@@ -223,6 +224,16 @@ export function AdminListingsTab() {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => { setEditingItem(l); setAddModalOpen(true) }}
+                          title="Edit Listing"
+                          className="h-7 px-2"
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => toggleFeatured(l)}
                           title={l.isFeatured ? 'Remove Featured' : 'Make Featured'}
                           className={`h-7 px-2 ${l.isFeatured ? 'bg-amber-50 border-amber-300 text-amber-700' : ''}`}
@@ -260,10 +271,14 @@ export function AdminListingsTab() {
 
       <AddListingModal
         open={addModalOpen}
-        onOpenChange={setAddModalOpen}
+        onOpenChange={(open) => {
+          setAddModalOpen(open)
+          if (!open) setEditingItem(null)
+        }}
         villages={villages}
         categories={categories}
         defaultType="business"
+        editingItem={editingItem}
         onSuccess={load}
       />
     </div>

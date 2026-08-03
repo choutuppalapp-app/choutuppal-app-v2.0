@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Home, Search, Star, Trash2, Check, RefreshCw, Loader2, ExternalLink, Plus } from 'lucide-react'
+import { Home, Search, Star, Trash2, Check, RefreshCw, Loader2, ExternalLink, Plus, Edit3 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +29,7 @@ export function AdminRealEstateTab() {
   const [search, setSearch] = useState('')
 
   const [addModalOpen, setAddModalOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<any>(null)
   const [villages, setVillages] = useState<Array<{ id: string; name: string; slug: string }>>([])
   const [categories, setCategories] = useState<Array<{ id: string; name: string; slug: string }>>([])
 
@@ -194,6 +195,16 @@ export function AdminRealEstateTab() {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => { setEditingItem(p); setAddModalOpen(true) }}
+                          title="Edit Property"
+                          className="h-7 px-2"
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </Button>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => toggleFeatured(p)}
                           title={p.isFeatured ? 'Remove Featured' : 'Make Featured'}
                           className={`h-7 px-2 ${p.isFeatured ? 'bg-amber-50 border-amber-300 text-amber-700' : ''}`}
@@ -231,10 +242,14 @@ export function AdminRealEstateTab() {
 
       <AddListingModal
         open={addModalOpen}
-        onOpenChange={setAddModalOpen}
+        onOpenChange={(open) => {
+          setAddModalOpen(open)
+          if (!open) setEditingItem(null)
+        }}
         villages={villages}
         categories={categories}
         defaultType="realestate"
+        editingItem={editingItem}
         onSuccess={load}
       />
     </div>

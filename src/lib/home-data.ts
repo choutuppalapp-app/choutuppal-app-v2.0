@@ -64,7 +64,9 @@ export async function getPremiumRealEstate() {
         where: { status: 'APPROVED' },
         orderBy: { createdAt: 'desc' },
         take: 10,
-        include: { village: { select: { name: true, slug: true } } },
+        include: {
+          village: { select: { name: true, slug: true } },
+        },
       }),
     [],
   )
@@ -76,7 +78,9 @@ export async function getShorts() {
       prisma.short.findMany({
         orderBy: { createdAt: 'desc' },
         take: 10,
-        include: { owner: { select: { username: true, name: true } } },
+        include: {
+          owner: { select: { username: true, name: true } },
+        },
       }),
     [],
   )
@@ -84,7 +88,7 @@ export async function getShorts() {
 
 export async function getVillages() {
   return safeDbQuery(
-    () => prisma.village.findMany({ orderBy: { name: 'asc' } }),
+    () => prisma.village.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true } }),
     [],
   )
 }

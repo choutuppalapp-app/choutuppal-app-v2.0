@@ -47,16 +47,45 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { type, id, isFeatured, isPremium, status, planTier } = body
+    const {
+      type: itemType,
+      id,
+      isFeatured,
+      isPremium,
+      status,
+      planTier,
+      title,
+      description,
+      phone,
+      whatsapp,
+      address,
+      villageId,
+      categoryId,
+      coverImage,
+      logo,
+      price,
+      type,
+      listingType,
+    } = body
 
     if (!id || typeof id !== 'string') {
       return NextResponse.json({ ok: false, error: 'Missing id' }, { status: 400 })
     }
 
-    if (type === 'realestate') {
+    if (itemType === 'realestate') {
       const dataToUpdate: any = {}
       if (typeof isFeatured === 'boolean') dataToUpdate.isFeatured = isFeatured
       if (typeof status === 'string') dataToUpdate.status = status
+      if (title) dataToUpdate.title = title
+      if (description) dataToUpdate.description = description
+      if (phone) dataToUpdate.phone = phone
+      if (whatsapp) dataToUpdate.whatsapp = whatsapp
+      if (address) dataToUpdate.address = address
+      if (villageId) dataToUpdate.villageId = villageId
+      if (coverImage !== undefined) dataToUpdate.coverImage = coverImage
+      if (price !== undefined) dataToUpdate.price = Number(price)
+      if (type) dataToUpdate.type = type
+      if (listingType) dataToUpdate.listingType = listingType
 
       const updated = await prisma.realEstate.update({
         where: { id },
@@ -69,6 +98,15 @@ export async function PATCH(request: NextRequest) {
       if (typeof isFeatured === 'boolean') dataToUpdate.isFeatured = isFeatured
       if (typeof isPremium === 'boolean') dataToUpdate.isPremium = isPremium
       if (typeof status === 'string') dataToUpdate.status = status
+      if (title) dataToUpdate.title = title
+      if (description) dataToUpdate.description = description
+      if (phone) dataToUpdate.phone = phone
+      if (whatsapp) dataToUpdate.whatsapp = whatsapp
+      if (address) dataToUpdate.address = address
+      if (villageId) dataToUpdate.villageId = villageId
+      if (categoryId) dataToUpdate.categoryId = categoryId
+      if (coverImage !== undefined) dataToUpdate.coverImage = coverImage
+      if (logo !== undefined) dataToUpdate.logo = logo
 
       const updated = await prisma.listing.update({
         where: { id },

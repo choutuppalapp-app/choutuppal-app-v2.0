@@ -129,7 +129,7 @@ export function AdminBannersTab() {
               <div key={b.id} className="hover-lift overflow-hidden rounded-2xl glass border border-slate-100 flex flex-col justify-between">
                 <div>
                   <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-                    <img src={b.imageUrl} alt={b.title ?? 'Banner'} className="h-full w-full object-cover" />
+                    <img loading="lazy" decoding="async" src={b.imageUrl} alt={b.title ?? 'Banner'} className="h-full w-full object-cover" />
                     <Badge
                       className={`absolute top-2 right-2 text-[10px] ${
                         isExpired ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
