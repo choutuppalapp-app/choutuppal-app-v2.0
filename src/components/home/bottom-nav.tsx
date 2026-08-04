@@ -40,9 +40,9 @@ export function BottomNav() {
       </Link>
 
       {/* Explore */}
-      <Link href="/explore" className="flex flex-col items-center justify-center gap-0.5">
-        <Compass className={cn('h-5 w-5', isActive('/explore') ? 'text-blue-600' : 'text-gray-500')} />
-        <span className={cn('text-[9px] font-medium', isActive('/explore') ? 'text-blue-600' : 'text-gray-500')}>Explore</span>
+      <Link href="/listings" className="flex flex-col items-center justify-center gap-0.5">
+        <Compass className={cn('h-5 w-5', isActive('/listings') || isActive('/explore') ? 'text-blue-600' : 'text-gray-500')} />
+        <span className={cn('text-[9px] font-medium', isActive('/listings') || isActive('/explore') ? 'text-blue-600' : 'text-gray-500')}>Explore</span>
       </Link>
 
       {/* Center FAB — Add */}

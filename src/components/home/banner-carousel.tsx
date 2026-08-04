@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Megaphone, Sparkles, MessageCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Megaphone, Sparkles, MessageCircle, X, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Banner } from '@prisma/client'
@@ -22,6 +22,7 @@ const DEFAULT_BANNERS = [
 export function BannerCarousel({ banners }: BannerCarouselProps) {
   const [index, setIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
   const active = banners.length > 0 ? banners : DEFAULT_BANNERS
@@ -34,14 +35,14 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     setIndex((i) => (i + dir + count) % count)
   }, [count])
 
-  // Auto-scroll every 4 seconds (pauses on hover)
+  // Auto-scroll every 4 seconds (pauses on hover or when modal is open)
   useEffect(() => {
-    if (count <= 1 || isPaused) return
+    if (count <= 1 || isPaused || modalOpen) return
     const timer = setInterval(() => {
       setIndex((i) => (i + 1) % count)
     }, 4000)
     return () => clearInterval(timer)
-  }, [count, isPaused])
+  }, [count, isPaused, modalOpen])
 
   // Touch swipe for mobile
   function onTouchStart(e: React.TouchEvent) {
@@ -61,6 +62,11 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
       fetch(`/api/banners/${current.id}/click`, { method: 'POST' }).catch(() => {})
     }
   }, [isUserBanner, current])
+
+  function handleBannerClick() {
+    trackClick()
+    setModalOpen(true)
+  }
 
   return (
     <section className="mx-auto w-full max-w-7xl px-3 sm:px-4 lg:px-6">
@@ -82,7 +88,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 
       {/* Banner image — 16:9, full width, constrained height on desktop */}
       <div
-        className="relative aspect-[16/9] max-h-[380px] sm:max-h-[420px] w-full overflow-hidden rounded-3xl gradient-brand shimmer"
+        onClick={handleBannerClick}
+        className="relative aspect-[16/9] max-h-[380px] sm:max-h-[420px] w-full cursor-pointer overflow-hidden rounded-3xl gradient-brand shimmer"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         onMouseEnter={() => setIsPaused(true)}
@@ -112,7 +119,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             {current?.title ?? 'Promote Your Business to 10,000+ Locals'}
           </h3>
           <p className="mt-1 hidden max-w-md text-sm text-white/90 sm:block">
-            Reach customers across Choutuppal, Yadadri & nearby villages.
+            Reach customers across Choutuppal, Yadadri &amp; nearby villages.
           </p>
         </div>
 
@@ -121,14 +128,14 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           <>
             <button
               aria-label="Previous banner"
-              onClick={() => go(-1)}
+              onClick={(e) => { e.stopPropagation(); go(-1); }}
               className="absolute left-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/30 text-white backdrop-blur transition hover:bg-white/50 md:grid"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               aria-label="Next banner"
-              onClick={() => go(1)}
+              onClick={(e) => { e.stopPropagation(); go(1); }}
               className="absolute right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/30 text-white backdrop-blur transition hover:bg-white/50 md:grid"
             >
               <ChevronRight className="h-5 w-5" />
@@ -143,7 +150,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               <button
                 key={i}
                 aria-label={`Go to banner ${i + 1}`}
-                onClick={() => setIndex(i)}
+                onClick={(e) => { e.stopPropagation(); setIndex(i); }}
                 className={cn(
                   'h-2 rounded-full transition-all',
                   i === index ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80',
@@ -156,14 +163,10 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 
       {/* CTA buttons — BELOW the banner */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-        {current?.link ? (
-          <Link href={current.link} onClick={trackClick}>
-            <Button size="lg" className="gap-2 bg-white text-blue-700 shadow-md hover:bg-amber-50">
-              <Megaphone className="h-4 w-4" />
-              Learn More
-            </Button>
-          </Link>
-        ) : null}
+        <Button onClick={handleBannerClick} size="lg" className="gap-2 bg-white text-blue-700 shadow-md hover:bg-amber-50">
+          <Megaphone className="h-4 w-4" />
+          View Offer Details
+        </Button>
         <a
           href={`https://wa.me/919441348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, నా బిజినెస్ కోసం బ్యానర్ అడ్ ఇవ్వాలనుకుంటున్నాను. వివరాలు దయచేసి పంచండి.')}`}
           target="_blank"
@@ -174,6 +177,68 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           <span>ప్రమోట్ చేయండి</span>
         </a>
       </div>
+
+      {/* Full-Screen Banner Modal */}
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-3xl rounded-3xl bg-slate-900 border border-slate-800 p-5 shadow-2xl text-white space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setModalOpen(false)}
+              className="absolute top-4 right-4 h-9 w-9 grid place-items-center rounded-full bg-slate-800 text-white hover:bg-slate-700 transition"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {current?.imageUrl ? (
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
+                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="h-full w-full object-cover" />
+              </div>
+            ) : null}
+
+            <div>
+              <h3 className="text-2xl font-black">{current?.title ?? 'Special Offer'}</h3>
+              <p className="mt-1 text-sm text-slate-300">
+                Reach customers across Choutuppal, Yadadri &amp; nearby villages.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              {current?.link ? (
+                <a
+                  href={current.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={trackClick}
+                  className="w-full sm:flex-1"
+                >
+                  <Button size="lg" className="w-full gap-2 gradient-brand text-white shadow-lg">
+                    <ExternalLink className="h-4 w-4" />
+                    Visit Offer / Learn More
+                  </Button>
+                </a>
+              ) : null}
+
+              <a
+                href={`https://wa.me/919441348175?text=${encodeURIComponent(`నమస్కారం, నేను ఈ బ్యానర్ ద్వారా సంప్రదిస్తున్నాను: ${current?.title}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:flex-1"
+              >
+                <Button size="lg" variant="outline" className="w-full gap-2 border-emerald-500 text-emerald-400 hover:bg-emerald-950">
+                  <MessageCircle className="h-4 w-4" />
+                  Inquire on WhatsApp
+                </Button>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
