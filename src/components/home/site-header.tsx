@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LogIn, LogOut, Menu, X, Home, Newspaper, BookOpen, Users, Info, FileText, Shield, Download, Sparkles } from 'lucide-react'
+import { LogIn, LogOut, Menu, X, Home, Building2, Newspaper, BookOpen, Users, Info, FileText, Shield, Download, Sparkles } from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -140,6 +140,7 @@ export function SiteHeader() {
       >
         <nav className="grid grid-cols-2 gap-2">
           <MobileLink href="/" icon={Home} label="హోమ్" onClick={() => setMobileOpen(false)} />
+          <MobileLink href="/listings" icon={Building2} label="లిస్టింగ్స్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/news" icon={Newspaper} label="న్యూస్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/blog" icon={BookOpen} label="బ్లాగ్స్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/community" icon={Users} label="కమ్యూనిటీ" onClick={() => setMobileOpen(false)} />

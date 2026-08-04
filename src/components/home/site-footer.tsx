@@ -16,11 +16,11 @@ export function SiteFooter() {
       isBusinessPage && "hidden md:block"
     )}>
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           {/* Section 1 — PAGES */}
-          <div className="space-y-3 col-span-2 sm:col-span-1">
+          <div className="space-y-3 col-span-1">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Choutuppal App" className="h-10 w-auto" loading="lazy" />
+              <img src="/logo.png" alt="Choutuppal App" className="h-9 w-auto" loading="lazy" />
             </div>
             <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
               PAGES
@@ -35,8 +35,8 @@ export function SiteFooter() {
           </div>
 
           {/* Section 2 — COMPANY */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
+          <div className="space-y-3 col-span-1">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 pt-1 md:pt-0">
               COMPANY
             </h4>
             <ul className="space-y-1.5">
@@ -48,7 +48,7 @@ export function SiteFooter() {
           </div>
 
           {/* Section 3 — CONTACT */}
-          <div className="space-y-3 col-span-2 sm:col-span-1">
+          <div className="space-y-3 col-span-2 md:col-span-1">
             <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
               CONTACT
             </h4>
@@ -80,11 +80,11 @@ export function SiteFooter() {
           </div>
 
           {/* Section 4 — Connect With Us */}
-          <div className="space-y-3 col-span-2 sm:col-span-1 text-center sm:text-left">
+          <div className="space-y-3 col-span-2 md:col-span-1 text-center md:text-left">
             <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
-              Connect With Us
+              CONNECT WITH US
             </h4>
-            <div className="flex justify-center sm:justify-start">
+            <div className="flex justify-center md:justify-start">
               <SocialLinks />
             </div>
           </div>
