@@ -95,92 +95,127 @@ export function CommunityFeed({
     )
   }, [])
 
-  const visible =
-    posts
+  const viewerUser = people.find((p) => p.username === viewerUsername)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50">
-      {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-white/50 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-3 sm:px-4">
-          <Link href="/" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200">
-            <ChevronLeft className="h-4 w-4" />
-          </Link>
-          <span className="grid h-9 w-9 place-items-center rounded-xl gradient-brand text-base font-black text-white">
-            C
-          </span>
-          <div className="leading-none">
-            <h1 className="text-sm font-extrabold text-slate-900">Community</h1>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-blue-600">
-              Choutuppal Feed
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50 pb-24 md:pb-10">
+      {/* 1. Header Banner */}
+      <div className="border-b border-blue-100 bg-gradient-to-r from-blue-600 via-blue-700 to-amber-500 px-4 py-8 text-white shadow-sm sm:py-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur-md">
+            <Users className="h-3.5 w-3.5" />
+            <span>Choutuppal Network</span>
           </div>
+          <h1 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-4xl">
+            Choutuppal Community
+          </h1>
+          <p className="font-telugu mt-1 text-xs text-white/90 sm:text-sm">
+            మన ఊరి విశేషాలు, చర్చలు మరియు అభిప్రాయాలు
+          </p>
         </div>
-      </header>
+      </div>
 
-      <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4">
-        <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-          {/* Feed column */}
-          <div className="min-w-0 space-y-4">
-            {/* Composer */}
+      {/* Main Content Layout */}
+      <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 lg:px-6">
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* LEFT SIDEBAR (Desktop) — User Profile Snippet */}
+          <aside className="hidden lg:col-span-3 lg:block">
+            <div className="sticky top-24 space-y-4">
+              <div className="rounded-3xl glass p-5 text-center">
+                <Avatar className="mx-auto h-16 w-16 border-2 border-white shadow-md">
+                  <AvatarImage src={viewerUser?.image ?? undefined} />
+                  <AvatarFallback className="gradient-brand text-xl font-bold text-white">
+                    {(viewerUser?.name ?? viewerUsername ?? 'U').charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <h3 className="mt-3 font-bold text-slate-900 flex items-center justify-center gap-1.5">
+                  <span>{viewerUser?.name ?? viewerUsername ?? 'Guest User'}</span>
+                  {viewerUser?.planTier === 'PREMIUM' ? (
+                    <Crown className="h-4 w-4 text-amber-500 fill-amber-400 shrink-0" />
+                  ) : viewerUser?.planTier === 'PRO' ? (
+                    <BadgeCheck className="h-4 w-4 text-blue-500 fill-blue-100 shrink-0" />
+                  ) : null}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {viewerUser?.bio ?? (viewerUsername ? `@${viewerUsername}` : 'Connect with locals')}
+                </p>
+
+                {isLoggedIn && viewerUsername ? (
+                  <Link
+                    href={`/profile/${viewerUsername}`}
+                    className="mt-4 inline-block w-full rounded-xl gradient-brand py-2 text-xs font-bold text-white shadow transition hover:opacity-90"
+                  >
+                    View My Profile
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="mt-4 inline-block w-full rounded-xl gradient-brand py-2 text-xs font-bold text-white shadow transition hover:opacity-90"
+                  >
+                    Login to Participate
+                  </Link>
+                )}
+              </div>
+            </div>
+          </aside>
+
+          {/* CENTER COLUMN — Composer & Feed */}
+          <div className="min-w-0 lg:col-span-6 space-y-4">
+            {/* Post Composer Box */}
             <PostComposer isLoggedIn={isLoggedIn} onCreated={onCreated} />
 
-            {/* Mobile People rail — horizontal scroll, below composer, above feed */}
+            {/* Mobile People Rail (Horizontal scroll on small screens) */}
             {people.length > 0 ? (
-              <section className="flex md:hidden">
-                <div className="w-full">
-                  <h3 className="mb-2 flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wide text-slate-500">
-                    <Users className="h-3.5 w-3.5 text-blue-500" /> People you may know
-                  </h3>
-                  <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
-                    {people.map((p) => {
-                                            return (
-                        <div
-                          key={p.id}
-                          className="flex w-40 shrink-0 flex-col items-center rounded-xl border border-white/30 bg-white/20 p-4 text-center backdrop-blur-lg"
-                        >
-                          {p.image ? (
-                            <img src={p.image} alt={p.name ?? ''} className="h-16 w-16 rounded-full object-cover" />
-                          ) : (
-                            <span className="grid h-16 w-16 place-items-center rounded-full gradient-brand text-xl font-bold text-white">
-                              {(p.name ?? 'U').charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                          <p className="mt-2 text-sm font-bold text-slate-900 flex items-center justify-center gap-1">
-                            <span className="truncate">{p.name ?? p.username}</span>
-                            {p.planTier === 'PREMIUM' ? (
-                              <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-400 shrink-0" />
-                            ) : p.planTier === 'PRO' ? (
-                              <BadgeCheck className="h-3.5 w-3.5 text-blue-500 fill-blue-100 shrink-0" />
-                            ) : null}
-                          </p>
-                          <p className="w-full truncate text-xs text-slate-500">{p.bio ?? p.village?.name ?? `@${p.username}`}</p>
-                          
-                          <Link
-                            href={p.username ? `/profile/${p.username}` : '#'}
-                            className="mt-2 rounded-lg gradient-brand px-3 py-1 text-[10px] font-semibold text-white"
-                          >
-                            View
-                          </Link>
-                        </div>
-                      )
-                    })}
-                  </div>
+              <section className="block lg:hidden">
+                <h3 className="mb-2 flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                  <Users className="h-3.5 w-3.5 text-blue-500" /> People You May Know
+                </h3>
+                <div className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
+                  {people.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex w-40 shrink-0 flex-col items-center rounded-2xl glass p-3 text-center"
+                    >
+                      <Avatar className="h-12 w-12 border border-white">
+                        <AvatarImage src={p.image ?? undefined} />
+                        <AvatarFallback className="gradient-brand text-sm font-bold text-white">
+                          {(p.name ?? 'U').charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="mt-2 text-xs font-bold text-slate-900 truncate w-full flex items-center justify-center gap-1">
+                        <span className="truncate">{p.name ?? p.username}</span>
+                        {p.planTier === 'PREMIUM' ? (
+                          <Crown className="h-3 w-3 text-amber-500 fill-amber-400 shrink-0" />
+                        ) : p.planTier === 'PRO' ? (
+                          <BadgeCheck className="h-3 w-3 text-blue-500 fill-blue-100 shrink-0" />
+                        ) : null}
+                      </p>
+                      <p className="w-full truncate text-[10px] text-slate-400">
+                        {p.village?.name ?? p.bio ?? `@${p.username}`}
+                      </p>
+                      <Link
+                        href={p.username ? `/profile/${p.username}` : '#'}
+                        className="mt-2 rounded-lg gradient-brand px-3 py-1 text-[10px] font-semibold text-white"
+                      >
+                        View
+                      </Link>
+                    </div>
+                  ))}
                 </div>
               </section>
             ) : null}
 
-            {/* Posts */}{/* Posts */}
-            {visible.length === 0 ? (
+            {/* Post Feed */}
+            {posts.length === 0 ? (
               <div className="rounded-3xl glass p-10 text-center">
                 <MessageCircle className="mx-auto h-10 w-10 text-slate-300" />
                 <h3 className="mt-2 font-bold text-slate-900">No posts yet</h3>
                 <p className="text-sm text-slate-500">
-                  {isLoggedIn ? 'Be the first to share something!' : 'Login to start posting.'}
+                  {isLoggedIn ? 'Be the first to share something with the community!' : 'Login to start posting.'}
                 </p>
               </div>
             ) : (
-              visible.map((post) => (
+              posts.map((post) => (
                 <PostCard
                   key={post.id}
                   post={post}
@@ -194,9 +229,9 @@ export function CommunityFeed({
             )}
           </div>
 
-          {/* People directory sidebar */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-24 space-y-3">
+          {/* RIGHT SIDEBAR (Desktop) — People Directory */}
+          <aside className="hidden lg:col-span-3 lg:block">
+            <div className="sticky top-24 space-y-4">
               <PeopleDirectory people={people} />
             </div>
           </aside>
@@ -233,7 +268,7 @@ function PostComposer({
       if (!res.ok || !j.ok) throw new Error(j.error || 'Failed to post')
       onCreated(j.post)
       setContent('')
-      toast.success('Posted!')
+      toast.success('Post published!')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to post')
     } finally {
@@ -248,29 +283,29 @@ function PostComposer({
           <Link href="/login" className="font-semibold text-blue-600 hover:underline">
             Login
           </Link>{' '}
-          to share posts in the community.
+          to share posts with the Choutuppal community.
         </p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-3xl glass p-4">
+    <div className="rounded-3xl glass p-4 shadow-sm border border-white/50">
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Share something with the community… (text only)"
+        placeholder="మీ ఆలోచనలను పంచుకోండి... (Share your thoughts with the community...)"
         rows={3}
         maxLength={2000}
-        className="resize-none border-0 bg-transparent focus-visible:ring-0"
+        className="font-telugu resize-none border-0 bg-transparent focus-visible:ring-0 text-sm"
       />
-      <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3">
-        <span className="ml-auto text-[11px] text-slate-400">{content.length}/2000</span>
+      <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+        <span className="text-[11px] text-slate-400">{content.length}/2000</span>
         <Button
           onClick={submit}
           disabled={!content.trim() || posting}
           size="sm"
-          className="gap-1.5 gradient-brand text-white"
+          className="gap-1.5 gradient-brand text-white shadow-md hover:opacity-95"
         >
           {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           Post
@@ -302,7 +337,7 @@ function PostCard({
   const [showComments, setShowComments] = useState(false)
   const [likeBusy, setLikeBusy] = useState(false)
   const [deleteBusy, setDeleteBusy] = useState(false)
-    const isOwnPost = viewerUsername && post.author.username === viewerUsername
+  const isOwnPost = viewerUsername && post.author.username === viewerUsername
 
   async function toggleLike() {
     if (!isLoggedIn) {
@@ -340,25 +375,29 @@ function PostCard({
   const isPremium = post.author.planTier === 'PREMIUM'
   const isPro = post.author.planTier === 'PRO'
 
+  const shareText = `*${post.author.name ?? 'Choutuppal User'} on Choutuppal App Community:*\n\n"${post.content}"\n\nచౌటుప్పల్ కమ్యూనిటీ లో చూడండి: https://choutuppal.in/community`
+  const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`
+
   return (
     <article
       className={cn(
         "rounded-3xl border p-4 shadow-sm transition-all duration-300",
         isPremium
-          ? "bg-amber-500/5 border-amber-200/40 shadow-[0_4px_15px_rgba(245,158,11,0.1)]"
+          ? "bg-gradient-to-br from-amber-50/40 via-white to-amber-50/20 border-amber-300/50 shadow-[0_4px_15px_rgba(245,158,11,0.12)]"
           : "glass"
       )}
     >
       {/* Author header */}
       <div className="flex items-start gap-3">
         <Link href={post.author.username ? `/profile/${post.author.username}` : '#'}>
-          <Avatar className={cn("h-11 w-11 border-2 shadow", isPremium ? "border-amber-300" : "border-white")}>
+          <Avatar className={cn("h-11 w-11 border-2 shadow-sm", isPremium ? "border-amber-400" : "border-white")}>
             <AvatarImage src={post.author.image ?? undefined} />
             <AvatarFallback className="gradient-brand text-white">
               {(post.author.name ?? post.author.username ?? 'U').charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </Link>
+
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
             <Link
@@ -368,16 +407,22 @@ function PostCard({
               {post.author.name ?? post.author.username ?? 'Anonymous'}
             </Link>
             {isPremium ? (
-              <Crown className="h-4 w-4 text-amber-500 fill-amber-400 shrink-0" />
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                <Crown className="h-3 w-3 text-amber-500 fill-amber-400 shrink-0" />
+                Premium
+              </span>
             ) : isPro ? (
-              <BadgeCheck className="h-4 w-4 text-blue-500 fill-blue-100 shrink-0" />
+              <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                <BadgeCheck className="h-3 w-3 text-blue-500 fill-blue-100 shrink-0" />
+                Pro
+              </span>
             ) : null}
-            
           </div>
           <p className="text-[11px] text-slate-400">
             @{post.author.username ?? 'user'} · {timeAgo(post.createdAt)}
           </p>
         </div>
+
         {isOwnPost ? (
           <button
             onClick={deletePost}
@@ -395,32 +440,43 @@ function PostCard({
         {post.content}
       </p>
 
-      {/* Actions */}
-      <div className="mt-3 flex items-center gap-1 border-t border-slate-100 pt-3">
+      {/* Action Toolbar */}
+      <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3">
         <button
           onClick={toggleLike}
           disabled={likeBusy}
           className={cn(
-            'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition',
+            'flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition',
             post.likedByMe
-              ? 'text-rose-600 hover:bg-rose-50'
+              ? 'bg-rose-50 text-rose-600'
               : 'text-slate-500 hover:bg-slate-50',
           )}
         >
           {likeBusy ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <Heart className={cn('h-3.5 w-3.5', post.likedByMe && 'fill-rose-500')} />
+            <Heart className={cn('h-3.5 w-3.5', post.likedByMe && 'fill-rose-500 text-rose-600')} />
           )}
-          {post.likes}
+          <span>{post.likes}</span>
         </button>
+
         <button
           onClick={() => setShowComments((s) => !s)}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50"
+          className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50"
         >
           <MessageCircle className="h-3.5 w-3.5" />
-          {post.commentCount}
+          <span>{post.commentCount}</span>
         </button>
+
+        <a
+          href={whatsappShareUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-auto flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
+        >
+          <Send className="h-3.5 w-3.5 text-emerald-600" />
+          <span>Share</span>
+        </a>
       </div>
 
       {/* Comments */}
@@ -453,7 +509,7 @@ function CommentSection({
   const [text, setText] = useState('')
   const [posting, setPosting] = useState(false)
 
-  // Load comments when the section opens.
+  // Load comments when open
   useEffect(() => {
     let active = true
     fetch(`/api/community/posts/${postId}/comments`)
@@ -492,34 +548,31 @@ function CommentSection({
         <p className="text-center text-xs text-slate-400">No comments yet.</p>
       ) : (
         <div className="space-y-2">
-          {comments.map((c) => {
-                        return (
-              <div key={c.id} className="flex items-start gap-2">
-                <Avatar className="h-7 w-7">
-                  <AvatarImage src={c.author.image ?? undefined} />
-                  <AvatarFallback className="text-[10px] gradient-brand text-white">
-                    {(c.author.name ?? 'U').charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1 rounded-xl bg-white px-3 py-2 text-xs">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-bold text-slate-900 flex items-center gap-1">
-                      <span>{c.author.name ?? c.author.username}</span>
-                      {c.author.planTier === 'PREMIUM' ? (
-                        <Crown className="h-3 w-3 text-amber-500 fill-amber-400 shrink-0" />
-                      ) : c.author.planTier === 'PRO' ? (
-                        <BadgeCheck className="h-3 w-3 text-blue-500 fill-blue-100 shrink-0" />
-                      ) : null}
-                    </span>
-                    
-                    <span className="text-slate-300">·</span>
-                    <span className="text-slate-400">{timeAgo(c.createdAt)}</span>
-                  </div>
-                  <p className="mt-0.5 whitespace-pre-wrap text-slate-700">{c.content}</p>
+          {comments.map((c) => (
+            <div key={c.id} className="flex items-start gap-2">
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={c.author.image ?? undefined} />
+                <AvatarFallback className="text-[10px] gradient-brand text-white">
+                  {(c.author.name ?? 'U').charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1 rounded-xl bg-white px-3 py-2 text-xs shadow-sm">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-bold text-slate-900 flex items-center gap-1">
+                    <span>{c.author.name ?? c.author.username}</span>
+                    {c.author.planTier === 'PREMIUM' ? (
+                      <Crown className="h-3 w-3 text-amber-500 fill-amber-400 shrink-0" />
+                    ) : c.author.planTier === 'PRO' ? (
+                      <BadgeCheck className="h-3 w-3 text-blue-500 fill-blue-100 shrink-0" />
+                    ) : null}
+                  </span>
+                  <span className="text-slate-300">·</span>
+                  <span className="text-slate-400">{timeAgo(c.createdAt)}</span>
                 </div>
+                <p className="font-telugu mt-0.5 whitespace-pre-wrap text-slate-700">{c.content}</p>
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
       )}
 
@@ -530,7 +583,7 @@ function CommentSection({
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addComment()}
             placeholder="Write a comment…"
-            className="h-9 flex-1 rounded-full border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
+            className="font-telugu h-9 flex-1 rounded-full border border-slate-200 bg-white px-3 text-xs outline-none focus:border-blue-400"
           />
           <Button
             onClick={addComment}
@@ -547,48 +600,54 @@ function CommentSection({
 }
 
 /* -------------------------------------------------------------------------- */
-/* People Directory                                                            */
+/* People Directory Sidebar                                                    */
 /* -------------------------------------------------------------------------- */
 
 function PeopleDirectory({ people }: { people: Person[] }) {
   return (
     <div className="rounded-3xl glass p-4">
-      <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
-        <Users className="h-4 w-4 text-blue-500" /> People you might know
+      <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+        <Users className="h-4 w-4 text-blue-500" /> People You May Know
       </h3>
       {people.length === 0 ? (
-        <p className="py-4 text-center text-xs text-slate-400">No public profiles yet.</p>
+        <p className="py-4 text-center text-xs text-slate-400">No public profiles found.</p>
       ) : (
-        <div className="space-y-2">
-          {people.map((p) => {
-                        return (
-              <Link
-                key={p.id}
-                href={p.username ? `/profile/${p.username}` : '#'}
-                className="hover-glow flex items-center gap-3 rounded-xl bg-white/60 p-2.5"
-              >
-                <Avatar className="h-9 w-9 border border-white">
+        <div className="space-y-2.5">
+          {people.map((p) => (
+            <div
+              key={p.id}
+              className="flex items-center justify-between gap-3 rounded-2xl bg-white/70 p-2.5 shadow-sm border border-slate-100"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Avatar className="h-9 w-9 border border-white shrink-0">
                   <AvatarImage src={p.image ?? undefined} />
                   <AvatarFallback className="text-xs gradient-brand text-white">
                     {(p.name ?? 'U').charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-900 flex items-center gap-1">
+                  <p className="truncate text-xs font-bold text-slate-900 flex items-center gap-1">
                     <span className="truncate">{p.name ?? p.username}</span>
                     {p.planTier === 'PREMIUM' ? (
-                      <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-400 shrink-0" />
+                      <Crown className="h-3 w-3 text-amber-500 fill-amber-400 shrink-0" />
                     ) : p.planTier === 'PRO' ? (
-                      <BadgeCheck className="h-3.5 w-3.5 text-blue-500 fill-blue-100 shrink-0" />
+                      <BadgeCheck className="h-3 w-3 text-blue-500 fill-blue-100 shrink-0" />
                     ) : null}
                   </p>
-                  <p className="truncate text-[11px] text-slate-400">
-                    {p.bio ?? p.village?.name ?? `@${p.username}`}
+                  <p className="truncate text-[10px] text-slate-400">
+                    {p.village?.name ?? p.bio ?? `@${p.username}`}
                   </p>
                 </div>
+              </div>
+
+              <Link
+                href={p.username ? `/profile/${p.username}` : '#'}
+                className="shrink-0 rounded-lg border border-blue-600 bg-white px-2.5 py-1 text-[10px] font-bold text-blue-600 shadow-sm transition hover:bg-blue-50"
+              >
+                View
               </Link>
-            )
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>
