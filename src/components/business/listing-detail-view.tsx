@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Phone,
+  PhoneCall,
   MessageCircle,
   UserPlus,
   MapPin,
@@ -430,12 +431,20 @@ export function ListingDetailView({
               
               {/* Vertical Stacked Buttons */}
               <div className="flex flex-col gap-3">
-                {/* 1. Call */}
+                {/* 1. Call (Primary) */}
                 <DesktopActionButton
-                  icon={Phone} label="Call Now" color="bg-emerald-500 hover:bg-emerald-600"
+                  icon={Phone} label={listing.secondaryPhone ? `Call 1 (${listing.phone})` : "Call Now"} color="bg-emerald-500 hover:bg-emerald-600"
                   href={listing.phone ? `tel:${listing.phone}` : null}
                   onClick={() => !listing.phone && toast.error('No phone number provided')}
                 />
+
+                {/* 1b. Call (Secondary) */}
+                {listing.secondaryPhone ? (
+                  <DesktopActionButton
+                    icon={PhoneCall} label={`Call 2 (${listing.secondaryPhone})`} color="bg-teal-600 hover:bg-teal-700"
+                    href={`tel:${listing.secondaryPhone}`}
+                  />
+                ) : null}
                 
                 {/* 2. WhatsApp */}
                 <DesktopActionButton
@@ -756,6 +765,7 @@ function DesktopActionButton({
 function downloadVcf(listing: ListingDetailData['listing']) {
   const name = listing.title
   const phone = listing.phone ?? ''
+  const secondaryPhone = listing.secondaryPhone ?? ''
   const whatsapp = listing.whatsapp ?? ''
   const email = listing.email ?? ''
   const address = listing.address ?? ''
@@ -765,7 +775,8 @@ function downloadVcf(listing: ListingDetailData['listing']) {
     'BEGIN:VCARD',
     'VERSION:3.0',
     `FN:${name}`,
-    `TEL;TYPE=CELL:${phone}`,
+    `TEL;TYPE=CELL,PREF:${phone}`,
+    secondaryPhone ? `TEL;TYPE=CELL,ALT:${secondaryPhone}` : '',
     whatsapp ? `TEL;TYPE=WHATsApp:${whatsapp}` : '',
     email ? `EMAIL:${email}` : '',
     address ? `ADR:;;${address};;;;` : '',

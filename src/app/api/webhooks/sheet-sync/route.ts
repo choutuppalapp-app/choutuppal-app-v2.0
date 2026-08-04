@@ -118,6 +118,7 @@ export async function POST(req: Request) {
       for (const row of items) {
         const title = row.name || row.title || 'Untitled Business'
         const phone = row.phone ? String(row.phone).trim() : null
+        const secondaryPhone = row.secondaryPhone || row.altPhone || row.phone2 ? String(row.secondaryPhone || row.altPhone || row.phone2).trim() : null
         const whatsapp = row.whatsapp ? String(row.whatsapp).trim() : phone
         const address = row.address || ''
         const coverImage = row.coverImage || row.image || null
@@ -143,6 +144,7 @@ export async function POST(req: Request) {
               coverImage: coverImage ?? existing.coverImage,
               logo: logo ?? existing.logo,
               phone: phone ?? existing.phone,
+              secondaryPhone: secondaryPhone ?? existing.secondaryPhone,
               whatsapp: whatsapp ?? existing.whatsapp,
               address: address || existing.address,
               businessHours: hours ? (hours as any) : (existing.businessHours as any),
@@ -163,6 +165,7 @@ export async function POST(req: Request) {
               coverImage,
               logo,
               phone,
+              secondaryPhone: secondaryPhone ?? undefined,
               whatsapp,
               address,
               businessHours: hours ? (hours as any) : undefined,
