@@ -66,17 +66,24 @@ export function DashboardShell({ data }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
 
+  const [addDefaultType, setAddDefaultType] = useState<'business' | 'service' | 'realestate'>('business')
+
   useEffect(() => {
     const t = searchParams.get('tab')
     if (t === 'add-listing') {
+      setAddDefaultType('business')
+      setAddOpen(true)
+    } else if (t === 'add-property') {
+      setAddDefaultType('realestate')
       setAddOpen(true)
     } else if (t && ['overview', 'profile', 'listings', 'realestate', 'media', 'analytics', 'community', 'notifications'].includes(t)) {
       setTab(t as TabId)
     }
   }, [searchParams])
 
-  const openAdd = () => {
+  const openAdd = (type?: 'business' | 'service' | 'realestate') => {
     setEditingItem(null)
+    setAddDefaultType(type || 'business')
     setAddOpen(true)
   }
 
@@ -103,7 +110,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
 
           <div className="ml-auto flex items-center gap-2">
             <Button
-              onClick={openAdd}
+              onClick={() => openAdd('business')}
               size="sm"
               className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/30"
             >
@@ -204,7 +211,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
             <MyListings listings={data.listings} onAdd={openAdd} onEdit={openEdit} />
           ) : null}
           {tab === 'realestate' ? (
-            <MyRealEstate realEstates={data.realEstates} onAdd={openAdd} onEdit={openEdit} />
+            <MyRealEstate realEstates={data.realEstates} onAdd={() => openAdd('realestate')} onEdit={openEdit} />
           ) : null}
           {tab === 'media' ? <MyBannersStories banners={data.banners} stories={data.stories} /> : null}
           {tab === 'community' ? <MyCommunityPosts posts={data.communityPosts} /> : null}
@@ -221,6 +228,7 @@ export function DashboardShell({ data }: DashboardShellProps) {
         onOpenChange={setAddOpen}
         villages={data.villages}
         categories={data.categories}
+        defaultType={addDefaultType}
         editingItem={editingItem}
         onSuccess={() => window.location.reload()}
       />

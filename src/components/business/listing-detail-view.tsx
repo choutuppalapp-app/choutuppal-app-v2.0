@@ -355,24 +355,33 @@ export function ListingDetailView({
                   ) : null}
                 </div>
               ) : null}
-              {hours ? (
+              {listing.businessHours ? (
                 <div className="rounded-3xl glass p-5">
-                  <h3 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-600">
-                    <Clock className="h-3.5 w-3.5 text-amber-600" /> Weekly Schedule
+                  <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-600">
+                    <Clock className="h-3.5 w-3.5 text-amber-600" /> Business Hours
                   </h3>
-                  <ul className="space-y-1 text-xs text-slate-700">
-                    {dayKeys.map((d) => {
-                      const h = hours[d]
-                      return (
-                        <li key={d} className="flex justify-between capitalize">
-                          <span>{d}</span>
-                          <span className="font-semibold">
-                            {h ? `${h.open} – ${h.close}` : 'Closed'}
-                          </span>
-                        </li>
-                      )
-                    })}
-                  </ul>
+                  {typeof listing.businessHours === 'string' || (listing.businessHours as any)?.raw ? (
+                    <div className="flex items-center gap-2.5 rounded-2xl bg-gradient-to-r from-blue-50 to-amber-50 border border-blue-100 p-3.5 shadow-sm">
+                      <Clock className="h-4 w-4 text-blue-600 shrink-0" />
+                      <span className="text-xs font-bold text-slate-800">
+                        {typeof listing.businessHours === 'string' ? listing.businessHours : (listing.businessHours as any)?.raw}
+                      </span>
+                    </div>
+                  ) : hours ? (
+                    <ul className="space-y-1 text-xs text-slate-700">
+                      {dayKeys.map((d) => {
+                        const h = hours[d]
+                        return (
+                          <li key={d} className="flex justify-between capitalize">
+                            <span className="font-medium text-slate-500">{d}</span>
+                            <span className="font-semibold text-slate-800">
+                              {h && h.open && h.close ? `${h.open} – ${h.close}` : 'Closed'}
+                            </span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  ) : null}
                 </div>
               ) : null}
             </section>

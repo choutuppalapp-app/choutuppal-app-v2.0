@@ -131,7 +131,7 @@ export function AddListingModal({
         setMapLink(editingItem.mapEmbed ?? '')
         setVillageId(editingItem.villageId ?? '')
         
-        if ('listingType' in editingItem) {
+        if ('listingType' in editingItem || 'contactPhone' in editingItem || editingItem.type === 'PLOT' || editingItem.type === 'HOUSE') {
           setType('realestate')
           setReType(editingItem.type ?? 'HOUSE')
           setListingType(editingItem.listingType ?? 'SALE')
@@ -149,14 +149,15 @@ export function AddListingModal({
           setCover(editingItem.coverImage ?? null)
           setGallery(Array.isArray(editingItem.gallery) ? editingItem.gallery : [])
           setServices(Array.isArray(editingItem.servicesCatalog) ? editingItem.servicesCatalog : [{ name: '', price: '', description: '' }])
-          setBusinessHours(editingItem.businessHours ? (typeof editingItem.businessHours === 'string' ? editingItem.businessHours : String(editingItem.businessHours)) : '')
-          if (editingItem.businessHours === 'Closed') setHoursOpenStatus('CLOSED')
+          const rawHours = typeof editingItem.businessHours === 'string'
+            ? editingItem.businessHours
+            : (editingItem.businessHours?.raw ?? '')
+          setBusinessHours(rawHours)
+          if (rawHours === 'Closed') setHoursOpenStatus('CLOSED')
+          else setHoursOpenStatus('OPEN')
         }
       } else {
         reset()
-        if (defaultType) {
-          setType(defaultType)
-        }
       }
     }
   }, [open, editingItem, defaultType])
@@ -168,12 +169,12 @@ export function AddListingModal({
     setReType('HOUSE'); setListingType('SALE'); setPrice(''); setAreaSqft('')
     setBedrooms(''); setBathrooms(''); setNegotiable(false)
     setServices([{ name: '', price: '', description: '' }])
-    setType('business')
+    setType(defaultType ?? 'business')
   }
 
   async function submit() {
     if (!title.trim() || !description.trim()) {
-      toast.error('Name and About are required')
+      toast.error(`${type === 'realestate' ? 'Property Title' : 'Name'} and About/Description are required`)
       return
     }
     setSaving(true)
@@ -209,11 +210,12 @@ export function AddListingModal({
           const cleanServices = services
             .filter((s) => s.name.trim())
             .map((s) => ({ name: s.name, price: s.price || undefined, description: s.description || undefined }))
+          const finalHours = hoursOpenStatus === 'CLOSED' ? 'Closed' : (businessHours.trim() ? businessHours.trim() : 'Mon-Sat: 9:00 AM - 9:00 PM')
           const res = await fetch(`/api/listings/${editingItem.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              title, description, coverImage: cover, logo, gallery, phone, secondaryPhone: secondaryPhone || undefined, whatsapp, address, mapEmbed: mapLink, servicesCatalog: cleanServices.length ? cleanServices : undefined, businessHours: hoursOpenStatus === 'CLOSED' ? 'Closed' : (businessHours ? businessHours : undefined), categoryId: categoryId || undefined, villageId: villageId || undefined,
+              title, description, coverImage: cover, logo, gallery, phone, secondaryPhone: secondaryPhone || undefined, whatsapp, address, mapEmbed: mapLink, servicesCatalog: cleanServices.length ? cleanServices : undefined, businessHours: finalHours, categoryId: categoryId || undefined, villageId: villageId || undefined,
             }),
           })
           const json = await res.json()
@@ -245,11 +247,12 @@ export function AddListingModal({
           reset()
         } else {
           const cleanServices = services.filter((s) => s.name.trim()).map((s) => ({ name: s.name, price: s.price || undefined, description: s.description || undefined }))
+          const finalHours = hoursOpenStatus === 'CLOSED' ? 'Closed' : (businessHours.trim() ? businessHours.trim() : 'Mon-Sat: 9:00 AM - 9:00 PM')
           const res = await fetch('/api/listings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              title, description, coverImage: cover, logo, gallery: gallery.length ? gallery : undefined, phone, secondaryPhone: secondaryPhone || undefined, whatsapp, address, mapEmbed: mapLink, servicesCatalog: cleanServices.length ? cleanServices : undefined, businessHours: hoursOpenStatus === 'CLOSED' ? 'Closed' : (businessHours ? businessHours : undefined), categoryId: categoryId || undefined, villageId: villageId || undefined,
+              title, description, coverImage: cover, logo, gallery: gallery.length ? gallery : undefined, phone, secondaryPhone: secondaryPhone || undefined, whatsapp, address, mapEmbed: mapLink, servicesCatalog: cleanServices.length ? cleanServices : undefined, businessHours: finalHours, categoryId: categoryId || undefined, villageId: villageId || undefined,
             }),
           })
           const json = await res.json()
@@ -273,224 +276,239 @@ export function AddListingModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-slate-900">
             {type === 'business' ? <Building2 className="h-5 w-5 text-blue-600" /> : type === 'service' ? <Wrench className="h-5 w-5 text-amber-600" /> : <Home className="h-5 w-5 text-emerald-600" />}
-            {editingItem ? 'Edit Listing' : type === 'business' ? 'Add Business Listing' : type === 'service' ? 'Add Service Listing' : 'List Real Estate Property'}
+            {editingItem ? 'Edit Item' : type === 'business' ? 'Add Business Listing' : type === 'service' ? 'Add Service Listing' : 'List Real Estate Property'}
           </DialogTitle>
           <DialogDescription>
             {editingItem ? 'Update details below.' : 'Fill in the details below. Admin will review before publishing.'}
           </DialogDescription>
         </DialogHeader>
 
+        {/* Listing Type Switcher Tabs (when creating new) */}
+        {!editingItem ? (
+          <Tabs value={type} onValueChange={(val) => setType(val as ListingType)} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="business" className="gap-1.5 text-xs font-bold">
+                <Building2 className="h-3.5 w-3.5" /> Business
+              </TabsTrigger>
+              <TabsTrigger value="service" className="gap-1.5 text-xs font-bold">
+                <Wrench className="h-3.5 w-3.5" /> Service
+              </TabsTrigger>
+              <TabsTrigger value="realestate" className="gap-1.5 text-xs font-bold">
+                <Home className="h-3.5 w-3.5" /> Real Estate
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        ) : null}
+
         <div className="space-y-4 py-2 font-sans">
           {/* Media uploads */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <ImageUpload value={logo} onChange={setLogo} folder="logos" aspect="square" label="Logo (1:1)" />
-            <ImageUpload value={cover} onChange={setCover} folder="covers" aspect="video" label="Cover (16:9)" className="col-span-1 sm:col-span-3" />
+            {type !== 'realestate' ? (
+              <ImageUpload value={logo} onChange={setLogo} folder="logos" aspect="square" label="Logo (1:1)" />
+            ) : null}
+            <ImageUpload value={cover} onChange={setCover} folder="covers" aspect="video" label="Cover Photo (16:9)" className={type !== 'realestate' ? 'col-span-1 sm:col-span-3' : 'col-span-2 sm:col-span-4'} />
           </div>
-          <GalleryUpload value={gallery} onChange={setGallery} folder="gallery" max={5} label="Gallery (max 5, 1:1)" />
+          <GalleryUpload value={gallery} onChange={setGallery} folder="gallery" max={5} label="Gallery Photos (max 5)" />
 
-          {/* Basic fields */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={`${type === 'realestate' ? 'Property' : 'Business'} Name *`}>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Sri Lakshmi Tiffin Center" />
-            </Field>
-            {type !== 'realestate' ? (
-              <Field label="Category">
-                <Select value={categoryId} onValueChange={setCategoryId}>
-                  <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            ) : (
-              <Field label="Property Type">
-                <Select value={reType} onValueChange={setReType}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PLOT">Plot</SelectItem>
-                    <SelectItem value="HOUSE">House</SelectItem>
-                    <SelectItem value="APARTMENT">Apartment</SelectItem>
-                    <SelectItem value="COMMERCIAL">Commercial</SelectItem>
-                    <SelectItem value="FARM">Farm Land</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-            )}
-            <Field label="Phone">
-              <Input
-                value={phone}
-                onChange={(e) => {
-                  const val = e.target.value
-                  setPhone(val)
-                  if (!whatsapp && val) {
-                    setWhatsapp(val.length === 10 ? `91${val}` : val)
-                  }
-                }}
-                placeholder="9441348175"
-              />
-            </Field>
-            <Field label="Secondary Phone (Optional)">
-              <Input
-                value={secondaryPhone}
-                onChange={(e) => setSecondaryPhone(e.target.value)}
-                placeholder="9876543210"
-              />
-            </Field>
-            <Field label="WhatsApp">
-              <div className="relative">
-                <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919441348175" />
-                {!whatsapp && phone ? (
-                  <button
-                    type="button"
-                    onClick={() => setWhatsapp(phone.length === 10 ? `91${phone}` : phone)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-blue-600 hover:underline"
-                  >
-                    Copy Phone
-                  </button>
-                ) : null}
-              </div>
-            </Field>
-            {type !== 'realestate' ? (
-              <Field label="Business Hours">
-                <div className="flex items-center gap-2">
-                  <Select value={hoursOpenStatus} onValueChange={(val) => setHoursOpenStatus(val as 'OPEN' | 'CLOSED')}>
-                    <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+          {/* Form fields based on Type */}
+          {type === 'realestate' ? (
+            /* REAL ESTATE ONLY FORM */
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Property Title *">
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. 200 Sq Yds Open Plot near NH-65" />
+                </Field>
+                <Field label="Property Type">
+                  <Select value={reType} onValueChange={setReType}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="OPEN">Open</SelectItem>
-                      <SelectItem value="CLOSED">Closed</SelectItem>
+                      <SelectItem value="PLOT">Plot</SelectItem>
+                      <SelectItem value="HOUSE">House</SelectItem>
+                      <SelectItem value="APARTMENT">Apartment</SelectItem>
+                      <SelectItem value="COMMERCIAL">Commercial</SelectItem>
+                      <SelectItem value="FARM">Farm Land</SelectItem>
                     </SelectContent>
                   </Select>
-                  {hoursOpenStatus === 'OPEN' ? (
-                    <Input
-                      value={businessHours}
-                      onChange={(e) => setBusinessHours(e.target.value)}
-                      placeholder="e.g. 9:00 AM - 9:00 PM (Mon-Sat)"
-                      className="flex-1"
-                    />
-                  ) : (
-                    <div className="flex-1 rounded-md bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-500">
-                      Closed for Business
-                    </div>
-                  )}
-                </div>
-              </Field>
-            ) : null}
-            <Field label="Village">
-              <Select value={villageId} onValueChange={setVillageId}>
-                <SelectTrigger><SelectValue placeholder="Select village" /></SelectTrigger>
-                <SelectContent>
-                  {localVillages.map((v) => (
-                    <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Address *">
-              <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Main Road, Choutuppal" />
-            </Field>
-            <Field label="Google Map Link">
-              <Input value={mapLink} onChange={(e) => setMapLink(e.target.value)} placeholder="https://maps.google.com/…" />
-            </Field>
-            {type !== 'realestate' ? (
-              <Field label="Rating (out of 5)">
-                <div className="relative">
-                  <Star className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 fill-amber-400 text-amber-400" />
-                  <Input value={rating} onChange={(e) => setRating(e.target.value)} placeholder="4.5" className="pl-8" inputMode="decimal" />
-                </div>
-              </Field>
-            ) : null}
-          </div>
-
-          <Field label="About / Description *">
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your business / property…" rows={3} />
-          </Field>
-
-          {/* Dynamic: Real Estate fields */}
-          {type === 'realestate' ? (
-            <div className="space-y-3 rounded-2xl gradient-brand-soft p-4">
-              <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                <Home className="h-4 w-4 text-blue-600" /> Property Details
-              </h4>
-              <div className="grid gap-3 sm:grid-cols-3">
+                </Field>
                 <Field label="Listing Type">
                   <Select value={listingType} onValueChange={setListingType}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="SALE">Sale</SelectItem>
-                      <SelectItem value="RENT">Rent</SelectItem>
-                      <SelectItem value="LEASE">Lease</SelectItem>
+                      <SelectItem value="SALE">For Sale</SelectItem>
+                      <SelectItem value="RENT">For Rent</SelectItem>
+                      <SelectItem value="LEASE">For Lease</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>
                 <Field label="Price (₹) *">
-                  <Input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="4500000" inputMode="numeric" />
+                  <Input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="e.g. 4500000" inputMode="numeric" />
                 </Field>
-                <Field label="Area (sqft)">
-                  <Input value={areaSqft} onChange={(e) => setAreaSqft(e.target.value)} placeholder="1450" inputMode="numeric" />
+                <Field label="Area (sqft / sq yds)">
+                  <Input value={areaSqft} onChange={(e) => setAreaSqft(e.target.value)} placeholder="e.g. 1800" inputMode="numeric" />
                 </Field>
                 <Field label="Bedrooms (BHK)">
-                  <Input value={bedrooms} onChange={(e) => setBedrooms(e.target.value)} placeholder="3" inputMode="numeric" />
+                  <Input value={bedrooms} onChange={(e) => setBedrooms(e.target.value)} placeholder="e.g. 3" inputMode="numeric" />
                 </Field>
                 <Field label="Bathrooms">
-                  <Input value={bathrooms} onChange={(e) => setBathrooms(e.target.value)} placeholder="2" inputMode="numeric" />
+                  <Input value={bathrooms} onChange={(e) => setBathrooms(e.target.value)} placeholder="e.g. 2" inputMode="numeric" />
                 </Field>
-                <Field label="Negotiable">
-                  <div className="flex h-9 items-center gap-2">
-                    <input type="checkbox" id="neg" checked={negotiable} onChange={(e) => setNegotiable(e.target.checked)} className="h-4 w-4 accent-blue-600" />
-                    <label htmlFor="neg" className="text-sm text-slate-600">Price negotiable</label>
-                  </div>
+                <Field label="Village">
+                  <Select value={villageId} onValueChange={setVillageId}>
+                    <SelectTrigger><SelectValue placeholder="Select village" /></SelectTrigger>
+                    <SelectContent>
+                      {localVillages.map((v) => (
+                        <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Contact Phone *">
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9441348175" />
+                </Field>
+                <Field label="WhatsApp">
+                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919441348175" />
                 </Field>
               </div>
-            </div>
-          ) : null}
 
-          {/* Dynamic: Services catalog */}
-          {type !== 'realestate' ? (
-            <div className="space-y-3 rounded-2xl gradient-brand-soft p-4">
-              <div className="flex items-center justify-between">
-                <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                  <Wrench className="h-4 w-4 text-amber-600" /> Services Catalog
-                </h4>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="gap-1 text-xs"
-                  onClick={() => setServices((s) => [...s, { name: '', price: '', description: '' }])}
-                >
-                  <Plus className="h-3 w-3" /> Add Service
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {services.map((s, i) => (
-                  <div key={i} className="grid gap-2 sm:grid-cols-[1fr_100px_28px]">
-                    <Input
-                      value={s.name}
-                      onChange={(e) => setServices((arr) => arr.map((x, idx) => idx === i ? { ...x, name: e.target.value } : x))}
-                      placeholder="Service name (e.g. Idli Sambar)"
-                    />
-                    <Input
-                      value={s.price}
-                      onChange={(e) => setServices((arr) => arr.map((x, idx) => idx === i ? { ...x, price: e.target.value } : x))}
-                      placeholder="₹ price"
-                    />
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="outline"
-                      className="border-red-200 text-red-600 hover:bg-red-50"
-                      onClick={() => setServices((arr) => arr.filter((_, idx) => idx !== i))}
-                      disabled={services.length === 1}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+              <Field label="Address *">
+                <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Near Bus Stand, Choutuppal" />
+              </Field>
+
+              <Field label="Google Map Link">
+                <Input value={mapLink} onChange={(e) => setMapLink(e.target.value)} placeholder="https://maps.google.com/…" />
+              </Field>
+
+              <Field label="About / Description *">
+                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the property details, features, location landmarks..." rows={3} />
+              </Field>
+            </div>
+          ) : (
+            /* BUSINESS / SERVICE FORM */
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Business Name *">
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Sri Lakshmi Tiffin Center" />
+                </Field>
+                <Field label="Category">
+                  <Select value={categoryId} onValueChange={setCategoryId}>
+                    <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                    <SelectContent>
+                      {localCategories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Phone">
+                  <Input
+                    value={phone}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setPhone(val)
+                      if (!whatsapp && val) {
+                        setWhatsapp(val.length === 10 ? `91${val}` : val)
+                      }
+                    }}
+                    placeholder="9441348175"
+                  />
+                </Field>
+                <Field label="Secondary Phone (Optional)">
+                  <Input value={secondaryPhone} onChange={(e) => setSecondaryPhone(e.target.value)} placeholder="9876543210" />
+                </Field>
+                <Field label="WhatsApp">
+                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919441348175" />
+                </Field>
+                <Field label="Business Hours">
+                  <div className="flex items-center gap-2">
+                    <Select value={hoursOpenStatus} onValueChange={(val) => setHoursOpenStatus(val as 'OPEN' | 'CLOSED')}>
+                      <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="OPEN">Open</SelectItem>
+                        <SelectItem value="CLOSED">Closed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {hoursOpenStatus === 'OPEN' ? (
+                      <Input
+                        value={businessHours}
+                        onChange={(e) => setBusinessHours(e.target.value)}
+                        placeholder="e.g. 9:00 AM - 9:00 PM (Mon-Sat)"
+                        className="flex-1"
+                      />
+                    ) : (
+                      <div className="flex-1 rounded-md bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-500">
+                        Closed for Business
+                      </div>
+                    )}
                   </div>
-                ))}
+                </Field>
+                <Field label="Village">
+                  <Select value={villageId} onValueChange={setVillageId}>
+                    <SelectTrigger><SelectValue placeholder="Select village" /></SelectTrigger>
+                    <SelectContent>
+                      {localVillages.map((v) => (
+                        <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Address *">
+                  <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Main Road, Choutuppal" />
+                </Field>
+              </div>
+
+              <Field label="Google Map Link">
+                <Input value={mapLink} onChange={(e) => setMapLink(e.target.value)} placeholder="https://maps.google.com/…" />
+              </Field>
+
+              <Field label="About / Description *">
+                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your business, products, services offered..." rows={3} />
+              </Field>
+
+              {/* Services catalog */}
+              <div className="space-y-3 rounded-2xl gradient-brand-soft p-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                    <Wrench className="h-4 w-4 text-amber-600" /> Services Catalog
+                  </h4>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 text-xs"
+                    onClick={() => setServices((s) => [...s, { name: '', price: '', description: '' }])}
+                  >
+                    <Plus className="h-3 w-3" /> Add Service
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {services.map((s, i) => (
+                    <div key={i} className="grid gap-2 sm:grid-cols-[1fr_100px_28px]">
+                      <Input
+                        value={s.name}
+                        onChange={(e) => setServices((arr) => arr.map((x, idx) => idx === i ? { ...x, name: e.target.value } : x))}
+                        placeholder="Service name"
+                      />
+                      <Input
+                        value={s.price}
+                        onChange={(e) => setServices((arr) => arr.map((x, idx) => idx === i ? { ...x, price: e.target.value } : x))}
+                        placeholder="₹ price"
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        className="border-red-200 text-red-600 hover:bg-red-50"
+                        onClick={() => setServices((arr) => arr.filter((_, idx) => idx !== i))}
+                        disabled={services.length === 1}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          ) : null}
+          )}
         </div>
 
         {/* Footer actions */}
