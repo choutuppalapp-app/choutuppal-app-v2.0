@@ -109,6 +109,29 @@ export function ArticleFooter({
         </div>
       </div>
 
+      {/* Send News CTA Box */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-blue-700 to-amber-500 p-4 text-white shadow-md">
+        <div className="space-y-1 text-center sm:text-left">
+          <p className="font-telugu text-sm font-bold">
+            📢 మీ ఊరిలో జరిగిన విశేషాలు లేదా వార్తలు ఉన్నాయా?
+          </p>
+          <p className="text-xs text-white/90">
+            మాకు WhatsApp ద్వారా పంపండి, మేము చౌటుప్పల్ యాప్ లో ప్రచురిస్తాము.
+          </p>
+        </div>
+        <a
+          href={`https://wa.me/919441348175?text=${encodeURIComponent(
+            'నమస్కారం చౌటుప్పల్ యాప్, మా ఊరిలో ఒక ముఖ్యమైన వార్త/అప్డేట్ ఉంది. దయచేసి దీన్ని యాప్ లో పోస్ట్ చేయండి.'
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-extrabold text-blue-700 shadow transition hover:bg-amber-50 active:scale-95"
+        >
+          <MessageCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span className="font-telugu">వార్త పంపండి</span>
+        </a>
+      </div>
+
       {/* Related Posts */}
       {relatedPosts && relatedPosts.length > 0 ? (
         <div className="space-y-4">

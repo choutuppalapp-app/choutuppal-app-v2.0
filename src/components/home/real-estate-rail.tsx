@@ -22,28 +22,29 @@ function formatPrice(price: number, listingType: string) {
 }
 
 export function RealEstateRail({ properties }: RealEstateRailProps) {
+  const topProperties = properties.slice(0, 4)
+
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
         eyebrow="Real Estate"
-        title="Premium Real Estate"
+        title="Premium Properties"
         subtitle="Plots, houses and rentals in & around Choutuppal."
         action={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1 text-blue-600 hover:bg-blue-50"
-          >
-            View all <ChevronRight className="h-4 w-4" />
-          </Button>
+          <Link href="/explore?tab=real-estate">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 text-blue-600 hover:bg-blue-50"
+            >
+              View all <ChevronRight className="h-4 w-4" />
+            </Button>
+          </Link>
         }
       />
 
-      <div
-        className="no-scrollbar mt-5 flex w-full max-w-full gap-4 overflow-x-auto pb-4 snap-x touch-pan-x"
-        style={{ WebkitOverflowScrolling: 'touch' }}
-      >
-        {properties.map((p, i) => {
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        {topProperties.map((p, i) => {
           const gradients = [
             'from-blue-600 to-amber-400',
             'from-amber-500 to-blue-400',
@@ -55,7 +56,7 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
             <Link
               key={p.id}
               href={`/explore?tab=real-estate`}
-              className="hover-lift group w-[270px] sm:w-[290px] shrink-0 snap-start overflow-hidden rounded-2xl glass"
+              className="hover-lift group flex w-full flex-col justify-between overflow-hidden rounded-2xl glass"
             >
               <div className="relative aspect-[16/10] w-full overflow-hidden">
                 {p.coverImage ? (
@@ -64,7 +65,7 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
                     alt={p.title}
                     fill
                     loading="lazy"
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes="(max-width: 768px) 50vw, 25vw"
                     className="h-full w-full object-cover transition group-hover:scale-105"
                   />
                 ) : (
@@ -74,7 +75,7 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
                   </>
                 )}
                 <Badge
-                  className={`absolute left-3 top-3 z-10 ${
+                  className={`absolute left-2.5 top-2.5 z-10 ${
                     p.listingType === 'SALE'
                       ? 'bg-emerald-500 text-white hover:bg-emerald-500'
                       : 'bg-amber-500 text-white hover:bg-amber-500'
@@ -82,44 +83,22 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
                 >
                   For {p.listingType === 'SALE' ? 'Sale' : 'Rent'}
                 </Badge>
-                <span className="absolute bottom-3 right-3 z-10 rounded-lg bg-white/90 px-2 py-1 text-[10px] font-bold uppercase text-blue-700 backdrop-blur">
+                <span className="absolute bottom-2.5 right-2.5 z-10 rounded-lg bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-700 backdrop-blur">
                   {p.type}
                 </span>
               </div>
 
-              <div className="p-3.5">
-                <h3 className="truncate font-bold text-slate-900">{p.title}</h3>
+              <div className="p-3">
+                <h3 className="truncate font-bold text-slate-900 text-sm sm:text-base">{p.title}</h3>
                 <div className="mt-1 flex items-baseline gap-1 text-blue-700">
-                  <IndianRupee className="h-4 w-4" />
-                  <span className="text-lg font-black tracking-tight">
+                  <IndianRupee className="h-3.5 w-3.5" />
+                  <span className="text-base font-black tracking-tight sm:text-lg">
                     {formatPrice(p.price, p.listingType).replace('₹', '')}
                   </span>
                 </div>
-
-                <div className="mt-2 flex items-center gap-3 text-xs text-slate-600">
-                  {p.bedrooms ? (
-                    <span className="flex items-center gap-1">
-                      <BedDouble className="h-3.5 w-3.5 text-blue-500" />
-                      {p.bedrooms} BHK
-                    </span>
-                  ) : null}
-                  {p.bathrooms ? (
-                    <span className="flex items-center gap-1">
-                      <Bath className="h-3.5 w-3.5 text-amber-500" />
-                      {p.bathrooms}
-                    </span>
-                  ) : null}
-                  {p.areaSqft ? (
-                    <span className="flex items-center gap-1">
-                      <Maximize className="h-3.5 w-3.5 text-slate-400" />
-                      {p.areaSqft} sqft
-                    </span>
-                  ) : null}
-                </div>
-
-                <p className="mt-2 flex items-center gap-1 text-xs text-slate-500">
-                  <MapPin className="h-3 w-3 text-blue-500" />
-                  {p.village?.name ?? 'Choutuppal'}
+                <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-500">
+                  <MapPin className="h-3 w-3 text-blue-500 shrink-0" />
+                  <span className="truncate">{p.village?.name ?? 'Choutuppal'}</span>
                 </p>
               </div>
             </Link>

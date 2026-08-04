@@ -11,6 +11,9 @@ const BannerCarousel = nextDynamic(() => import('@/components/home/banner-carous
 const CategoriesGrid = nextDynamic(() => import('@/components/home/categories-grid').then(m => ({ default: m.CategoriesGrid })))
 const FeaturedRail = nextDynamic(() => import('@/components/home/featured-rail').then(m => ({ default: m.FeaturedRail })))
 const RealEstateRail = nextDynamic(() => import('@/components/home/real-estate-rail').then(m => ({ default: m.RealEstateRail })))
+const SendNewsCTA = nextDynamic(() => import('@/components/home/send-news-cta').then(m => ({ default: m.SendNewsCTA })))
+const NewsGrid = nextDynamic(() => import('@/components/home/news-grid').then(m => ({ default: m.NewsGrid })))
+const BlogGrid = nextDynamic(() => import('@/components/home/blog-grid').then(m => ({ default: m.BlogGrid })))
 const SpinWin = nextDynamic(() => import('@/components/home/spin-win').then(m => ({ default: m.SpinWin })))
 const ShortsRail = nextDynamic(() => import('@/components/home/shorts-rail').then(m => ({ default: m.ShortsRail })))
 const Testimonials = nextDynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials })))
@@ -76,29 +79,38 @@ export default async function Home() {
           {/* 4. Browse Categories */}
           <CategoriesGrid categories={data.categories} />
 
-          {/* 5. Featured Business & Services */}
+          {/* 5. Top Local Businesses Grid */}
           <FeaturedRail listings={data.featured} />
 
-          {/* 6. Premium Real Estate */}
+          {/* 6. Premium Properties Grid */}
           <RealEstateRail properties={data.realEstate} />
 
-          {/* 7. Spin & Win */}
+          {/* 7. Send News Banner CTA */}
+          <SendNewsCTA />
+
+          {/* 8. Latest News Grid */}
+          <NewsGrid articles={data.latestNews} />
+
+          {/* 9. Recent Blogs Grid */}
+          <BlogGrid blogs={data.latestBlogs} />
+
+          {/* 10. Spin & Win */}
           {spinEnabled ? <SpinWin /> : null}
 
-          {/* 8. Shorts/Reels */}
+          {/* 11. Shorts/Reels */}
           <div id="shorts">
             <ShortsRail shorts={data.shorts} />
           </div>
 
-          {/* 9. Testimonials */}
+          {/* 12. Testimonials */}
           <Testimonials />
 
-          {/* 10. Pricing Plans */}
+          {/* 13. Pricing Plans */}
           <div id="pricing">
             <PricingPlans />
           </div>
 
-          {/* 11. Agent & City Expansion CTAs */}
+          {/* 14. Agent & City Expansion CTAs */}
           <AgentCityCTA />
 
           {/* Explore anchor target (mobile bottom nav) */}

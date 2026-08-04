@@ -86,6 +86,46 @@ export async function getShorts() {
   )
 }
 
+export async function getLatestNews() {
+  return safeDbQuery(
+    () =>
+      prisma.news.findMany({
+        where: { isPublished: true },
+        orderBy: { createdAt: 'desc' },
+        take: 4,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          summary: true,
+          image: true,
+          createdAt: true,
+        },
+      }),
+    [],
+  )
+}
+
+export async function getLatestBlogs() {
+  return safeDbQuery(
+    () =>
+      prisma.blog.findMany({
+        where: { isPublished: true },
+        orderBy: { createdAt: 'desc' },
+        take: 4,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          coverImage: true,
+          createdAt: true,
+        },
+      }),
+    [],
+  )
+}
+
 export async function getVillages() {
   return safeDbQuery(
     () => prisma.village.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true } }),
@@ -103,6 +143,8 @@ export async function getHomePageData() {
       realEstate,
       shorts,
       villages,
+      latestNews,
+      latestBlogs,
     ] = await Promise.all([
       getActiveStories(),
       getActiveBanners(),
@@ -111,11 +153,13 @@ export async function getHomePageData() {
       getPremiumRealEstate(),
       getShorts(),
       getVillages(),
+      getLatestNews(),
+      getLatestBlogs(),
     ])
-    return { stories, banners, categories, featured, realEstate, shorts, villages }
+    return { stories, banners, categories, featured, realEstate, shorts, villages, latestNews, latestBlogs }
   } catch (err) {
     console.error('[HomeData] getHomePageData failed:', err)
-    return { stories: [], banners: [], categories: [], featured: [], realEstate: [], shorts: [], villages: [] }
+    return { stories: [], banners: [], categories: [], featured: [], realEstate: [], shorts: [], villages: [], latestNews: [], latestBlogs: [] }
   }
 }
 

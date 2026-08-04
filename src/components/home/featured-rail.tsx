@@ -17,28 +17,29 @@ interface FeaturedRailProps {
 }
 
 export function FeaturedRail({ listings }: FeaturedRailProps) {
+  const topListings = listings.slice(0, 4)
+
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
         eyebrow="Featured"
-        title="Featured Business & Services"
+        title="Top Local Businesses"
         subtitle="Top-rated local businesses trusted by the community."
         action={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1 text-blue-600 hover:bg-blue-50"
-          >
-            View all <ChevronRight className="h-4 w-4" />
-          </Button>
+          <Link href="/listings">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 text-blue-600 hover:bg-blue-50"
+            >
+              View all <ChevronRight className="h-4 w-4" />
+            </Button>
+          </Link>
         }
       />
 
-      <div
-        className="no-scrollbar mt-5 flex w-full max-w-full gap-4 overflow-x-auto pb-4 snap-x touch-pan-x"
-        style={{ WebkitOverflowScrolling: 'touch' }}
-      >
-        {listings.map((l, i) => {
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        {topListings.map((l, i) => {
           const initial = l.title.charAt(0).toUpperCase()
           const rating = ((l as any).avgRating ?? (4 + ((i * 7) % 10) / 10)).toFixed(1)
           const imgUrl = l.coverImage || l.logo
@@ -46,17 +47,17 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
             <Link
               key={l.id}
               href={`/business/${l.slug}`}
-              className="hover-lift group w-[260px] sm:w-[280px] shrink-0 snap-start overflow-hidden rounded-2xl glass"
+              className="hover-lift group flex w-full flex-col justify-between overflow-hidden rounded-2xl glass"
             >
               {/* cover */}
-              <div className="relative aspect-[4/3] w-full overflow-hidden">
+              <div className="relative aspect-[16/10] w-full overflow-hidden">
                 {imgUrl ? (
                   <Image
                     src={imgUrl}
                     alt={l.title}
                     fill
                     loading="lazy"
-                    sizes="(max-width: 768px) 100vw, 33vw"
+                    sizes="(max-width: 768px) 50vw, 25vw"
                     className="h-full w-full object-cover transition group-hover:scale-105"
                   />
                 ) : (
@@ -65,31 +66,31 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_45%)]" />
                   </>
                 )}
-                <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-bold text-amber-700 backdrop-blur z-10">
+                <span className="absolute left-2.5 top-2.5 z-10 flex items-center gap-1 rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-bold text-amber-700 backdrop-blur">
                   <BadgeCheck className="h-3 w-3 text-blue-600" />
-                  Featured
+                  Top
                 </span>
                 {!imgUrl ? (
-                  <span className="absolute bottom-3 left-3 grid h-12 w-12 place-items-center rounded-xl bg-white/90 text-2xl font-black text-blue-700 shadow z-10">
+                  <span className="absolute bottom-2.5 left-2.5 z-10 grid h-10 w-10 place-items-center rounded-xl bg-white/90 text-xl font-black text-blue-700 shadow">
                     {initial}
                   </span>
                 ) : null}
               </div>
 
               {/* body */}
-              <div className="p-3.5">
-                <h3 className="truncate font-bold text-slate-900">{l.title}</h3>
+              <div className="p-3">
+                <h3 className="truncate font-bold text-slate-900 text-sm sm:text-base">{l.title}</h3>
                 <div className="mt-1 flex items-center gap-1 text-xs text-amber-500">
                   <Star className="h-3.5 w-3.5 fill-amber-400" />
                   <span className="font-semibold text-slate-700">{rating}</span>
                   <span className="text-slate-300">·</span>
-                  <span className="text-slate-500">
+                  <span className="truncate text-slate-500">
                     {l.category?.name ?? 'Business'}
                   </span>
                 </div>
                 <p className="mt-1.5 flex items-center gap-1 text-xs text-slate-500">
-                  <MapPin className="h-3 w-3 text-blue-500" />
-                  {l.village?.name ?? 'Choutuppal'}
+                  <MapPin className="h-3 w-3 text-blue-500 shrink-0" />
+                  <span className="truncate">{l.village?.name ?? 'Choutuppal'}</span>
                 </p>
               </div>
             </Link>
