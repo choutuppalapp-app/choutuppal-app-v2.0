@@ -1,10 +1,20 @@
+'use client'
+
 import Link from 'next/link'
-import { MapPin, Phone, MessageCircle, Mail } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { MapPin, Phone, MessageCircle } from 'lucide-react'
 import { SocialLinks } from '@/components/shared/social-links'
+import { cn } from '@/lib/utils'
 
 export function SiteFooter() {
+  const pathname = usePathname()
+  const isBusinessPage = pathname.startsWith('/business')
+
   return (
-    <footer className="mt-auto border-t border-white/40 bg-white/70 backdrop-blur-xl">
+    <footer className={cn(
+      "mt-auto border-t border-white/40 bg-white/70 backdrop-blur-xl",
+      isBusinessPage && "hidden md:block"
+    )}>
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4">
           {/* Section 1 — PAGES */}

@@ -648,7 +648,7 @@ function MobileActionBar({ listing }: { listing: ListingDetailData['listing'] })
   const mapLink = listing.mapEmbed ?? `https://maps.google.com/?q=${encodeURIComponent(listing.address ?? listing.title)}`
   return (
     <nav
-      className="fixed bottom-16 left-0 right-0 z-50 flex items-center justify-around bg-white/95 backdrop-blur-md p-2 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.12)] border-t border-slate-100 md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-white/95 backdrop-blur-md p-2 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.12)] border-t border-slate-100 md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       aria-label="Listing actions"
     >
