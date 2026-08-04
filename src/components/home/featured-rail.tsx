@@ -34,7 +34,10 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
         }
       />
 
-      <div className="no-scrollbar mt-5 flex gap-4 overflow-x-auto pb-2">
+      <div
+        className="no-scrollbar mt-5 flex w-full max-w-full gap-4 overflow-x-auto pb-4 snap-x touch-pan-x"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {listings.map((l, i) => {
           const initial = l.title.charAt(0).toUpperCase()
           const rating = ((l as any).avgRating ?? (4 + ((i * 7) % 10) / 10)).toFixed(1)
@@ -43,7 +46,7 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
             <Link
               key={l.id}
               href={`/business/${l.slug}`}
-              className="hover-lift group w-[230px] shrink-0 overflow-hidden rounded-2xl glass"
+              className="hover-lift group w-[260px] sm:w-[280px] shrink-0 snap-start overflow-hidden rounded-2xl glass"
             >
               {/* cover */}
               <div className="relative aspect-[4/3] w-full overflow-hidden">

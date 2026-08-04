@@ -39,7 +39,10 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
         }
       />
 
-      <div className="no-scrollbar mt-5 flex gap-4 overflow-x-auto pb-2">
+      <div
+        className="no-scrollbar mt-5 flex w-full max-w-full gap-4 overflow-x-auto pb-4 snap-x touch-pan-x"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {properties.map((p, i) => {
           const gradients = [
             'from-blue-600 to-amber-400',
@@ -52,7 +55,7 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
             <Link
               key={p.id}
               href={`/explore?tab=real-estate`}
-              className="hover-lift group w-[270px] shrink-0 overflow-hidden rounded-2xl glass"
+              className="hover-lift group w-[270px] sm:w-[290px] shrink-0 snap-start overflow-hidden rounded-2xl glass"
             >
               <div className="relative aspect-[16/10] w-full overflow-hidden">
                 {p.coverImage ? (

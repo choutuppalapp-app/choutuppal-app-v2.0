@@ -59,7 +59,10 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
           </Button>
         }
       />
-      <div className="no-scrollbar mt-3.5 flex gap-3 overflow-x-auto pb-2 sm:gap-4">
+      <div
+        className="no-scrollbar mt-3.5 flex w-full max-w-full gap-3 overflow-x-auto pb-4 touch-pan-x sm:gap-4"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {shorts.map((s, i) => {
           const owner = s.owner.username ?? s.owner.name ?? 'Choutuppal'
           const isInstagram = s.platform === 'INSTAGRAM'

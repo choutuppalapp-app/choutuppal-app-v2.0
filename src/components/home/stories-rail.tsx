@@ -66,7 +66,10 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
       </div>
 
       {/* Container: left-aligned, horizontal scroll, no wrap */}
-      <div className="no-scrollbar mt-3 flex justify-start gap-4 overflow-x-auto px-4 pb-2 flex-nowrap scrollbar-none">
+      <div
+        className="no-scrollbar mt-3 flex w-full max-w-full justify-start gap-4 overflow-x-auto px-4 pb-3 flex-nowrap touch-pan-x"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {/* Add story button */}
         <button
           onClick={handleAddClick}
