@@ -69,7 +69,7 @@ export function ListingDetailView({
       const j = await res.json()
       if (!res.ok || !j.ok) throw new Error(j.error || 'Failed to claim business')
       toast.success(j.message || 'Business claimed successfully!')
-      router.refresh()
+      router.push('/dashboard?tab=listings')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to claim business')
     } finally {

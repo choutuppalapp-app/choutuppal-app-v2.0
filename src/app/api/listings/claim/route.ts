@@ -48,10 +48,15 @@ export async function POST(request: NextRequest) {
     const cleanUserPhone = dbUser.phone.replace(/\D/g, '').slice(-10)
     const cleanListingPhone = (listing.phone ?? '').replace(/\D/g, '').slice(-10)
     const cleanListingWhatsapp = (listing.whatsapp ?? '').replace(/\D/g, '').slice(-10)
+    const cleanListingSecondary = ((listing as any).secondaryPhone ?? '').replace(/\D/g, '').slice(-10)
 
+    const isAdmin = viewer.role === 'ADMIN' || viewer.role === 'SUPER_ADMIN'
     const isMatch =
-      (cleanUserPhone.length >= 10 && cleanUserPhone === cleanListingPhone) ||
-      (cleanUserPhone.length >= 10 && cleanUserPhone === cleanListingWhatsapp)
+      isAdmin ||
+      (cleanUserPhone.length >= 10 &&
+        (cleanUserPhone === cleanListingPhone ||
+          cleanUserPhone === cleanListingWhatsapp ||
+          cleanUserPhone === cleanListingSecondary))
 
     if (!isMatch) {
       return NextResponse.json(
