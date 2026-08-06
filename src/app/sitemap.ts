@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
 
-const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+const SITE_URL = (process.env.NEXTAUTH_URL ?? 'https://choutuppal.in').replace(/\/$/, '')
 
 export const revalidate = 86400 // Revalidate once per day
 
@@ -9,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
+    { url: `${SITE_URL}/listings`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${SITE_URL}/explore`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${SITE_URL}/shorts`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     { url: `${SITE_URL}/community`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
@@ -20,12 +21,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   let listingRoutes: MetadataRoute.Sitemap = []
+  let realEstateRoutes: MetadataRoute.Sitemap = []
   let newsRoutes: MetadataRoute.Sitemap = []
   let blogRoutes: MetadataRoute.Sitemap = []
 
   try {
-    const [listings, news, blogs] = await Promise.all([
+    const [listings, realEstate, news, blogs] = await Promise.all([
       prisma.listing.findMany({
+        where: { status: 'APPROVED' },
+        select: { slug: true, updatedAt: true },
+        take: 1000,
+      }),
+      prisma.realEstate.findMany({
         where: { status: 'APPROVED' },
         select: { slug: true, updatedAt: true },
         take: 1000,
@@ -49,6 +56,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     }))
 
+    realEstateRoutes = realEstate.map((r) => ({
+      url: `${SITE_URL}/listings?type=realestate`,
+      lastModified: r.updatedAt,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }))
+
     newsRoutes = news.map((n) => ({
       url: `${SITE_URL}/news/${n.slug}`,
       lastModified: n.updatedAt,
@@ -66,5 +80,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('[Sitemap] Error fetching routes from DB:', err)
   }
 
-  return [...staticRoutes, ...listingRoutes, ...newsRoutes, ...blogRoutes]
+  return [...staticRoutes, ...listingRoutes, ...realEstateRoutes, ...newsRoutes, ...blogRoutes]
 }

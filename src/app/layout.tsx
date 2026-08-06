@@ -29,7 +29,7 @@ const notoTelugu = Noto_Sans_Telugu({
   display: 'swap',
 })
 
-const SITE_URL = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+const SITE_URL = process.env.NEXTAUTH_URL ?? 'https://choutuppal.in'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -47,18 +47,26 @@ export const metadata: Metadata = {
     'local services',
     'community',
   ],
-  authors: [{ name: 'Choutuppal' }],
+  authors: [{ name: 'Choutuppal App Team' }],
   manifest: '/manifest.webmanifest',
   icons: {
     icon: '/logo-pwa.png',
     apple: '/logo-pwa.png',
   },
   openGraph: {
-    title: 'Choutuppal App v2.0',
+    title: 'Choutuppal App v2.0 — Business, Real Estate & Community',
     description:
       'Businesses, services, real estate, news & community for Choutuppal, Yadadri, Telangana.',
     url: SITE_URL,
     siteName: 'Choutuppal App',
+    images: [
+      {
+        url: `${SITE_URL}/logo-pwa.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Choutuppal App v2.0',
+      },
+    ],
     type: 'website',
     locale: 'te_IN',
   },
@@ -67,6 +75,7 @@ export const metadata: Metadata = {
     title: 'Choutuppal App v2.0',
     description:
       'Businesses, services, real estate, news & community for Choutuppal, Yadadri, Telangana.',
+    images: [`${SITE_URL}/logo-pwa.png`],
   },
 }
 
