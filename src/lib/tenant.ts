@@ -9,6 +9,8 @@ export interface TenantConfig {
   logoUrl: string | null
   primaryColor: string
   adminPhone: string
+  subscriptionStatus: string
+  subscriptionExpiresAt: string | null
 }
 
 export const DEFAULT_TENANT: TenantConfig = {
@@ -18,6 +20,8 @@ export const DEFAULT_TENANT: TenantConfig = {
   logoUrl: '/logo.png',
   primaryColor: '#1d4ed8',
   adminPhone: '9441348175',
+  subscriptionStatus: 'ACTIVE',
+  subscriptionExpiresAt: null,
 }
 
 // In-memory TTL cache for custom partner domains (5 minute expiry)
@@ -54,6 +58,16 @@ export const getTenantFromHost = cache(async (hostHeader?: string | null): Promi
       where: { domain: cleanHost },
     })
     if (tenant) {
+      let isExpired = false
+      if (tenant.subscriptionExpiresAt && tenant.subscriptionExpiresAt < new Date()) {
+        isExpired = true
+        // Fire-and-forget update to set status to EXPIRED in DB
+        prisma.tenant.update({
+          where: { id: tenant.id },
+          data: { subscriptionStatus: 'EXPIRED' },
+        }).catch(() => {})
+      }
+
       const config: TenantConfig = {
         id: tenant.id,
         name: tenant.name,
@@ -61,6 +75,8 @@ export const getTenantFromHost = cache(async (hostHeader?: string | null): Promi
         logoUrl: tenant.logoUrl,
         primaryColor: tenant.primaryColor,
         adminPhone: tenant.adminPhone,
+        subscriptionStatus: isExpired ? 'EXPIRED' : (tenant.subscriptionStatus || 'ACTIVE'),
+        subscriptionExpiresAt: tenant.subscriptionExpiresAt ? tenant.subscriptionExpiresAt.toISOString() : null,
       }
       tenantCacheMap.set(cleanHost, { config, expiresAt: Date.now() + CACHE_TTL_MS })
       return config

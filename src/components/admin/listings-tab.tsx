@@ -18,6 +18,7 @@ interface ListingItem {
   isFeatured: boolean
   isPremium: boolean
   phone: string | null
+  expiresAt?: string | null
   createdAt: string
   category: { name: string } | null
   village: { name: string } | null
@@ -28,6 +29,7 @@ export function AdminListingsTab() {
   const [listings, setListings] = useState<ListingItem[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [renewingId, setRenewingId] = useState<string | null>(null)
 
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
@@ -50,6 +52,26 @@ export function AdminListingsTab() {
     fetch('/api/villages').then((r) => r.json()).then((j) => j.ok && setVillages(j.villages)).catch(() => {})
     fetch('/api/admin/content').then((r) => r.json()).then((j) => j.ok && setCategories(j.categories)).catch(() => {})
   }, [load])
+
+  async function renewListing(id: string) {
+    setRenewingId(id)
+    try {
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      const res = await fetch('/api/admin/listings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'business', id, status: 'APPROVED', expiresAt }),
+      })
+      const j = await res.json()
+      if (!res.ok || !j.ok) throw new Error()
+      toast.success('Listing renewed for 30 days!')
+      load()
+    } catch {
+      toast.error('Failed to renew listing')
+    } finally {
+      setRenewingId(null)
+    }
+  }
 
   async function toggleFeatured(item: ListingItem) {
     try {
@@ -199,6 +221,7 @@ export function AdminListingsTab() {
                     <td className="p-3">
                       <Badge className={
                         l.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
+                        l.status === 'EXPIRED' ? 'bg-rose-100 text-rose-700' :
                         l.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
                       }>
                         {l.status}
@@ -221,6 +244,17 @@ export function AdminListingsTab() {
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => renewListing(l.id)}
+                          disabled={renewingId === l.id}
+                          title="Renew for 30 Days"
+                          className="h-7 px-2 bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100 text-[11px]"
+                        >
+                          {renewingId === l.id ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Renew (30d)'}
+                        </Button>
+
                         <Button
                           size="sm"
                           variant="outline"

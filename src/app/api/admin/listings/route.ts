@@ -66,6 +66,7 @@ export async function PATCH(request: NextRequest) {
       price,
       type,
       listingType,
+      expiresAt,
     } = body
 
     if (!id || typeof id !== 'string') {
@@ -98,6 +99,7 @@ export async function PATCH(request: NextRequest) {
       if (typeof isFeatured === 'boolean') dataToUpdate.isFeatured = isFeatured
       if (typeof isPremium === 'boolean') dataToUpdate.isPremium = isPremium
       if (typeof status === 'string') dataToUpdate.status = status
+      if (expiresAt !== undefined) dataToUpdate.expiresAt = expiresAt ? new Date(expiresAt) : null
       if (title) dataToUpdate.title = title
       if (description) dataToUpdate.description = description
       if (phone) dataToUpdate.phone = phone

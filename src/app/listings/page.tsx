@@ -29,6 +29,7 @@ export default async function ListingsPage({
           where: {
             ...tenantFilter,
             status: 'APPROVED',
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
             ...(params.category && params.category !== 'all'
               ? { category: { slug: params.category } }
               : {}),

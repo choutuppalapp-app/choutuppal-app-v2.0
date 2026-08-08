@@ -76,6 +76,10 @@ export async function POST(request: NextRequest) {
 
   const tenant = await getCurrentTenant()
   const slug = await uniqueSlug(parsed.data.title)
+
+  const isPaidTier = auth.user.planTier === 'PRO' || auth.user.planTier === 'PREMIUM'
+  const expiresAt = isPaidTier ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+
   const listing = await prisma.listing.create({
     data: {
       ...parsed.data,
@@ -85,6 +89,7 @@ export async function POST(request: NextRequest) {
       businessHours: parsed.data.businessHours ?? undefined,
       ownerId: auth.user.id,
       tenantId: tenant.id,
+      expiresAt,
       status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING',
     },
   })

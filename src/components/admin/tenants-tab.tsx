@@ -22,6 +22,8 @@ interface Tenant {
   logoUrl: string | null
   primaryColor: string
   adminPhone: string
+  subscriptionStatus?: string
+  subscriptionExpiresAt?: string | null
   createdAt: string
   _count?: {
     users: number
@@ -39,6 +41,7 @@ export function TenantsTab() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null)
   const [saving, setSaving] = useState(false)
+  const [renewingId, setRenewingId] = useState<string | null>(null)
 
   // Form State
   const [name, setName] = useState('')
@@ -63,6 +66,30 @@ export function TenantsTab() {
       toast.error('Failed to load tenants')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function renewSubscription(tenantId: string) {
+    setRenewingId(tenantId)
+    try {
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      const res = await fetch(`/api/admin/tenants/${tenantId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscriptionStatus: 'ACTIVE',
+          subscriptionExpiresAt: expiresAt,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to renew subscription')
+
+      toast.success('Subscription renewed for 30 days!')
+      fetchTenants()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Renewal failed')
+    } finally {
+      setRenewingId(null)
     }
   }
 
@@ -156,7 +183,7 @@ export function TenantsTab() {
         <div>
           <h2 className="text-xl font-extrabold text-slate-900">Multi-Tenant Cities / Partners</h2>
           <p className="text-xs text-slate-500">
-            Manage white-label city apps, domain mappings, logos, and admin contacts.
+            Manage white-label city apps, domain mappings, logos, subscriptions, and admin contacts.
           </p>
         </div>
         <Button onClick={openCreateModal} className="gap-2 gradient-brand text-white shadow-md">
@@ -206,8 +233,8 @@ export function TenantsTab() {
                   </div>
                 </div>
 
-                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
-                  Active
+                <Badge className={t.subscriptionStatus === 'EXPIRED' ? 'bg-rose-100 text-rose-700 hover:bg-rose-100' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'}>
+                  {t.subscriptionStatus === 'EXPIRED' ? 'EXPIRED' : 'ACTIVE'}
                 </Badge>
               </div>
 
@@ -233,18 +260,29 @@ export function TenantsTab() {
                 </div>
               ) : null}
 
-              <div className="mt-4 flex gap-2 border-t border-slate-100 pt-3">
-                <Button size="sm" variant="outline" onClick={() => openEditModal(t)} className="flex-1 gap-1 text-xs">
-                  <Edit2 className="h-3.5 w-3.5" /> Edit
-                </Button>
+              <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-3">
                 <Button
                   size="sm"
-                  variant="outline"
-                  onClick={() => deleteTenant(t.id, t.name)}
-                  className="gap-1 border-red-200 text-red-600 hover:bg-red-50 text-xs"
+                  onClick={() => renewSubscription(t.id)}
+                  disabled={renewingId === t.id}
+                  className="w-full gap-1.5 bg-emerald-600 text-white hover:bg-emerald-700 text-xs"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  {renewingId === t.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                  Renew Subscription (30 Days)
                 </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => openEditModal(t)} className="flex-1 gap-1 text-xs">
+                    <Edit2 className="h-3.5 w-3.5" /> Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => deleteTenant(t.id, t.name)}
+                    className="gap-1 border-red-200 text-red-600 hover:bg-red-50 text-xs"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))}

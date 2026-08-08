@@ -79,6 +79,9 @@ export const metadata: Metadata = {
   },
 }
 
+import { getCurrentTenant, DEFAULT_TENANT } from '@/lib/tenant'
+import { Phone, AlertTriangle } from 'lucide-react'
+
 export const viewport: Viewport = {
   themeColor: '#1d4ed8',
   width: 'device-width',
@@ -86,9 +89,12 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const tenant = await getCurrentTenant()
+  const isExpired = tenant.id !== DEFAULT_TENANT.id && tenant.subscriptionStatus === 'EXPIRED'
+
   const rawGa = process.env.NEXT_PUBLIC_GA4_ID?.trim()
   const gaId = rawGa && !rawGa.includes('XXXXX') && rawGa.length > 5 ? rawGa : null
 
@@ -137,13 +143,44 @@ export default function RootLayout({
             </Script>
           ) : null}
 
-          <SiteHeader />
-          <div className="pb-20 md:pb-0">
-            {children}
-          </div>
-          <BottomNav />
-          <WhatsAppFloat />
-          <PwaInstallPrompt />
+          {isExpired ? (
+            <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-6 text-center text-white">
+              <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <AlertTriangle className="h-8 w-8" />
+              </div>
+              <h1 className="text-2xl font-black sm:text-3xl">{tenant.name} — Subscription Expired</h1>
+              <p className="mt-3 max-w-md text-sm text-slate-300">
+                ఈ సిటీ యాప్ సబ్‌స్క్రిప్షన్ గడువు ముగిసింది. సేవల పునరుద్ధరణకు దయచేసి అడ్మిన్‌ను సంప్రదించండి.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <a
+                  href={`tel:${tenant.adminPhone}`}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-blue-700"
+                >
+                  <Phone className="h-4 w-4" /> Call Admin ({tenant.adminPhone})
+                </a>
+                <a
+                  href={`https://wa.me/91${tenant.adminPhone.replace(/\D/g, '')}?text=Subscription%20renewal%20request%20for%20${encodeURIComponent(tenant.name)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-emerald-700"
+                >
+                  WhatsApp Admin
+                </a>
+              </div>
+            </div>
+          ) : (
+            <>
+              <SiteHeader />
+              <div className="pb-20 md:pb-0">
+                {children}
+              </div>
+              <BottomNav />
+              <WhatsAppFloat />
+              <PwaInstallPrompt />
+            </>
+          )}
+
           <Toaster />
           <SonnerToaster position="top-center" richColors closeButton />
         </Providers>

@@ -50,7 +50,12 @@ export async function getFeaturedListings() {
   return safeDbQuery(
     () =>
       prisma.listing.findMany({
-        where: { ...tenantFilter, status: 'APPROVED', isFeatured: true },
+        where: {
+          ...tenantFilter,
+          status: 'APPROVED',
+          isFeatured: true,
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
         orderBy: { createdAt: 'desc' },
         take: 12,
         include: {
