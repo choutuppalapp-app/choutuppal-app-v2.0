@@ -54,7 +54,8 @@ import { AdminListingsTab } from './listings-tab'
 import { AdminRealEstateTab } from './real-estate-tab'
 import { AdminBannersTab } from './banners-tab'
 import { AutoLinksTab } from './auto-links-tab'
-import { Link2 } from 'lucide-react'
+import { TenantsTab } from './tenants-tab'
+import { Link2, Globe } from 'lucide-react'
 
 interface Stats {
   totalUsers: number
@@ -141,12 +142,15 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 
       <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 lg:px-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-11">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 lg:grid-cols-12">
             <TabsTrigger value="overview" className="gap-1.5 text-xs">
               <Home className="h-3 w-3" /> Overview
             </TabsTrigger>
             <TabsTrigger value="approvals" className="gap-1.5 text-xs">
               <Clock className="h-3 w-3" /> Approvals
+            </TabsTrigger>
+            <TabsTrigger value="tenants" className="gap-1.5 text-xs">
+              <Globe className="h-3 w-3 text-emerald-600" /> Tenants
             </TabsTrigger>
             <TabsTrigger value="content" className="gap-1.5 text-xs">
               <Newspaper className="h-3 w-3" /> Content
@@ -179,6 +183,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
 
           <TabsContent value="overview"><OverviewTab /></TabsContent>
           <TabsContent value="approvals"><ApprovalsTab /></TabsContent>
+          <TabsContent value="tenants"><TenantsTab /></TabsContent>
           <TabsContent value="content"><ContentTab /></TabsContent>
           <TabsContent value="listings"><AdminListingsTab /></TabsContent>
           <TabsContent value="realestate"><AdminRealEstateTab /></TabsContent>
