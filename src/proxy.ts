@@ -2,23 +2,24 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 /**
- * Next.js 16 proxy (replaces the deprecated `middleware` convention).
- *
- * Auth is enforced by Server Components (they call `getCurrentUser()` and
- * `redirect('/login')` when unauthenticated). This proxy is a thin pass-through
- * that only adds a cache-control header — the next-auth v4 `withAuth` wrapper
- * has a known incompatibility with Next.js 16's edge runtime (the JWT can't be
- * decoded in the proxy context), so we rely on the server-side guard instead,
- * which is the recommended Next.js 16 pattern.
- *
- * Matched routes: /dashboard/*, /admin/*, /agent/*
+ * Next.js 16 proxy — Multi-Tenant domain interception + Protected route headers.
  */
-export default function proxy(_request: NextRequest) {
-  const response = NextResponse.next()
+export default function proxy(request: NextRequest) {
+  const host = request.headers.get('host') || 'choutuppal.in'
+  const cleanHost = host.split(':')[0].toLowerCase().trim()
+
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-tenant-domain', cleanHost)
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
   response.headers.set('X-Protected-Route', 'true')
   return response
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/agent/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest)$).*)'],
 }
