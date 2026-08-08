@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 
@@ -19,16 +20,33 @@ export const DEFAULT_TENANT: TenantConfig = {
   adminPhone: '9441348175',
 }
 
+// In-memory TTL cache for custom partner domains (5 minute expiry)
+const tenantCacheMap = new Map<string, { config: TenantConfig; expiresAt: number }>()
+const CACHE_TTL_MS = 5 * 60 * 1000
+
 /**
- * Resolves the tenant config from host header.
- * Defaults to Choutuppal App if tenant is not found or for localhost / choutuppal.in.
+ * Resolves the tenant config from host header with zero-DB fast paths and React render deduplication.
  */
-export async function getTenantFromHost(hostHeader?: string | null): Promise<TenantConfig> {
+export const getTenantFromHost = cache(async (hostHeader?: string | null): Promise<TenantConfig> => {
   if (!hostHeader) return DEFAULT_TENANT
 
   const cleanHost = hostHeader.split(':')[0].toLowerCase().trim()
-  if (!cleanHost || cleanHost === 'localhost' || cleanHost === '127.0.0.1' || cleanHost.includes('choutuppal.in')) {
+
+  // FAST PATH: Immediately return default tenant for Choutuppal domains, localhost, or Vercel previews without hitting DB
+  if (
+    !cleanHost ||
+    cleanHost === 'localhost' ||
+    cleanHost === '127.0.0.1' ||
+    cleanHost.endsWith('.vercel.app') ||
+    cleanHost.includes('choutuppal')
+  ) {
     return DEFAULT_TENANT
+  }
+
+  // Check in-memory cache first to avoid hitting database on repeated requests
+  const cached = tenantCacheMap.get(cleanHost)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.config
   }
 
   try {
@@ -36,7 +54,7 @@ export async function getTenantFromHost(hostHeader?: string | null): Promise<Ten
       where: { domain: cleanHost },
     })
     if (tenant) {
-      return {
+      const config: TenantConfig = {
         id: tenant.id,
         name: tenant.name,
         domain: tenant.domain,
@@ -44,19 +62,27 @@ export async function getTenantFromHost(hostHeader?: string | null): Promise<Ten
         primaryColor: tenant.primaryColor,
         adminPhone: tenant.adminPhone,
       }
+      tenantCacheMap.set(cleanHost, { config, expiresAt: Date.now() + CACHE_TTL_MS })
+      return config
     }
   } catch (err) {
     console.error('[TenantResolver] Error fetching tenant for domain:', cleanHost, err)
   }
 
+  // Cache default fallback to prevent hammering DB on invalid domains
+  tenantCacheMap.set(cleanHost, { config: DEFAULT_TENANT, expiresAt: Date.now() + CACHE_TTL_MS })
   return DEFAULT_TENANT
-}
+})
 
 /**
- * Reads headers() in Server Components / API routes to return current tenant context.
+ * Reads headers() in Server Components / API routes to return current tenant context safely.
  */
 export async function getCurrentTenant(): Promise<TenantConfig> {
-  const headerList = await headers()
-  const host = headerList.get('x-tenant-domain') || headerList.get('host')
-  return getTenantFromHost(host)
+  try {
+    const headerList = await headers()
+    const host = headerList.get('x-tenant-domain') || headerList.get('host')
+    return getTenantFromHost(host)
+  } catch {
+    return DEFAULT_TENANT
+  }
 }

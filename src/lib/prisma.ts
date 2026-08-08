@@ -24,9 +24,8 @@ export const prisma =
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
   })
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
-}
+// Store Prisma instance on globalThis to preserve connection pool across serverless instances
+globalForPrisma.prisma = prisma
 
 // Canonical export name used across the app.
 export const db = prisma
