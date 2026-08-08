@@ -1,4 +1,5 @@
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 
 /**
  * Server-side data fetchers for the Home page. Each returns plain serializable
@@ -19,10 +20,12 @@ export async function getActiveStories() {
 }
 
 export async function getActiveBanners() {
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
   return safeDbQuery(
     () =>
       prisma.banner.findMany({
-        where: { expiresAt: { gt: new Date() }, status: 'APPROVED' },
+        where: { ...tenantFilter, expiresAt: { gt: new Date() }, status: 'APPROVED' },
         orderBy: { createdAt: 'desc' },
         take: 6,
       }),
@@ -42,10 +45,12 @@ export async function getCategories() {
 }
 
 export async function getFeaturedListings() {
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
   return safeDbQuery(
     () =>
       prisma.listing.findMany({
-        where: { status: 'APPROVED', isFeatured: true },
+        where: { ...tenantFilter, status: 'APPROVED', isFeatured: true },
         orderBy: { createdAt: 'desc' },
         take: 12,
         include: {
@@ -58,10 +63,12 @@ export async function getFeaturedListings() {
 }
 
 export async function getPremiumRealEstate() {
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
   return safeDbQuery(
     () =>
       prisma.realEstate.findMany({
-        where: { status: 'APPROVED' },
+        where: { ...tenantFilter, status: 'APPROVED' },
         orderBy: { createdAt: 'desc' },
         take: 10,
         include: {
@@ -73,9 +80,12 @@ export async function getPremiumRealEstate() {
 }
 
 export async function getShorts() {
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
   return safeDbQuery(
     () =>
       prisma.short.findMany({
+        where: tenantFilter,
         orderBy: { createdAt: 'desc' },
         take: 10,
         include: {
@@ -87,10 +97,12 @@ export async function getShorts() {
 }
 
 export async function getLatestNews() {
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
   return safeDbQuery(
     () =>
       prisma.news.findMany({
-        where: { isPublished: true },
+        where: { ...tenantFilter, isPublished: true },
         orderBy: { createdAt: 'desc' },
         take: 4,
         select: {
@@ -107,10 +119,12 @@ export async function getLatestNews() {
 }
 
 export async function getLatestBlogs() {
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
   return safeDbQuery(
     () =>
       prisma.blog.findMany({
-        where: { isPublished: true },
+        where: { ...tenantFilter, isPublished: true },
         orderBy: { createdAt: 'desc' },
         take: 4,
         select: {

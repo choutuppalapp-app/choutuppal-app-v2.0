@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { NewsList } from '@/components/content/news-list'
 
 export const dynamic = 'force-dynamic'
@@ -13,11 +14,14 @@ export const metadata: Metadata = {
 }
 
 export default async function NewsPage() {
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
+
   const [news, blogs] = await Promise.all([
     safeDbQuery(
       () =>
         prisma.news.findMany({
-          where: { isPublished: true },
+          where: { ...tenantFilter, isPublished: true },
           orderBy: { createdAt: 'desc' },
           select: {
             id: true, slug: true, title: true, summary: true, image: true,
@@ -29,7 +33,7 @@ export default async function NewsPage() {
     safeDbQuery(
       () =>
         prisma.blog.findMany({
-          where: { isPublished: true },
+          where: { ...tenantFilter, isPublished: true },
           orderBy: { createdAt: 'desc' },
           select: {
             id: true, slug: true, title: true, excerpt: true, coverImage: true,

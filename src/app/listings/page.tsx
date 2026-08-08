@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { ExploreGrid } from '@/components/explore/explore-grid'
 
 export const dynamic = 'force-dynamic'
@@ -18,12 +19,15 @@ export default async function ListingsPage({
   searchParams: Promise<{ category?: string; village?: string; q?: string }>
 }) {
   const params = await searchParams
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
 
   const [listings, realEstates, villages, categories] = await Promise.all([
     safeDbQuery(
       () =>
         prisma.listing.findMany({
           where: {
+            ...tenantFilter,
             status: 'APPROVED',
             ...(params.category && params.category !== 'all'
               ? { category: { slug: params.category } }
@@ -44,6 +48,7 @@ export default async function ListingsPage({
       () =>
         prisma.realEstate.findMany({
           where: {
+            ...tenantFilter,
             status: 'APPROVED',
             ...(params.village && params.village !== 'all'
               ? { village: { slug: params.village } }

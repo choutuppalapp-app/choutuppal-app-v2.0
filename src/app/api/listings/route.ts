@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser, isAdminRole } from '@/lib/session'
+import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  const tenant = await getCurrentTenant()
   const slug = await uniqueSlug(parsed.data.title)
   const listing = await prisma.listing.create({
     data: {
@@ -82,6 +84,7 @@ export async function POST(request: NextRequest) {
       servicesCatalog: parsed.data.servicesCatalog ?? undefined,
       businessHours: parsed.data.businessHours ?? undefined,
       ownerId: auth.user.id,
+      tenantId: tenant.id,
       status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING',
     },
   })
@@ -95,6 +98,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: auth.error }, { status: auth.status })
   }
 
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
+
   const { searchParams } = new URL(request.url)
   const queryUserId = searchParams.get('userId')
   let targetUserId = auth.user.id
@@ -103,7 +109,7 @@ export async function GET(request: NextRequest) {
   }
 
   const listings = await prisma.listing.findMany({
-    where: { ownerId: targetUserId },
+    where: { ownerId: targetUserId, ...tenantFilter },
     orderBy: { createdAt: 'desc' },
     include: { category: true, village: true },
   })

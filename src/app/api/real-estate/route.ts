@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser, isAdminRole } from '@/lib/session'
+import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -51,9 +52,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
   }
 
+  const tenant = await getCurrentTenant()
   const slug = await uniqueSlug(parsed.data.title)
   const re = await prisma.realEstate.create({
-    data: { ...parsed.data, slug, ownerId: auth.user.id, status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING' },
+    data: { ...parsed.data, slug, ownerId: auth.user.id, tenantId: tenant.id, status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING' },
   })
   return NextResponse.json({ ok: true, realEstate: re }, { status: 201 })
 }
@@ -63,6 +65,9 @@ export async function GET(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
+
   const { searchParams } = new URL(request.url)
   const queryUserId = searchParams.get('userId')
   let targetUserId = auth.user.id
@@ -71,7 +76,7 @@ export async function GET(request: NextRequest) {
   }
 
   const realEstates = await prisma.realEstate.findMany({
-    where: { ownerId: targetUserId },
+    where: { ownerId: targetUserId, ...tenantFilter },
     orderBy: { createdAt: 'desc' },
     include: { village: true },
   })

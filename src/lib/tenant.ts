@@ -75,6 +75,20 @@ export const getTenantFromHost = cache(async (hostHeader?: string | null): Promi
 })
 
 /**
+ * Helper to generate Prisma `where` clause for tenant data isolation.
+ * For DEFAULT_TENANT, returns { OR: [{ tenantId }, { tenantId: null }] } to include legacy items.
+ * For custom partner tenants, returns { tenantId }.
+ */
+export function getTenantWhereClause(tenantId: string) {
+  if (tenantId === DEFAULT_TENANT.id) {
+    return {
+      OR: [{ tenantId }, { tenantId: null }],
+    }
+  }
+  return { tenantId }
+}
+
+/**
  * Reads headers() in Server Components / API routes to return current tenant context safely.
  */
 export async function getCurrentTenant(): Promise<TenantConfig> {

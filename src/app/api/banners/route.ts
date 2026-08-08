@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser } from '@/lib/session'
+import { getCurrentTenant } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -26,9 +27,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
   }
 
+  const tenant = await getCurrentTenant()
   const expiresAt = new Date(Date.now() + TTL_HOURS * 60 * 60 * 1000)
   const banner = await prisma.banner.create({
-    data: { ...parsed.data, expiresAt, ownerId: auth.user.id },
+    data: { ...parsed.data, expiresAt, ownerId: auth.user.id, tenantId: tenant.id },
   })
   return NextResponse.json({ ok: true, banner }, { status: 201 })
 }
