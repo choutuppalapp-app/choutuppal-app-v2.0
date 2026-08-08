@@ -1230,13 +1230,22 @@ interface AdminStory {
   expiresAt: string
   createdAt: string
   owner: { id: string; name: string | null; username: string | null; email: string; image: string | null }
-  _count: { storyViews: number; storyReplies: number }
+  _count: { storyViews: number; storyReplies: number; storyLikes?: number }
 }
 
 function StoriesTab() {
   const [stories, setStories] = useState<AdminStory[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState<string | null>(null)
+
+  // Add Story Modal State
+  const [modalOpen, setModalOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [mediaUrl, setMediaUrl] = useState('')
+  const [mediaType, setMediaType] = useState<'IMAGE' | 'VIDEO'>('IMAGE')
+  const [caption, setCaption] = useState('')
+  const [link, setLink] = useState('')
+  const [hours, setHours] = useState('24')
 
   const load = useCallback(() => {
     setLoading(true)
@@ -1255,16 +1264,52 @@ function StoriesTab() {
     return () => { active = false }
   }, [])
 
+  async function handleCreateStory() {
+    if (!mediaUrl.trim()) {
+      toast.error('Please upload an image or enter a media URL')
+      return
+    }
+
+    setCreating(true)
+    try {
+      const res = await fetch('/api/admin/stories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mediaUrl,
+          mediaType,
+          caption,
+          link,
+          hours,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to create story')
+
+      toast.success('Story published successfully!')
+      setModalOpen(false)
+      setMediaUrl('')
+      setCaption('')
+      setLink('')
+      load()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to publish story')
+    } finally {
+      setCreating(false)
+    }
+  }
+
   async function del(id: string) {
-    if (!confirm('Delete this story? The media will be removed from R2.')) return
+    if (!confirm('Delete this story? This action cannot be undone.')) return
     setBusy(id)
     try {
-      const res = await fetch(`/api/admin/stories/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed')
+      const res = await fetch(`/api/admin/stories?id=${id}`, { method: 'DELETE' })
+      const json = await res.json()
+      if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to delete story')
       setStories((p) => p.filter((s) => s.id !== id))
       toast.success('Story deleted')
     } catch {
-      toast.error('Failed to delete')
+      toast.error('Failed to delete story')
     } finally {
       setBusy(null)
     }
@@ -1274,21 +1319,26 @@ function StoriesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-bold text-slate-900">Active Stories</h2>
           <p className="text-sm text-slate-500">{stories.length} stories currently live (auto-expire in 24h)</p>
         </div>
-        <Button variant="outline" size="sm" onClick={load} className="gap-1.5">
-          <RefreshCw className="h-3.5 w-3.5" /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setModalOpen(true)} size="sm" className="gap-1.5 gradient-brand text-white shadow-sm">
+            <Plus className="h-4 w-4" /> Add Story
+          </Button>
+          <Button variant="outline" size="sm" onClick={load} className="gap-1.5">
+            <RefreshCw className="h-3.5 w-3.5" /> Refresh
+          </Button>
+        </div>
       </div>
 
       {stories.length === 0 ? (
         <div className="rounded-3xl glass p-10 text-center">
           <ImageIcon className="mx-auto h-10 w-10 text-slate-300" />
           <h3 className="mt-2 font-bold text-slate-900">No active stories</h3>
-          <p className="text-sm text-slate-500">All clear — no stories to moderate right now.</p>
+          <p className="text-sm text-slate-500">All clear — click "Add Story" to publish a new story.</p>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -1315,22 +1365,106 @@ function StoriesTab() {
                 <div className="mt-1.5 flex items-center gap-3 text-[10px] text-slate-400">
                   <span>{s._count.storyViews} views</span>
                   <span>{s._count.storyReplies} replies</span>
+                  <span>{s._count.storyLikes} likes</span>
                 </div>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => del(s.id)}
                   disabled={busy === s.id}
-                  className="mt-2 w-full gap-1.5 border-red-200 text-red-600 hover:bg-red-50"
+                  className="mt-2 w-full gap-1.5 border-red-200 text-red-600 hover:bg-red-50 text-xs"
                 >
                   {busy === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                  Delete (spam)
+                  Delete Story
                 </Button>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Add Story Modal */}
+      {modalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-amber-500" /> Publish Admin Story
+              </h3>
+              <Button variant="ghost" size="sm" onClick={() => setModalOpen(false)} className="h-8 w-8 p-0">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <Label className="mb-1 block font-semibold text-slate-700">Media URL *</Label>
+                <Input
+                  value={mediaUrl}
+                  onChange={(e) => setMediaUrl(e.target.value)}
+                  placeholder="https://images.choutuppal.in/..."
+                />
+              </div>
+
+              <div>
+                <Label className="mb-1 block font-semibold text-slate-700">Media Type</Label>
+                <Select value={mediaType} onValueChange={(v) => setMediaType(v as 'IMAGE' | 'VIDEO')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="IMAGE">Image</SelectItem>
+                    <SelectItem value="VIDEO">Video</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="mb-1 block font-semibold text-slate-700">Caption / Title (Optional)</Label>
+                <Input
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
+                  placeholder="e.g. Special offer at Choutuppal Main Market"
+                />
+              </div>
+
+              <div>
+                <Label className="mb-1 block font-semibold text-slate-700">Action Link URL (Optional)</Label>
+                <Input
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder="https://choutuppal.in/business/..."
+                />
+              </div>
+
+              <div>
+                <Label className="mb-1 block font-semibold text-slate-700">Duration (Hours)</Label>
+                <Select value={hours} onValueChange={setHours}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="24">24 Hours (Default)</SelectItem>
+                    <SelectItem value="48">48 Hours</SelectItem>
+                    <SelectItem value="72">72 Hours</SelectItem>
+                    <SelectItem value="168">7 Days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
+              <Button variant="outline" onClick={() => setModalOpen(false)} disabled={creating}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateStory} disabled={creating} className="gap-1.5 gradient-brand text-white">
+                {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Publish Story
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
