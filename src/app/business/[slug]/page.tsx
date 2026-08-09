@@ -4,7 +4,7 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { ListingDetailView } from '@/components/business/listing-detail-view'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 

@@ -21,9 +21,8 @@ const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans')
 const AgentCityCTA = nextDynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })))
 const SiteFooter = nextDynamic(() => import('@/components/home/site-footer').then(m => ({ default: m.SiteFooter })))
 
-// Home page is fully dynamic (DB-driven, no caching) so fresh content shows.
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// Home page using ISR 60-second revalidation for instant Edge caching
+export const revalidate = 60
 
 export default async function Home() {
   const data = await getHomePageData()

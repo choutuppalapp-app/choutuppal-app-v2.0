@@ -3,9 +3,9 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { ExploreGrid } from '@/components/explore/explore-grid'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
-const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+const SITE_URL = (process.env.NEXTAUTH_URL ?? 'https://choutuppal.in').replace(/\/$/, '')
 
 export const metadata: Metadata = {
   title: 'Listings | Choutuppal App',
@@ -39,8 +39,8 @@ export default async function ListingsPage({
           },
           orderBy: { createdAt: 'desc' },
           include: {
-            category: { select: { name: true, slug: true } },
-            village: { select: { name: true, slug: true } },
+            category: { select: { id: true, name: true, slug: true } },
+            village: { select: { id: true, name: true, slug: true } },
           },
         }),
       [],
@@ -56,12 +56,14 @@ export default async function ListingsPage({
               : {}),
           },
           orderBy: { createdAt: 'desc' },
-          include: { village: { select: { name: true, slug: true } } },
+          include: {
+            village: { select: { id: true, name: true, slug: true } },
+          },
         }),
       [],
     ),
-    safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' } }), []),
-    safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' } }), []),
+    safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true } }), []),
+    safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), []),
   ])
 
   return (
@@ -69,7 +71,7 @@ export default async function ListingsPage({
       <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-amber-950 text-white py-10 px-4 text-center">
         <h1 className="text-2xl sm:text-4xl font-black">All Listings & Services</h1>
         <p className="text-sm text-slate-300 mt-2 max-w-xl mx-auto">
-          Discover trusted local businesses, service providers, and real estate properties across Choutuppal.
+          Discover trusted local businesses, service providers, and real estate properties across {tenant.name}.
         </p>
       </div>
 

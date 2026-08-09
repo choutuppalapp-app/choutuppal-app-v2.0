@@ -3,7 +3,7 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { NewsList } from '@/components/content/news-list'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
