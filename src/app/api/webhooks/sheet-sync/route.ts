@@ -8,6 +8,23 @@ export const dynamic = 'force-dynamic'
 const SECRET_TOKEN = process.env.SHEET_SYNC_SECRET || 'sheet_sync_secret_choutuppal_2026'
 
 /**
+ * Safely verifies if a tenantId exists in the database.
+ * If candidateTenantId is null, undefined, or doesn't exist in Tenant table, returns null.
+ */
+async function resolveValidTenantId(candidateTenantId?: string): Promise<string | null> {
+  if (!candidateTenantId || typeof candidateTenantId !== 'string') return null
+  try {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: candidateTenantId.trim() },
+      select: { id: true },
+    })
+    return tenant ? tenant.id : null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Normalizes object keys regardless of spacing, capitalization, or special characters.
  * E.g., "Business Name", "business_name", "Primary Phone" -> normalized schema properties.
  */
@@ -179,13 +196,14 @@ export async function POST(req: NextRequest) {
     const items = rawItems.map(normalizePayloadRow)
     const ownerId = await getOrCreateOwner()
 
-    // Webhooks coming from external Google Sheets default to DEFAULT_TENANT (Choutuppal) unless tenantId is explicitly provided
-    const targetTenantId = bodyTenantId || DEFAULT_TENANT.id
+    // Verify candidate tenantId against database. Returns null if tenant row does not exist, avoiding foreign key errors.
+    const candidateTenantId = bodyTenantId || DEFAULT_TENANT.id
+    const targetTenantId = await resolveValidTenantId(candidateTenantId)
 
     const results: Array<{ action: string; id: string; title: string | null }> = []
     const sheetType = String(type).trim().toLowerCase()
 
-    // 3. Process records based on sheet type with try/catch per section
+    // 3. Process records based on sheet type
     if (sheetType === 'listings' || sheetType === 'business' || sheetType === 'listing') {
       for (const row of items) {
         const title = row.title || row.name || 'Untitled Business'
