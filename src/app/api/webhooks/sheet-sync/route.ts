@@ -158,6 +158,7 @@ export async function POST(req: Request) {
           results.push({ action: 'updated', id: updated.id, title: updated.title })
         } else {
           const slug = `${slugify(title)}-${Math.random().toString(36).substring(2, 7)}`
+          const tenant = await getCurrentTenant()
           const created = await prisma.listing.create({
             data: {
               title,
@@ -174,6 +175,7 @@ export async function POST(req: Request) {
               categoryId: category?.id,
               villageId: village?.id,
               ownerId,
+              tenantId: tenant.id,
               status: 'APPROVED',
             },
           })
@@ -230,6 +232,7 @@ export async function POST(req: Request) {
           results.push({ action: 'updated', id: updated.id, title: updated.title })
         } else {
           const slug = `${slugify(title)}-${Math.random().toString(36).substring(2, 7)}`
+          const tenant = await getCurrentTenant()
           const created = await prisma.realEstate.create({
             data: {
               title,
@@ -245,6 +248,7 @@ export async function POST(req: Request) {
               coverImage,
               villageId: village?.id,
               ownerId,
+              tenantId: tenant.id,
               status: 'APPROVED',
             },
           })
