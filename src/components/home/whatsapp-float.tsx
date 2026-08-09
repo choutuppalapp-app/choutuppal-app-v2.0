@@ -2,19 +2,24 @@
 
 import { usePathname } from 'next/navigation'
 import { MessageCircle } from 'lucide-react'
+import { TenantConfig, DEFAULT_TENANT } from '@/lib/tenant-types'
 
-const WHATSAPP_LINK =
-  'https://wa.me/919441348175?text=' +
-  encodeURIComponent('నమస్తే, చౌటుప్పల్ యాప్ గురించి సమాచారం కావాలి')
+interface WhatsAppFloatProps {
+  tenant?: TenantConfig
+}
 
-export function WhatsAppFloat() {
+export function WhatsAppFloat({ tenant = DEFAULT_TENANT }: WhatsAppFloatProps) {
   const pathname = usePathname()
 
   if (pathname.startsWith('/admin') || pathname.startsWith('/agent')) return null
 
+  const phone = tenant.adminPhone ? tenant.adminPhone.replace(/\D/g, '') : '9441348175'
+  const messageText = encodeURIComponent(`నమస్తే, ${tenant.name} గురించి సమాచారం కావాలి`)
+  const whatsappLink = `https://wa.me/91${phone}?text=${messageText}`
+
   return (
     <a
-      href={WHATSAPP_LINK}
+      href={whatsappLink}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="WhatsApp us"
@@ -24,4 +29,3 @@ export function WhatsAppFloat() {
     </a>
   )
 }
-

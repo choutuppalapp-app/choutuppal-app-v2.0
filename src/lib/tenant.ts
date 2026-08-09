@@ -1,28 +1,9 @@
 import { cache } from 'react'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
+import { TenantConfig, DEFAULT_TENANT } from './tenant-types'
 
-export interface TenantConfig {
-  id: string
-  name: string
-  domain: string
-  logoUrl: string | null
-  primaryColor: string
-  adminPhone: string
-  subscriptionStatus: string
-  subscriptionExpiresAt: string | null
-}
-
-export const DEFAULT_TENANT: TenantConfig = {
-  id: 'choutuppal-default',
-  name: 'Choutuppal App',
-  domain: 'choutuppal.in',
-  logoUrl: '/logo.png',
-  primaryColor: '#1d4ed8',
-  adminPhone: '9441348175',
-  subscriptionStatus: 'ACTIVE',
-  subscriptionExpiresAt: null,
-}
+export * from './tenant-types'
 
 // In-memory TTL cache for custom partner domains (5 minute expiry)
 const tenantCacheMap = new Map<string, { config: TenantConfig; expiresAt: number }>()
@@ -89,20 +70,6 @@ export const getTenantFromHost = cache(async (hostHeader?: string | null): Promi
   tenantCacheMap.set(cleanHost, { config: DEFAULT_TENANT, expiresAt: Date.now() + CACHE_TTL_MS })
   return DEFAULT_TENANT
 })
-
-/**
- * Helper to generate Prisma `where` clause for tenant data isolation.
- * For DEFAULT_TENANT, returns { OR: [{ tenantId }, { tenantId: null }] } to include legacy items.
- * For custom partner tenants, returns { tenantId }.
- */
-export function getTenantWhereClause(tenantId: string) {
-  if (tenantId === DEFAULT_TENANT.id) {
-    return {
-      OR: [{ tenantId }, { tenantId: null }],
-    }
-  }
-  return { tenantId }
-}
 
 /**
  * Reads headers() in Server Components / API routes to return current tenant context safely.

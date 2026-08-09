@@ -7,6 +7,7 @@ import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 import { Providers } from '@/components/providers'
 import { PwaInstallPrompt } from '@/components/home/pwa-install-prompt'
 import { SiteHeader } from '@/components/home/site-header'
+import { SiteFooter } from '@/components/home/site-footer'
 import { BottomNav } from '@/components/home/bottom-nav'
 import { WhatsAppFloat } from '@/components/home/whatsapp-float'
 
@@ -171,12 +172,13 @@ export default async function RootLayout({
             </div>
           ) : (
             <>
-              <SiteHeader />
+              <SiteHeader tenant={tenant} />
               <div className="pb-20 md:pb-0">
                 {children}
               </div>
+              <SiteFooter tenant={tenant} />
               <BottomNav />
-              <WhatsAppFloat />
+              <WhatsAppFloat tenant={tenant} />
               <PwaInstallPrompt />
             </>
           )}

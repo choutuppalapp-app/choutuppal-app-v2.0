@@ -15,11 +15,17 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
+import { TenantConfig, DEFAULT_TENANT } from '@/lib/tenant-types'
+
+interface SiteHeaderProps {
+  tenant?: TenantConfig
+}
+
 /**
  * Global site header — renders on every page via layout.tsx.
  * Hidden on /admin, /agent, and /dashboard (those have dedicated panel headers).
  */
-export function SiteHeader() {
+export function SiteHeader({ tenant = DEFAULT_TENANT }: SiteHeaderProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -50,13 +56,28 @@ export function SiteHeader() {
   if (pathname.startsWith('/admin') || pathname.startsWith('/agent')) return null
 
   const isLoggedIn = !!session?.user
+  const isDefault = tenant.id === DEFAULT_TENANT.id
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-4 lg:px-6">
         {/* Left: Logo */}
         <Link href="/" className="flex shrink-0 items-center gap-2">
-          <img src="/logo.png" alt="Choutuppal App" className="h-10 w-auto" />
+          {tenant.logoUrl ? (
+            <img src={tenant.logoUrl} alt={tenant.name} className="h-10 w-auto object-contain" />
+          ) : isDefault ? (
+            <img src="/logo.png" alt="Choutuppal App" className="h-10 w-auto" />
+          ) : (
+            <div className="flex items-center gap-2">
+              <div
+                className="grid h-10 w-10 place-items-center rounded-xl text-white font-extrabold text-base shadow-sm"
+                style={{ backgroundColor: tenant.primaryColor }}
+              >
+                {tenant.name.substring(0, 1).toUpperCase()}
+              </div>
+              <span className="font-extrabold text-slate-900 text-sm">{tenant.name}</span>
+            </div>
+          )}
         </Link>
 
         {/* Center: Desktop nav links */}
