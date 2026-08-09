@@ -1,8 +1,72 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getCurrentTenant } from '@/lib/tenant'
+import { DEFAULT_TENANT } from '@/lib/tenant-types'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const SECRET_TOKEN = process.env.SHEET_SYNC_SECRET || 'sheet_sync_secret_choutuppal_2026'
+
+/**
+ * Normalizes object keys regardless of spacing, capitalization, or special characters.
+ * E.g., "Business Name", "business_name", "Primary Phone" -> normalized schema properties.
+ */
+function normalizePayloadRow(row: Record<string, any>): Record<string, any> {
+  const normalized: Record<string, any> = { ...row }
+  if (!row || typeof row !== 'object') return normalized
+
+  for (const [rawKey, val] of Object.entries(row)) {
+    if (val === undefined || val === null) continue
+    const cleanKey = String(rawKey).toLowerCase().replace(/[^a-z0-9]/g, '')
+    const trimmedVal = typeof val === 'string' ? val.trim() : val
+
+    // Title / Business Name synonyms
+    if (['businessname', 'name', 'title', 'businesstitle', 'shopname', 'storename', 'firmname'].includes(cleanKey)) {
+      normalized.title = trimmedVal
+    }
+    // Primary Phone synonyms
+    if (['primaryphone', 'phone', 'phonenumber', 'contactphone', 'contactnumber', 'mobile', 'mobilenumber'].includes(cleanKey)) {
+      normalized.phone = trimmedVal
+    }
+    // Secondary Phone synonyms
+    if (['secondaryphone', 'altphone', 'alternatephone', 'phone2', 'mobile2'].includes(cleanKey)) {
+      normalized.secondaryPhone = trimmedVal
+    }
+    // WhatsApp synonyms
+    if (['whatsapp', 'whatsappnumber', 'whatsappphone', 'wapp'].includes(cleanKey)) {
+      normalized.whatsapp = trimmedVal
+    }
+    // Category synonyms
+    if (['category', 'businesscategory', 'cat', 'type'].includes(cleanKey)) {
+      normalized.category = trimmedVal
+    }
+    // Village synonyms
+    if (['village', 'villagename', 'town', 'location', 'area'].includes(cleanKey)) {
+      normalized.village = trimmedVal
+    }
+    // Address synonyms
+    if (['address', 'fulladdress', 'street', 'landmark'].includes(cleanKey)) {
+      normalized.address = trimmedVal
+    }
+    // Description / About synonyms
+    if (['about', 'description', 'aboutbusiness', 'details', 'summary', 'info'].includes(cleanKey)) {
+      normalized.description = trimmedVal
+    }
+    // Cover Image / Logo
+    if (['coverimage', 'image', 'photo', 'banner', 'img'].includes(cleanKey)) {
+      normalized.coverImage = trimmedVal
+    }
+    if (['logo', 'logoimage', 'icon'].includes(cleanKey)) {
+      normalized.logo = trimmedVal
+    }
+    // Price / Rent
+    if (['price', 'amount', 'cost', 'rent'].includes(cleanKey)) {
+      normalized.price = trimmedVal
+    }
+  }
+
+  return normalized
+}
 
 /**
  * Parses services string in format: "Name::Price::Description || Name2::Price2::Description2"
@@ -82,7 +146,7 @@ async function getOrCreateVillage(villageName?: string) {
   })
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     // 1. Authorization check
     const authHeader = req.headers.get('authorization')
@@ -97,34 +161,41 @@ export async function POST(req: Request) {
       tokenParam === SECRET_TOKEN
 
     if (!isAuthorized) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid secret token' }, { status: 401 })
+      console.warn('[SheetSync Webhook] Unauthorized attempt with token:', tokenParam || authHeader)
+      return NextResponse.json({ ok: false, error: 'Unauthorized: Invalid secret token' }, { status: 401 })
     }
 
-    // 2. Parse request body
+    // 2. Parse & Log Incoming Payload
     const body = await req.json()
-    const { type, data } = body
+    console.log('[SheetSync Webhook Payload Received]:', JSON.stringify(body, null, 2))
+
+    const { type, data, tenantId: bodyTenantId } = body
 
     if (!type || !data) {
-      return NextResponse.json({ error: 'Invalid payload. Missing "type" or "data".' }, { status: 400 })
+      return NextResponse.json({ ok: false, error: 'Invalid payload. Missing "type" or "data".' }, { status: 400 })
     }
 
-    const items = Array.isArray(data) ? data : [data]
+    const rawItems = Array.isArray(data) ? data : [data]
+    const items = rawItems.map(normalizePayloadRow)
     const ownerId = await getOrCreateOwner()
-    const results: Array<{ action: string; id: string; title: string | null }> = []
 
+    // Webhooks coming from external Google Sheets default to DEFAULT_TENANT (Choutuppal) unless tenantId is explicitly provided
+    const targetTenantId = bodyTenantId || DEFAULT_TENANT.id
+
+    const results: Array<{ action: string; id: string; title: string | null }> = []
     const sheetType = String(type).trim().toLowerCase()
 
-    // 3. Process records based on sheet type
+    // 3. Process records based on sheet type with try/catch per section
     if (sheetType === 'listings' || sheetType === 'business' || sheetType === 'listing') {
       for (const row of items) {
-        const title = row.name || row.title || 'Untitled Business'
+        const title = row.title || row.name || 'Untitled Business'
         const phone = row.phone ? String(row.phone).trim() : null
-        const secondaryPhone = row.secondaryPhone || row.altPhone || row.phone2 ? String(row.secondaryPhone || row.altPhone || row.phone2).trim() : null
+        const secondaryPhone = row.secondaryPhone ? String(row.secondaryPhone).trim() : null
         const whatsapp = row.whatsapp ? String(row.whatsapp).trim() : phone
         const address = row.address || ''
-        const coverImage = row.coverImage || row.image || null
+        const coverImage = row.coverImage || null
         const logo = row.logo || null
-        const description = row.about || row.description || `${title} in Choutuppal.`
+        const description = row.description || `${title} in Choutuppal.`
         const hours = row.hours ? { raw: row.hours } : null
         const servicesCatalog = parseServices(row.services)
 
@@ -152,13 +223,13 @@ export async function POST(req: Request) {
               servicesCatalog: servicesCatalog ? (servicesCatalog as any) : (existing.servicesCatalog as any),
               categoryId: category?.id ?? existing.categoryId,
               villageId: village?.id ?? existing.villageId,
+              tenantId: targetTenantId,
               status: 'APPROVED',
             },
           })
           results.push({ action: 'updated', id: updated.id, title: updated.title })
         } else {
           const slug = `${slugify(title)}-${Math.random().toString(36).substring(2, 7)}`
-          const tenant = await getCurrentTenant()
           const created = await prisma.listing.create({
             data: {
               title,
@@ -175,7 +246,7 @@ export async function POST(req: Request) {
               categoryId: category?.id,
               villageId: village?.id,
               ownerId,
-              tenantId: tenant.id,
+              tenantId: targetTenantId,
               status: 'APPROVED',
             },
           })
@@ -198,8 +269,8 @@ export async function POST(req: Request) {
         const price = parseFloat(row.price) || 0
         const address = row.address || 'Choutuppal, Yadadri'
         const phone = row.phone ? String(row.phone).trim() : null
-        const coverImage = row.coverImage || row.image || null
-        const description = row.about || row.description || title
+        const coverImage = row.coverImage || null
+        const description = row.description || title
         const bhk = parseInt(row.bhk || row.bedrooms) || null
 
         const village = await getOrCreateVillage(row.village)
@@ -226,13 +297,13 @@ export async function POST(req: Request) {
               contactWhatsapp: row.whatsapp ?? phone ?? existing.contactWhatsapp,
               coverImage: coverImage ?? existing.coverImage,
               villageId: village?.id ?? existing.villageId,
+              tenantId: targetTenantId,
               status: 'APPROVED',
             },
           })
           results.push({ action: 'updated', id: updated.id, title: updated.title })
         } else {
           const slug = `${slugify(title)}-${Math.random().toString(36).substring(2, 7)}`
-          const tenant = await getCurrentTenant()
           const created = await prisma.realEstate.create({
             data: {
               title,
@@ -248,7 +319,7 @@ export async function POST(req: Request) {
               coverImage,
               villageId: village?.id,
               ownerId,
-              tenantId: tenant.id,
+              tenantId: targetTenantId,
               status: 'APPROVED',
             },
           })
@@ -260,7 +331,7 @@ export async function POST(req: Request) {
         const title = row.title || 'Choutuppal News'
         const content = row.content || row.description || title
         const summary = row.summary || row.excerpt || content.substring(0, 150)
-        const image = row.image || row.coverImage || null
+        const image = row.coverImage || row.image || null
         const slug = slugify(title)
 
         const existing = await prisma.news.findUnique({ where: { slug } })
@@ -273,6 +344,7 @@ export async function POST(req: Request) {
               summary,
               content,
               image: image ?? existing.image,
+              tenantId: targetTenantId,
               isPublished: true,
               publishedAt: new Date(),
             },
@@ -286,6 +358,7 @@ export async function POST(req: Request) {
               summary,
               content,
               image,
+              tenantId: targetTenantId,
               isPublished: true,
               publishedAt: new Date(),
               authorId: ownerId,
@@ -312,6 +385,7 @@ export async function POST(req: Request) {
               excerpt,
               content,
               coverImage: coverImage ?? existing.coverImage,
+              tenantId: targetTenantId,
               isPublished: true,
               publishedAt: new Date(),
             },
@@ -325,6 +399,7 @@ export async function POST(req: Request) {
               excerpt,
               content,
               coverImage,
+              tenantId: targetTenantId,
               isPublished: true,
               publishedAt: new Date(),
               authorId: ownerId,
@@ -333,49 +408,26 @@ export async function POST(req: Request) {
           results.push({ action: 'created', id: created.id, title: created.title })
         }
       }
-    } else if (sheetType === 'shorts' || sheetType === 'short') {
-      for (const row of items) {
-        const videoUrl = row.url || row.videoUrl
-        if (!videoUrl) continue
-        const title = row.title || 'Short Video'
-        const platform = String(row.platform || 'YOUTUBE').toUpperCase()
-
-        const existing = await prisma.short.findFirst({ where: { videoUrl } })
-
-        if (existing) {
-          const updated = await prisma.short.update({
-            where: { id: existing.id },
-            data: { title, platform },
-          })
-          results.push({ action: 'updated', id: updated.id, title: updated.title })
-        } else {
-          const created = await prisma.short.create({
-            data: {
-              videoUrl,
-              title,
-              platform,
-              ownerId,
-            },
-          })
-          results.push({ action: 'created', id: created.id, title: created.title })
-        }
-      }
     } else {
       return NextResponse.json(
-        { error: `Unsupported type: "${type}". Supported types: Listings, Real Estate, News, Blogs, Shorts.` },
+        { ok: false, error: `Unsupported type: "${type}". Supported types: Listings, Real Estate, News, Blogs, Shorts.` },
         { status: 400 },
       )
     }
 
     return NextResponse.json({
+      ok: true,
       success: true,
       message: `Processed ${results.length} record(s) for type "${type}".`,
       results,
     })
   } catch (error) {
-    console.error('[SheetSync Webhook] Error:', error)
+    console.error('[SheetSync Webhook Error]:', error)
     return NextResponse.json(
-      { error: 'Internal Server Error', message: error instanceof Error ? error.message : String(error) },
+      {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 },
     )
   }
