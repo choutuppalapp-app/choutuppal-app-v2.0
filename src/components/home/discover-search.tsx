@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, MapPin, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SocialLinks } from '@/components/shared/social-links'
@@ -19,7 +20,19 @@ interface DiscoverSearchProps {
 }
 
 export function DiscoverSearch({ villages, categories }: DiscoverSearchProps) {
+  const router = useRouter()
   const [query, setQuery] = useState('')
+  const [village, setVillage] = useState('all')
+  const [category, setCategory] = useState('all')
+
+  function handleSearch() {
+    const params = new URLSearchParams()
+    if (query.trim()) params.set('q', query.trim())
+    if (village !== 'all') params.set('village', village)
+    if (category !== 'all') params.set('category', category)
+    const queryString = params.toString()
+    router.push(queryString ? `/listings?${queryString}` : '/listings')
+  }
 
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
@@ -30,13 +43,14 @@ export function DiscoverSearch({ villages, categories }: DiscoverSearchProps) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Search shops, services, properties…"
             className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 pl-9 pr-3 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
 
         {/* Village filter */}
-        <Select defaultValue="all">
+        <Select value={village} onValueChange={setVillage}>
           <SelectTrigger className="h-11 w-full bg-white/90 md:w-[160px]">
             <MapPin className="mr-1 h-3.5 w-3.5 text-blue-500" />
             <SelectValue placeholder="Village" />
@@ -50,7 +64,7 @@ export function DiscoverSearch({ villages, categories }: DiscoverSearchProps) {
         </Select>
 
         {/* Category filter */}
-        <Select defaultValue="all">
+        <Select value={category} onValueChange={setCategory}>
           <SelectTrigger className="h-11 w-full bg-white/90 md:w-[160px]">
             <Tag className="mr-1 h-3.5 w-3.5 text-amber-500" />
             <SelectValue placeholder="Category" />
@@ -64,7 +78,7 @@ export function DiscoverSearch({ villages, categories }: DiscoverSearchProps) {
         </Select>
 
         {/* Search button */}
-        <Button className="h-11 w-full gap-2 gradient-brand text-white md:w-auto">
+        <Button onClick={handleSearch} className="h-11 w-full gap-2 gradient-brand text-white md:w-auto shrink-0 shadow-md">
           <Search className="h-4 w-4" />
           Search
         </Button>

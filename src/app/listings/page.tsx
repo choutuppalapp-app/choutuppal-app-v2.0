@@ -39,7 +39,7 @@ export default async function ListingsPage({
           },
           orderBy: { createdAt: 'desc' },
           include: {
-            category: { select: { id: true, name: true, slug: true } },
+            category: { select: { id: true, name: true, slug: true, icon: true } },
             village: { select: { id: true, name: true, slug: true } },
           },
         }),

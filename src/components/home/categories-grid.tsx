@@ -5,35 +5,64 @@ import {
   Store,
   Wrench,
   Home as HomeIcon,
-  Newspaper,
-  BookOpen,
   UtensilsCrossed,
   Pill,
   Smartphone,
   ShoppingCart,
   GraduationCap,
   Car,
-  Shirt,
   HeartPulse,
+  ShoppingBag,
+  Sprout,
+  Truck,
+  Building,
+  Laptop,
   type LucideIcon,
 } from 'lucide-react'
 import { SectionHeading } from './section-heading'
+import { cn } from '@/lib/utils'
 
-/** Map DB icon string → Lucide component. Falls back to Store. */
+/** Map DB icon string or slug → Lucide component. */
 const ICON_MAP: Record<string, LucideIcon> = {
-  Store,
-  Wrench,
-  Home: HomeIcon,
-  Newspaper,
-  BookOpen,
   UtensilsCrossed,
-  Pill,
-  Smartphone,
-  ShoppingCart,
-  GraduationCap,
-  Car,
-  Shirt,
+  'food-dining': UtensilsCrossed,
   HeartPulse,
+  Pill,
+  'health-medical': HeartPulse,
+  Car,
+  automobile: Car,
+  GraduationCap,
+  education: GraduationCap,
+  ShoppingBag,
+  ShoppingCart,
+  'retail-shopping': ShoppingBag,
+  Wrench,
+  services: Wrench,
+  Home: HomeIcon,
+  Building,
+  'real-estate': HomeIcon,
+  Sprout,
+  agriculture: Sprout,
+  Truck,
+  transport: Truck,
+  Smartphone,
+  Laptop,
+  electronics: Smartphone,
+  Store,
+}
+
+/** Distinct rich gradient themes per category slug */
+const CATEGORY_GRADIENTS: Record<string, string> = {
+  'food-dining': 'from-amber-500 to-orange-600 text-white shadow-orange-500/20',
+  'health-medical': 'from-rose-500 to-red-600 text-white shadow-rose-500/20',
+  'automobile': 'from-blue-600 to-indigo-600 text-white shadow-blue-500/20',
+  'education': 'from-violet-600 to-purple-600 text-white shadow-purple-500/20',
+  'retail-shopping': 'from-pink-500 to-rose-500 text-white shadow-pink-500/20',
+  'services': 'from-teal-500 to-emerald-600 text-white shadow-teal-500/20',
+  'real-estate': 'from-sky-500 to-blue-600 text-white shadow-sky-500/20',
+  'agriculture': 'from-emerald-500 to-green-600 text-white shadow-emerald-500/20',
+  'transport': 'from-amber-600 to-yellow-600 text-white shadow-amber-500/20',
+  'electronics': 'from-indigo-500 to-cyan-600 text-white shadow-indigo-500/20',
 }
 
 interface CategoryCardData {
@@ -47,18 +76,22 @@ interface CategoriesGridProps {
   categories: CategoryCardData[]
 }
 
+const DEFAULT_CATEGORIES: CategoryCardData[] = [
+  { id: 'c1', name: 'Food & Dining', slug: 'food-dining', icon: 'UtensilsCrossed' },
+  { id: 'c2', name: 'Health & Medical', slug: 'health-medical', icon: 'HeartPulse' },
+  { id: 'c3', name: 'Automobile', slug: 'automobile', icon: 'Car' },
+  { id: 'c4', name: 'Education', slug: 'education', icon: 'GraduationCap' },
+  { id: 'c5', name: 'Retail Shopping', slug: 'retail-shopping', icon: 'ShoppingBag' },
+  { id: 'c6', name: 'Services', slug: 'services', icon: 'Wrench' },
+  { id: 'c7', name: 'Real Estate', slug: 'real-estate', icon: 'Home' },
+  { id: 'c8', name: 'Agriculture', slug: 'agriculture', icon: 'Sprout' },
+  { id: 'c9', name: 'Transport', slug: 'transport', icon: 'Truck' },
+  { id: 'c10', name: 'Electronics', slug: 'electronics', icon: 'Smartphone' },
+]
+
 export function CategoriesGrid({ categories }: CategoriesGridProps) {
-  // If no DB categories, fall back to the original 5 static cards.
   const cards: CategoryCardData[] =
-    categories.length > 0
-      ? categories
-      : [
-          { id: 's1', name: 'Business', slug: 'business', icon: 'Store' },
-          { id: 's2', name: 'Services', slug: 'services', icon: 'Wrench' },
-          { id: 's3', name: 'Real Estate', slug: 'realestate', icon: 'Home' },
-          { id: 's4', name: 'News', slug: 'news', icon: 'Newspaper' },
-          { id: 's5', name: 'Blogs', slug: 'blogs', icon: 'BookOpen' },
-        ]
+    categories.length > 0 ? categories : DEFAULT_CATEGORIES
 
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
@@ -67,19 +100,58 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
         title="Browse Categories"
         subtitle="Everything in Choutuppal, one tap away."
       />
-      <div className="mt-4 grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3 md:grid-cols-6">
+
+      {/* Mobile: Horizontal scroll rail with rounded glass cards */}
+      <div className="mt-4 flex gap-3 overflow-x-auto pb-3 pt-1 no-scrollbar md:hidden scroll-smooth">
         {cards.map((c) => {
-          const Icon = ICON_MAP[c.icon ?? ''] ?? Store
+          const Icon = ICON_MAP[c.icon ?? ''] ?? ICON_MAP[c.slug] ?? Store
+          const gradientClass =
+            CATEGORY_GRADIENTS[c.slug] ?? 'from-blue-600 to-indigo-600 text-white shadow-blue-500/20'
+
           return (
             <Link
               key={c.id}
-              href={`/explore?category=${c.slug}`}
-              className="group flex flex-col items-center justify-center rounded-2xl border border-white/30 bg-white/20 p-3 text-center backdrop-blur-lg transition-all hover:scale-105 hover:border-blue-500 hover:shadow-lg"
+              href={`/listings?category=${c.slug}`}
+              className="group flex w-[90px] shrink-0 flex-col items-center justify-center rounded-2xl border border-white/60 bg-white/40 p-3 text-center backdrop-blur-xl shadow-xs transition-all duration-300 hover:scale-105 hover:border-blue-400 hover:bg-white/80 hover:shadow-md"
             >
-              <span className="mb-1.5 grid h-10 w-10 place-items-center rounded-xl gradient-brand text-white shadow-md transition group-hover:shadow-lg sm:h-12 sm:w-12">
-                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+              <div
+                className={cn(
+                  'mb-2 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br shadow-md transition-transform duration-300 group-hover:scale-110',
+                  gradientClass
+                )}
+              >
+                <Icon className="h-6 w-6 stroke-[2.2]" />
+              </div>
+              <span className="text-[11px] font-bold leading-snug text-slate-800 transition-colors group-hover:text-blue-700">
+                {c.name}
               </span>
-              <span className="text-[11px] font-semibold leading-tight text-slate-700 group-hover:text-blue-700 sm:text-xs">
+            </Link>
+          )
+        })}
+      </div>
+
+      {/* Desktop: 10-column responsive grid */}
+      <div className="mt-4 hidden md:grid md:grid-cols-5 lg:grid-cols-10 gap-3.5">
+        {cards.map((c) => {
+          const Icon = ICON_MAP[c.icon ?? ''] ?? ICON_MAP[c.slug] ?? Store
+          const gradientClass =
+            CATEGORY_GRADIENTS[c.slug] ?? 'from-blue-600 to-indigo-600 text-white shadow-blue-500/20'
+
+          return (
+            <Link
+              key={c.id}
+              href={`/listings?category=${c.slug}`}
+              className="group flex flex-col items-center justify-between rounded-2xl border border-white/60 bg-white/40 p-3.5 text-center backdrop-blur-xl shadow-xs transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-blue-400 hover:bg-white/90 hover:shadow-lg"
+            >
+              <div
+                className={cn(
+                  'mb-2.5 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br shadow-md transition-transform duration-300 group-hover:scale-110',
+                  gradientClass
+                )}
+              >
+                <Icon className="h-6 w-6 stroke-[2.2]" />
+              </div>
+              <span className="text-xs font-bold leading-tight text-slate-800 transition-colors group-hover:text-blue-700">
                 {c.name}
               </span>
             </Link>

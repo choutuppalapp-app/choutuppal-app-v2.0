@@ -54,24 +54,24 @@ async function main() {
   }
 
   // -------------------------------------------------------------------
-  // Categories (listing taxonomy)
+  // Categories (listing taxonomy) — 10 main categories
   // -------------------------------------------------------------------
   const categories = [
-    { name: 'Restaurants & Tiffin', slug: 'restaurants', icon: 'UtensilsCrossed' },
-    { name: 'Medical & Pharmacy', slug: 'medical', icon: 'Pill' },
-    { name: 'Electronics & Mobiles', slug: 'electronics', icon: 'Smartphone' },
-    { name: 'Groceries & Supermarket', slug: 'groceries', icon: 'ShoppingCart' },
-    { name: 'Education', slug: 'education', icon: 'GraduationCap' },
-    { name: 'Automobile', slug: 'automobile', icon: 'Car' },
-    { name: 'Fashion & Textiles', slug: 'fashion', icon: 'Shirt' },
-    { name: 'Health & Fitness', slug: 'health', icon: 'HeartPulse' },
+    { name: 'Food & Dining', slug: 'food-dining', icon: 'UtensilsCrossed', description: 'Restaurants, tiffin centers, cafes, food courts & bakeries' },
+    { name: 'Health & Medical', slug: 'health-medical', icon: 'HeartPulse', description: 'Hospitals, clinics, pharmacies & diagnostic centers' },
+    { name: 'Automobile', slug: 'automobile', icon: 'Car', description: 'Auto sales, service centers, spare parts & bike repair' },
+    { name: 'Education', slug: 'education', icon: 'GraduationCap', description: 'Schools, colleges, coaching centers & tuition classes' },
+    { name: 'Retail Shopping', slug: 'retail-shopping', icon: 'ShoppingBag', description: 'Supermarkets, clothing, footwear & general stores' },
+    { name: 'Services', slug: 'services', icon: 'Wrench', description: 'Home repair, electrician, plumber, salon & local services' },
+    { name: 'Real Estate', slug: 'real-estate', icon: 'Home', description: 'Plots, houses, commercial space & land for sale/rent' },
+    { name: 'Agriculture', slug: 'agriculture', icon: 'Sprout', description: 'Farming tools, seeds, fertilizers & agri equipment' },
+    { name: 'Transport', slug: 'transport', icon: 'Truck', description: 'Logistics, goods transport, cab services & travel agencies' },
+    { name: 'Electronics', slug: 'electronics', icon: 'Smartphone', description: 'Mobiles, computers, home appliances & electronics repair' },
   ]
+  await prisma.listing.updateMany({ data: { categoryId: null } })
+  await prisma.category.deleteMany({})
   for (const c of categories) {
-    await prisma.category.upsert({
-      where: { slug: c.slug },
-      update: {},
-      create: c,
-    })
+    await prisma.category.create({ data: c })
   }
 
   // -------------------------------------------------------------------
@@ -157,7 +157,7 @@ async function main() {
       phone: '9441348175',
       whatsapp: '919441348175',
       address: 'Main Road, Panthangi, Yadadri Bhuvanagiri',
-      categoryId: (await cat('restaurants'))!.id,
+      categoryId: (await cat('food-dining'))!.id,
       villageId: panthangi.id,
       isFeatured: true,
     },
@@ -168,7 +168,7 @@ async function main() {
       phone: '9912353706',
       whatsapp: '919912353706',
       address: 'Bus Stand Road, Panthangi',
-      categoryId: (await cat('medical'))!.id,
+      categoryId: (await cat('health-medical'))!.id,
       villageId: panthangi.id,
       isFeatured: true,
     },
@@ -190,7 +190,7 @@ async function main() {
       phone: '9912353708',
       whatsapp: '919912353708',
       address: 'Market Yard, Panthangi',
-      categoryId: (await cat('groceries'))!.id,
+      categoryId: (await cat('retail-shopping'))!.id,
       villageId: panthangi.id,
       isFeatured: true,
     },
@@ -223,7 +223,7 @@ async function main() {
       phone: '9912353711',
       whatsapp: '919912353711',
       address: 'Clock Tower, Panthangi',
-      categoryId: (await cat('fashion'))!.id,
+      categoryId: (await cat('retail-shopping'))!.id,
       villageId: panthangi.id,
       isFeatured: false,
     },
@@ -234,7 +234,7 @@ async function main() {
       phone: '9912353712',
       whatsapp: '919912353712',
       address: 'Hospital Road, Panthangi',
-      categoryId: (await cat('health'))!.id,
+      categoryId: (await cat('health-medical'))!.id,
       villageId: panthangi.id,
       isFeatured: true,
     },
