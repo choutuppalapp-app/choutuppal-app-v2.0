@@ -9,14 +9,8 @@ import { authConfig } from '@/lib/auth.config'
 /**
  * Full NextAuth options (Node runtime).
  *
- * Implements the Supabase-Auth requirements from the master blueprint using
- * NextAuth v4 + Prisma:
- *   - Email/Phone + Password  -> CredentialsProvider (bcrypt-hashed passwords)
- *   - Google OAuth            -> GoogleProvider (account auto-linked via adapter)
- *   - Password reset          -> custom token flow (see auth-password-reset.ts)
- *
- * Sessions use JWT (required for the Credentials provider). The PrismaAdapter
- * is still wired up so OAuth accounts/users/sessions are persisted to the DB.
+ * Implements credentials and OAuth authentication with Prisma adapter.
+ * Sessions use JWT strategy.
  */
 
 const useSecure = process.env.NODE_ENV === 'production' || process.env.NEXTAUTH_URL?.startsWith('https://')
@@ -64,36 +58,41 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const identifier = credentials?.identifier?.trim()
+          const rawIdentifier = credentials?.identifier?.trim()
           const password = credentials?.password
-          console.log('[Auth authorize] Attempt identifier:', identifier)
-          if (!identifier || !password) {
-            console.log('[Auth authorize] Missing identifier or password')
+          if (!rawIdentifier || !password) {
             return null
           }
 
-          const key = identifier.toLowerCase()
+          const key = rawIdentifier.toLowerCase()
+          const phoneClean = rawIdentifier.replace(/[^\d+]/g, '')
+
+          // Query user by email, username, or phone
           const user = await prisma.user.findFirst({
             where: {
               OR: [
                 { email: key },
-                { phone: identifier },
                 { username: key },
+                { phone: rawIdentifier },
+                ...(phoneClean ? [{ phone: phoneClean }] : []),
               ],
             },
           })
 
-          console.log('[Auth authorize] DB user lookup:', user ? `Found user ${user.id} (${user.email})` : 'User not found')
-          if (!user || !user.passwordHash) return null
-          if (user.isBanned) {
-            console.log('[Auth authorize] User is banned:', user.email)
+          if (!user || !user.passwordHash) {
             return null
           }
 
-          const ok = await bcrypt.compare(password, user.passwordHash)
-          console.log('[Auth authorize] Password match:', ok)
-          if (!ok) return null
+          if (user.isBanned) {
+            return null
+          }
 
+          const isPasswordValid = await bcrypt.compare(password, user.passwordHash)
+          if (!isPasswordValid) {
+            return null
+          }
+
+          // Return full user metadata including role for JWT session token
           return {
             id: user.id,
             email: user.email,
@@ -104,7 +103,7 @@ export const authOptions: NextAuthOptions = {
             isPublic: user.isPublic,
           }
         } catch (err) {
-          console.error('[Auth authorize] Exception or DB timeout error:', err)
+          console.error('[Auth authorize] Database exception or connection timeout during login:', err)
           return null
         }
       },

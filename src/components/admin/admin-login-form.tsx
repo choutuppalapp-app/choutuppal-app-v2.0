@@ -19,36 +19,52 @@ export function AdminLoginForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.trim() || !password) {
-      setError('Please enter your email and password.')
+      setError('Please enter your admin email or username and password.')
       return
     }
     setLoading(true)
     setError('')
 
-    const res = await signIn('credentials', {
-      identifier: email.trim(),
-      password,
-      redirect: false,
-    })
+    try {
+      const res = await signIn('credentials', {
+        identifier: email.trim(),
+        password,
+        redirect: false,
+      })
 
-    if (res?.ok && !res?.error) {
-      toast.success('Admin authenticated successfully')
-      router.refresh()
-    } else {
-      setError('Invalid admin credentials or insufficient privileges.')
+      if (res?.ok && !res?.error) {
+        // Fetch session to double check admin role (ADMIN or SUPER_ADMIN)
+        const sessionRes = await fetch('/api/auth/session', { cache: 'no-store' })
+        const sessionData = await sessionRes.json()
+        const userRole = sessionData?.user?.role
+
+        if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
+          toast.success('Admin authenticated successfully')
+          router.refresh()
+        } else {
+          setError('Access denied: Account does not have admin privileges.')
+          setLoading(false)
+        }
+      } else {
+        setError('Invalid admin credentials. Please check your login details.')
+        setLoading(false)
+      }
+    } catch (err) {
+      console.error('[AdminLoginForm] Authentication error:', err)
+      setError('Connection error or database timeout. Please try logging in again.')
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-yellow-50 p-4">
-      <div className="w-full max-w-md space-y-6 rounded-2xl border border-blue-100 bg-white p-8 shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-slate-50 to-amber-50 p-4">
+      <div className="w-full max-w-md space-y-6 rounded-2xl border border-blue-100 bg-white/90 p-8 shadow-xl backdrop-blur-xl">
         <div className="text-center">
           <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-blue-100 text-blue-600 shadow-sm">
             <ShieldCheck className="h-7 w-7" />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Choutuppal Admin</h1>
-          <p className="mt-1 text-xs text-slate-500">Isolated Super Admin Control Panel</p>
+          <p className="mt-1 text-xs text-slate-500">Super Admin & Management Portal</p>
         </div>
 
         {error ? (
@@ -59,7 +75,7 @@ export function AdminLoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-slate-700">Admin Email</label>
+            <label className="mb-1 block text-xs font-semibold text-slate-700">Admin Email or Username</label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
