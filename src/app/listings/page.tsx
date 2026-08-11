@@ -36,9 +36,33 @@ export default async function ListingsPage({
             ...(params.village && params.village !== 'all'
               ? { village: { slug: params.village } }
               : {}),
+            ...(params.q && params.q.trim()
+              ? {
+                  OR: [
+                    { title: { contains: params.q.trim(), mode: 'insensitive' } },
+                    { phone: { contains: params.q.trim(), mode: 'insensitive' } },
+                    { secondaryPhone: { contains: params.q.trim(), mode: 'insensitive' } },
+                    { whatsapp: { contains: params.q.trim(), mode: 'insensitive' } },
+                    { village: { name: { contains: params.q.trim(), mode: 'insensitive' } } },
+                  ],
+                }
+              : {}),
           },
           orderBy: { createdAt: 'desc' },
-          include: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            coverImage: true,
+            logo: true,
+            avgRating: true,
+            views: true,
+            isFeatured: true,
+            phone: true,
+            secondaryPhone: true,
+            whatsapp: true,
+            categoryId: true,
+            villageId: true,
             category: { select: { id: true, name: true, slug: true, icon: true } },
             village: { select: { id: true, name: true, slug: true } },
           },
@@ -54,9 +78,26 @@ export default async function ListingsPage({
             ...(params.village && params.village !== 'all'
               ? { village: { slug: params.village } }
               : {}),
+            ...(params.q && params.q.trim()
+              ? {
+                  OR: [
+                    { title: { contains: params.q.trim(), mode: 'insensitive' } },
+                    { village: { name: { contains: params.q.trim(), mode: 'insensitive' } } },
+                  ],
+                }
+              : {}),
           },
           orderBy: { createdAt: 'desc' },
-          include: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            coverImage: true,
+            price: true,
+            listingType: true,
+            bedrooms: true,
+            areaSqft: true,
+            villageId: true,
             village: { select: { id: true, name: true, slug: true } },
           },
         }),

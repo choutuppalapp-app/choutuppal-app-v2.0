@@ -72,9 +72,9 @@ export const getTenantFromHost = cache(async (hostHeader?: string | null): Promi
 })
 
 /**
- * Reads headers() in Server Components / API routes to return current tenant context safely.
+ * Reads headers() in Server Components / API routes to return current tenant context safely with React cache deduplication.
  */
-export async function getCurrentTenant(): Promise<TenantConfig> {
+export const getCurrentTenant = cache(async (): Promise<TenantConfig> => {
   try {
     const headerList = await headers()
     const host = headerList.get('x-tenant-domain') || headerList.get('host')
@@ -82,4 +82,4 @@ export async function getCurrentTenant(): Promise<TenantConfig> {
   } catch {
     return DEFAULT_TENANT
   }
-}
+})

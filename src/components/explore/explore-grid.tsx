@@ -18,12 +18,37 @@ import {
 } from '@/components/ui/select'
 import type { Listing, RealEstate, Category, Village } from '@prisma/client'
 
-type ListingItem = Listing & {
-  category: { name: string; slug: string } | null
-  village: { name: string; slug: string } | null
+type ListingItem = {
+  id: string
+  title: string
+  slug: string
+  coverImage: string | null
+  logo?: string | null
+  avgRating?: number | null
+  views?: number
+  isFeatured?: boolean
+  phone?: string | null
+  secondaryPhone?: string | null
+  whatsapp?: string | null
+  categoryId?: string | null
+  villageId?: string | null
+  category?: { id?: string; name: string; slug: string; icon?: string | null } | null
+  village?: { id?: string; name: string; slug: string } | null
+  description?: string
 }
-type REItem = RealEstate & {
-  village: { name: string; slug: string } | null
+
+type REItem = {
+  id: string
+  title: string
+  slug: string
+  coverImage: string | null
+  price: number
+  listingType: string
+  bedrooms?: number | null
+  areaSqft?: number | null
+  villageId?: string | null
+  village?: { id?: string; name: string; slug: string } | null
+  description?: string
 }
 
 interface ExploreGridProps {
@@ -93,7 +118,7 @@ export function ExploreGrid({
           (l.whatsapp && l.whatsapp.includes(q))
         )
         const villageMatch = Boolean(l.village?.name.toLowerCase().includes(q))
-        const descMatch = l.description.toLowerCase().includes(q)
+        const descMatch = Boolean(l.description && l.description.toLowerCase().includes(q))
         return nameMatch || phoneMatch || villageMatch || descMatch
       })
     }
@@ -113,7 +138,7 @@ export function ExploreGrid({
       result = result.filter((r) => {
         const nameMatch = r.title.toLowerCase().includes(q)
         const villageMatch = Boolean(r.village?.name.toLowerCase().includes(q))
-        const descMatch = r.description.toLowerCase().includes(q)
+        const descMatch = Boolean(r.description && r.description.toLowerCase().includes(q))
         return nameMatch || villageMatch || descMatch
       })
     }
@@ -356,7 +381,7 @@ export function ExploreGrid({
           ) : (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
               {filteredListings.map((l) => {
-                const rating = (4 + ((l.views * 7) % 10) / 10).toFixed(1)
+                const rating = (4 + (((l.views ?? 0) * 7) % 10) / 10).toFixed(1)
                 return (
                   <Link
                     key={l.id}
