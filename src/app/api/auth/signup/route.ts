@@ -7,32 +7,27 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const SignupSchema = z.object({
-  name: z.string().min(1).max(80),
-  identifier: z.string().min(4), // email or phone
-  password: z.string().min(6).max(72),
-  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_.]+$/).optional(),
-  villageId: z.string().optional(),
+  name: z.string().min(1, 'Full name is required').max(80),
+  phone: z.string().min(4, 'Valid phone number or email is required').optional(),
+  identifier: z.string().min(4, 'Valid phone number or email is required').optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters').max(72),
 })
 
-/** POST /api/auth/signup — register with email-or-phone + password. */
+/** Auto-generate a clean, unique username from name or phone. */
+function buildAutoUsername(name: string, phone: string): string {
+  const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const base = cleanName.length >= 3 ? cleanName.slice(0, 15) : 'user'
+  const suffix = Math.floor(1000 + Math.random() * 9000)
+  return `${base}_${suffix}`
+}
+
+/** POST /api/auth/signup — register with Name, Phone, and Password. */
 export async function POST(request: NextRequest) {
   let body: any
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-  }
-
-  // Automatic Username Sanitization (lower-case, remove spaces & special characters)
-  if (body && typeof body.username === 'string' && body.username.trim()) {
-    const sanitized = body.username.toLowerCase().trim().replace(/[^a-z0-9_.]/g, '')
-    if (!sanitized || sanitized.length < 3) {
-      return NextResponse.json(
-        { error: 'Username must contain at least 3 valid characters (letters, numbers, underscores, or dots).' },
-        { status: 400 },
-      )
-    }
-    body.username = sanitized
+    return NextResponse.json({ error: 'Invalid request payload' }, { status: 400 })
   }
 
   const parsed = SignupSchema.safeParse(body)
@@ -42,50 +37,65 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     )
   }
-  const { name, identifier, password, username, villageId } = parsed.data
-  const key = identifier.trim()
-  const isEmail = key.includes('@')
 
-  const email = isEmail ? key.toLowerCase() : undefined
-  const phone = isEmail ? undefined : key
+  const { name, password } = parsed.data
+  const rawContact = (parsed.data.phone || parsed.data.identifier || '').trim()
+
+  if (!rawContact) {
+    return NextResponse.json({ error: 'Phone number is required.' }, { status: 400 })
+  }
+
+  const isEmail = rawContact.includes('@')
+  const email = isEmail ? rawContact.toLowerCase() : undefined
+  const phone = isEmail ? undefined : rawContact
+  const phoneClean = phone ? phone.replace(/[^\d+]/g, '') : undefined
 
   try {
     // Uniqueness checks
     if (email) {
       const exists = await prisma.user.findUnique({ where: { email } })
       if (exists) {
-        return NextResponse.json({ error: 'This email address is already registered.' }, { status: 409 })
+        return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 })
       }
     }
+
     if (phone) {
       const exists = await prisma.user.findFirst({
         where: {
-          OR: [{ phone }, { email: `${phone}@phone.local` }],
+          OR: [
+            { phone },
+            ...(phoneClean ? [{ phone: phoneClean }] : []),
+            { email: `${phoneClean || phone}@phone.local` },
+          ],
         },
       })
       if (exists) {
-        return NextResponse.json({ error: 'This phone number is already registered.' }, { status: 409 })
+        return NextResponse.json({ error: 'An account with this phone number already exists.' }, { status: 409 })
       }
     }
-    if (username) {
-      const exists = await prisma.user.findUnique({ where: { username } })
-      if (exists) {
-        return NextResponse.json({ error: 'This username is already taken. Please choose another.' }, { status: 409 })
-      }
+
+    // Auto-generate unique username handle (guarantee unique with retry loop)
+    let autoUsername = buildAutoUsername(name, phoneClean || rawContact)
+    let attempts = 0
+    while (attempts < 5) {
+      const existingUser = await prisma.user.findUnique({ where: { username: autoUsername } })
+      if (!existingUser) break
+      autoUsername = buildAutoUsername(name, phoneClean || rawContact)
+      attempts++
     }
 
     const passwordHash = await hashPassword(password)
     const user = await prisma.user.create({
       data: {
-        name,
-        email: email ?? `${phone}@phone.local`,
+        name: name.trim(),
+        email: email ?? `${phoneClean || phone}@phone.local`,
         phone: phone ?? null,
-        username: username ?? null,
+        username: autoUsername,
         passwordHash,
         role: 'USER',
-        villageId: villageId ?? null,
+        villageId: null, // Default to null; user can select in profile later
       },
-      select: { id: true, email: true, username: true, name: true },
+      select: { id: true, email: true, username: true, name: true, phone: true },
     })
 
     return NextResponse.json({ ok: true, user }, { status: 201 })
@@ -94,13 +104,10 @@ export async function POST(request: NextRequest) {
     if (err?.code === 'P2002') {
       const target = err?.meta?.target
       if (Array.isArray(target) && target.includes('email')) {
-        return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 })
+        return NextResponse.json({ error: 'An account with this email/phone already exists.' }, { status: 409 })
       }
       if (Array.isArray(target) && target.includes('phone')) {
         return NextResponse.json({ error: 'An account with this phone number already exists.' }, { status: 409 })
-      }
-      if (Array.isArray(target) && target.includes('username')) {
-        return NextResponse.json({ error: 'This username is already taken.' }, { status: 409 })
       }
     }
     return NextResponse.json(

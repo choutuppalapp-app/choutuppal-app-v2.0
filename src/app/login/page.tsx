@@ -221,15 +221,11 @@ function LoginInner() {
       return
     }
     if (!suIdentifier.trim()) {
-      setSuError('Please enter your email or phone.')
+      setSuError('Please enter your phone number.')
       return
     }
     if (suPassword.length < 6) {
       setSuError('Password must be at least 6 characters.')
-      return
-    }
-    if (suPassword !== suConfirm) {
-      setSuError('Passwords do not match.')
       return
     }
 
@@ -240,10 +236,8 @@ function LoginInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: suName.trim(),
-          identifier: suIdentifier.trim(),
+          phone: suIdentifier.trim(),
           password: suPassword,
-          username: suUsername.trim() || undefined,
-          villageId: suVillage || undefined,
         }),
       })
 
@@ -550,36 +544,13 @@ function LoginInner() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label
-                    htmlFor="su-username"
-                    className="flex items-center gap-1"
-                  >
-                    Username
-                    <span className="text-[11px] font-normal text-slate-400">
-                      (optional)
-                    </span>
-                  </Label>
-                  <Input
-                    id="su-username"
-                    name="username"
-                    type="text"
-                    autoComplete="username"
-                    placeholder="username (a-z, 0-9, _ .)"
-                    value={suUsername}
-                    onChange={(e) => setSuUsername(e.target.value)}
-                    disabled={suLoading || suGoogleLoading}
-                    className="h-11 bg-white/80"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="su-identifier">Email or Phone</Label>
+                  <Label htmlFor="su-identifier">Phone Number</Label>
                   <Input
                     id="su-identifier"
-                    name="identifier"
-                    type="text"
-                    autoComplete="email"
-                    placeholder="you@example.com or +91…"
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="10-digit mobile number"
                     value={suIdentifier}
                     onChange={(e) => setSuIdentifier(e.target.value)}
                     disabled={suLoading || suGoogleLoading}
@@ -615,39 +586,6 @@ function LoginInner() {
                       )}
                     </button>
                   </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="su-confirm">Confirm Password</Label>
-                  <Input
-                    id="su-confirm"
-                    name="confirmPassword"
-                    type={showSuPwd ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    placeholder="Re-enter password"
-                    value={suConfirm}
-                    onChange={(e) => setSuConfirm(e.target.value)}
-                    disabled={suLoading || suGoogleLoading}
-                    className="h-11 bg-white/80"
-                  />
-                </div>
-
-                {/* Village */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="su-village">Village</Label>
-                  <select
-                    id="su-village"
-                    name="villageId"
-                    value={suVillage}
-                    onChange={(e) => setSuVillage(e.target.value)}
-                    disabled={suLoading || suGoogleLoading || villages.length === 0}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-white/80 px-3 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
-                  >
-                    <option value="">{villages.length === 0 ? 'Loading villages…' : 'Select your village'}</option>
-                    {villages.map((v) => (
-                      <option key={v.id} value={v.id}>{v.name}</option>
-                    ))}
-                  </select>
                 </div>
 
                 {suError && (
