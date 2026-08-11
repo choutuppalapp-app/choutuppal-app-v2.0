@@ -11,7 +11,7 @@ interface WhatsAppFloatProps {
 export function WhatsAppFloat({ tenant = DEFAULT_TENANT }: WhatsAppFloatProps) {
   const pathname = usePathname()
 
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent')) return null
+  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise')) return null
 
   const phone = tenant.adminPhone ? tenant.adminPhone.replace(/\D/g, '') : '9441348175'
   const messageText = encodeURIComponent(`నమస్తే, ${tenant.name} గురించి సమాచారం కావాలి`)

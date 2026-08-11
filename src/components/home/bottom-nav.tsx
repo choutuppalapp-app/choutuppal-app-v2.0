@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils'
 export function BottomNav() {
   const pathname = usePathname()
 
-  // Hide on admin, agent, and business detail routes — business pages have dedicated action bar
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/business')) return null
+  // Hide on admin, agent, business detail, and franchise routes
+  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/business') || pathname.startsWith('/franchise')) return null
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'

@@ -52,8 +52,8 @@ export function SiteHeader({ tenant = DEFAULT_TENANT }: SiteHeaderProps) {
     }
   }
 
-  // Hide on admin/agent routes — they have dedicated panel headers
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent')) return null
+  // Hide on admin/agent/franchise routes — they have dedicated panel headers or landing layouts
+  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise')) return null
 
   const isLoggedIn = !!session?.user
   const isDefault = tenant.id === DEFAULT_TENANT.id
