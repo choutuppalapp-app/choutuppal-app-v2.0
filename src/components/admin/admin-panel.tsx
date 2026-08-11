@@ -28,6 +28,7 @@ import {
   Bell,
   Send,
   Upload,
+  FileSpreadsheet,
   LogOut,
   Search,
 } from 'lucide-react'
@@ -46,6 +47,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { ContentTab } from './content-tab'
 import { CreateUserModal } from './create-user-modal'
@@ -1073,8 +1081,11 @@ function SettingsTab() {
             {settings.banner_free === 'true' ? 'FREE (Early Bird)' : `₹${settings.banner_price ?? '99'}/day`}
           </span>
           <Switch
-            checked={settings.banner_free === 'true'}
-            onCheckedChange={(v) => update('banner_free', v ? 'true' : 'false')}
+            checked={settings.banner_free === 'true' && settings.ads_paid !== 'true'}
+            onCheckedChange={(v) => {
+              update('banner_free', v ? 'true' : 'false')
+              update('ads_paid', v ? 'false' : 'true')
+            }}
           />
           <span className="text-xs text-slate-400">Toggle Free/Paid</span>
         </div>
@@ -1233,6 +1244,26 @@ interface AdminStory {
   _count: { storyViews: number; storyReplies: number; storyLikes?: number }
 }
 
+function parseStoriesCsv(text: string) {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  const items: Array<{ mediaUrl: string; caption?: string; link?: string }> = []
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (i === 0 && (line.toLowerCase().includes('media') || line.toLowerCase().includes('url'))) continue
+    const parts = line.split(',').map((p) => p.trim().replace(/^["']|["']$/g, ''))
+    if (parts.length >= 1) {
+      const mediaUrl = parts[0]
+      const caption = parts[1] || undefined
+      const link = parts[2] || undefined
+      if (mediaUrl && mediaUrl.startsWith('http')) {
+        items.push({ mediaUrl, caption, link })
+      }
+    }
+  }
+  return items
+}
+
 function StoriesTab() {
   const [stories, setStories] = useState<AdminStory[]>([])
   const [loading, setLoading] = useState(true)
@@ -1240,6 +1271,9 @@ function StoriesTab() {
 
   // Add Story Modal State
   const [modalOpen, setModalOpen] = useState(false)
+  const [bulkOpen, setBulkOpen] = useState(false)
+  const [bulkSaving, setBulkSaving] = useState(false)
+  const [bulkText, setBulkText] = useState('')
   const [creating, setCreating] = useState(false)
   const [mediaUrl, setMediaUrl] = useState('')
   const [mediaType, setMediaType] = useState<'IMAGE' | 'VIDEO'>('IMAGE')
@@ -1299,6 +1333,46 @@ function StoriesTab() {
     }
   }
 
+  async function handleBulkStoriesSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const items = parseStoriesCsv(bulkText)
+    if (items.length === 0) {
+      toast.error('No valid story rows found. Format: Media URL, Caption, Link')
+      return
+    }
+
+    setBulkSaving(true)
+    try {
+      const res = await fetch('/api/admin/stories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      })
+      const j = await res.json()
+      if (!res.ok || !j.ok) throw new Error(j.error || 'Failed bulk upload')
+
+      toast.success(`Successfully uploaded ${j.count ?? items.length} stories!`)
+      setBulkOpen(false)
+      setBulkText('')
+      load()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed bulk upload')
+    } finally {
+      setBulkSaving(false)
+    }
+  }
+
+  function handleBulkFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string
+      if (text) setBulkText(text)
+    }
+    reader.readAsText(file)
+  }
+
   async function del(id: string) {
     if (!confirm('Delete this story? This action cannot be undone.')) return
     setBusy(id)
@@ -1325,6 +1399,9 @@ function StoriesTab() {
           <p className="text-sm text-slate-500">{stories.length} stories currently live (auto-expire in 24h)</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button onClick={() => setBulkOpen(true)} variant="outline" size="sm" className="gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50">
+            <FileSpreadsheet className="h-4 w-4" /> Bulk CSV Upload
+          </Button>
           <Button onClick={() => setModalOpen(true)} size="sm" className="gap-1.5 gradient-brand text-white shadow-sm">
             <Plus className="h-4 w-4" /> Add Story
           </Button>
@@ -1465,6 +1542,47 @@ function StoriesTab() {
           </div>
         </div>
       ) : null}
+
+      {/* Bulk CSV Stories Modal */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
+              <FileSpreadsheet className="h-5 w-5 text-blue-600" /> Bulk CSV Upload Stories
+            </DialogTitle>
+            <DialogDescription>
+              Upload a .csv file or paste raw CSV text with columns: <strong>Media URL, Caption, Link</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleBulkStoriesSubmit} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700">Select CSV File</Label>
+              <Input type="file" accept=".csv,text/csv" onChange={handleBulkFileUpload} className="cursor-pointer" />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700">Or Paste CSV Data</Label>
+              <Textarea
+                rows={6}
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                placeholder={`Media URL, Caption, Link\nhttps://example.com/story1.jpg, Main Market Offer, https://choutuppal.in\nhttps://example.com/story2.mp4, New Arrival Reel, https://choutuppal.in/explore`}
+                className="font-mono text-xs"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setBulkOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={bulkSaving || !bulkText.trim()} className="gradient-brand text-white font-bold">
+                {bulkSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Import Stories (24h)'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -27,7 +27,7 @@ export async function GET() {
   }
 }
 
-/** POST /api/admin/banners — create banner ad with 24h expiry */
+/** POST /api/admin/banners — create single or bulk banner ads with 24h expiry */
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser()
@@ -36,18 +36,43 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { imageUrl, title, link, position } = body
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
+    // Bulk creation support
+    if (Array.isArray(body.items)) {
+      const validItems = body.items.filter((item: any) => item && typeof item.imageUrl === 'string' && item.imageUrl.trim())
+      if (validItems.length === 0) {
+        return NextResponse.json({ ok: false, error: 'No valid banner items found in bulk payload' }, { status: 400 })
+      }
+
+      const created = await prisma.$transaction(
+        validItems.map((item: any) =>
+          prisma.banner.create({
+            data: {
+              imageUrl: item.imageUrl.trim(),
+              title: item.title ? String(item.title).trim() : 'Banner Ad',
+              link: item.link ? String(item.link).trim() : null,
+              position: item.position || 'HOME_TOP',
+              status: 'APPROVED',
+              expiresAt,
+              ownerId: user.id,
+            },
+          }),
+        ),
+      )
+      return NextResponse.json({ ok: true, count: created.length, banners: created }, { status: 201 })
+    }
+
+    const { imageUrl, title, link, position } = body
     if (!imageUrl || typeof imageUrl !== 'string') {
       return NextResponse.json({ ok: false, error: 'Image URL is required' }, { status: 400 })
     }
 
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
     const banner = await prisma.banner.create({
       data: {
-        imageUrl,
-        title: title || 'Banner Ad',
-        link: link || null,
+        imageUrl: imageUrl.trim(),
+        title: title ? String(title).trim() : 'Banner Ad',
+        link: link ? String(link).trim() : null,
         position: position || 'HOME_TOP',
         status: 'APPROVED',
         expiresAt,

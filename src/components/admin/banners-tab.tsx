@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { ImageIcon, Plus, Trash2, ExternalLink, RefreshCw, Loader2, Clock } from 'lucide-react'
+import { ImageIcon, Plus, Trash2, ExternalLink, RefreshCw, Loader2, Clock, Upload, FileSpreadsheet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { ImageUpload } from '@/components/dashboard/image-upload'
@@ -23,11 +24,33 @@ interface BannerItem {
   owner: { name: string | null; email: string } | null
 }
 
+function parseBannersCsv(text: string) {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  const items: Array<{ title: string; imageUrl: string; link?: string }> = []
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (i === 0 && (line.toLowerCase().includes('image') || line.toLowerCase().includes('title'))) continue
+    const parts = line.split(',').map((p) => p.trim().replace(/^["']|["']$/g, ''))
+    if (parts.length >= 2) {
+      const title = parts[0] || 'Banner Ad'
+      const imageUrl = parts[1]
+      const link = parts[2] || undefined
+      if (imageUrl && imageUrl.startsWith('http')) {
+        items.push({ title, imageUrl, link })
+      }
+    }
+  }
+  return items
+}
+
 export function AdminBannersTab() {
   const [banners, setBanners] = useState<BannerItem[]>([])
   const [loading, setLoading] = useState(true)
   const [addOpen, setAddOpen] = useState(false)
+  const [bulkOpen, setBulkOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [bulkText, setBulkText] = useState('')
 
   // Form states
   const [imageUrl, setImageUrl] = useState('')
@@ -83,6 +106,46 @@ export function AdminBannersTab() {
     }
   }
 
+  async function handleBulkSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const items = parseBannersCsv(bulkText)
+    if (items.length === 0) {
+      toast.error('No valid rows found. Format: Title, Image URL, Link')
+      return
+    }
+
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/banners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      })
+      const j = await res.json()
+      if (!res.ok || !j.ok) throw new Error(j.error || 'Failed bulk upload')
+
+      toast.success(`Successfully uploaded ${j.count ?? items.length} banners!`)
+      setBulkOpen(false)
+      setBulkText('')
+      load()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed bulk upload')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string
+      if (text) setBulkText(text)
+    }
+    reader.readAsText(file)
+  }
+
   async function handleDelete(id: string) {
     if (!confirm('Are you sure you want to delete this banner ad?')) return
     try {
@@ -108,6 +171,9 @@ export function AdminBannersTab() {
           <p className="text-sm text-slate-500">Create & manage homepage 16:9 banner ads (24-hour auto-expiry)</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button onClick={() => setBulkOpen(true)} variant="outline" className="gap-1.5 border-blue-200 text-blue-700 hover:bg-blue-50">
+            <FileSpreadsheet className="h-4 w-4" /> Bulk CSV Upload
+          </Button>
           <Button onClick={() => setAddOpen(true)} className="gap-1.5 gradient-brand text-white shadow">
             <Plus className="h-4 w-4" /> Add Banner
           </Button>
@@ -149,24 +215,15 @@ export function AdminBannersTab() {
                       >
                         {b.link} <ExternalLink className="h-3 w-3 shrink-0" />
                       </a>
-                    ) : (
-                      <p className="text-xs text-slate-400">No link attached</p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 
-                <div className="p-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5 text-amber-500" />
-                    <span>{b.clicks} clicks</span>
-                  </div>
-                  <button
-                    onClick={() => handleDelete(b.id)}
-                    className="grid h-7 w-7 place-items-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition"
-                    title="Delete Banner"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                <div className="p-3.5 pt-0 flex items-center justify-between border-t border-slate-100 text-xs text-slate-500">
+                  <span>Clicks: {b.clicks}</span>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-rose-600 hover:bg-rose-50" onClick={() => handleDelete(b.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             )
@@ -174,7 +231,7 @@ export function AdminBannersTab() {
         )}
       </div>
 
-      {/* Add Banner Modal */}
+      {/* Add Single Banner Modal */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -220,6 +277,47 @@ export function AdminBannersTab() {
               </Button>
               <Button type="submit" disabled={saving || !imageUrl} className="gradient-brand text-white font-bold">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Banner (24h)'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk CSV Upload Modal */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-slate-900">
+              <FileSpreadsheet className="h-5 w-5 text-blue-600" /> Bulk CSV Upload Banners
+            </DialogTitle>
+            <DialogDescription>
+              Upload a .csv file or paste raw CSV text with columns: <strong>Title, Image URL, Link</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleBulkSubmit} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700">Select CSV File</Label>
+              <Input type="file" accept=".csv,text/csv" onChange={handleFileUpload} className="cursor-pointer" />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-700">Or Paste CSV Data</Label>
+              <Textarea
+                rows={6}
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                placeholder={`Title, Image URL, Link\nGrand Opening Sale, https://example.com/banner1.jpg, https://choutuppal.in\nFestival Offer, https://example.com/banner2.jpg, https://choutuppal.in/listings`}
+                className="font-mono text-xs"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setBulkOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving || !bulkText.trim()} className="gradient-brand text-white font-bold">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Import Banners (24h)'}
               </Button>
             </div>
           </form>

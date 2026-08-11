@@ -8,6 +8,7 @@ const DEFAULTS: Record<string, string> = {
   spin_enabled: 'true',
   pricing_free: 'true',
   banner_free: 'true',
+  ads_paid: 'false',
   banner_price: '99',
   announcement_ticker:
     '🪔 Choutuppal App v2.0 is now live — list your business FREE! | 📅 Spin & Win daily rewards | 🏠 List your property free',
