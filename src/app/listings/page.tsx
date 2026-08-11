@@ -3,7 +3,7 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { ExploreGrid } from '@/components/explore/explore-grid'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'https://choutuppal.in').replace(/\/$/, '')
 

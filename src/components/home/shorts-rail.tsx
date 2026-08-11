@@ -84,6 +84,7 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
                     alt={s.title ?? 'Short'}
                     className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
                     loading="lazy"
+                    decoding="async"
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />

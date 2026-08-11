@@ -1,15 +1,24 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
-import { Star, MapPin, BadgeCheck, ChevronRight, MessageCircle } from 'lucide-react'
+import { Star, MapPin, BadgeCheck, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SectionHeading } from './section-heading'
-import type { Listing } from '@prisma/client'
 
-type FeaturedListing = Listing & {
-  category: { name: string; slug: string } | null
-  village: { name: string; slug: string } | null
+const FALLBACK_BUSINESS_IMAGE =
+  'https://images.unsplash.com/photo-1582650625119-3a31f8fa2699?w=600&auto=format&fit=crop&q=80'
+
+type FeaturedListing = {
+  id: string
+  title: string
+  slug: string
+  coverImage?: string | null
+  logo?: string | null
+  avgRating?: number | null
+  views?: number
+  isFeatured?: boolean
+  category?: { name: string; slug: string } | null
+  village?: { name: string; slug: string } | null
 }
 
 interface FeaturedRailProps {
@@ -40,41 +49,28 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         {topListings.map((l, i) => {
-          const initial = l.title.charAt(0).toUpperCase()
-          const rating = ((l as any).avgRating ?? (4 + ((i * 7) % 10) / 10)).toFixed(1)
-          const imgUrl = l.coverImage || l.logo
+          const rating = ((l.avgRating ?? (4 + ((i * 7) % 10) / 10))).toFixed(1)
+          const imgUrl = l.coverImage || l.logo || FALLBACK_BUSINESS_IMAGE
+
           return (
             <Link
               key={l.id}
               href={`/business/${l.slug}`}
-              className="hover-lift group flex w-full flex-col justify-between overflow-hidden rounded-2xl glass"
+              className="hover-lift group flex w-full flex-col justify-between overflow-hidden rounded-2xl glass transition-all duration-300 hover:border-blue-400"
             >
               {/* cover */}
-              <div className="relative aspect-[16/10] w-full overflow-hidden">
-                {imgUrl ? (
-                  <Image
-                    src={imgUrl}
-                    alt={l.title}
-                    fill
-                    loading="lazy"
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    className="h-full w-full object-cover transition group-hover:scale-105"
-                  />
-                ) : (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-blue-400 to-amber-400" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_45%)]" />
-                  </>
-                )}
-                <span className="absolute left-2.5 top-2.5 z-10 flex items-center gap-1 rounded-full bg-white/85 px-2 py-0.5 text-[10px] font-bold text-amber-700 backdrop-blur">
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
+                <img
+                  src={imgUrl}
+                  alt={l.title}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                />
+                <span className="absolute left-2.5 top-2.5 z-10 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-amber-700 backdrop-blur shadow-xs">
                   <BadgeCheck className="h-3 w-3 text-blue-600" />
                   Top
                 </span>
-                {!imgUrl ? (
-                  <span className="absolute bottom-2.5 left-2.5 z-10 grid h-10 w-10 place-items-center rounded-xl bg-white/90 text-xl font-black text-blue-700 shadow">
-                    {initial}
-                  </span>
-                ) : null}
               </div>
 
               {/* body */}
@@ -96,19 +92,6 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
             </Link>
           )
         })}
-      </div>
-
-      {/* Lead CTA Button */}
-      <div className="mt-4 flex justify-center">
-        <a
-          href={`https://wa.me/919441348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, మీ యాప్ లో బిజినెస్ లిస్ట్ చేయాలనుకుంటున్నాను. దయచేసి మార్గనిర్దేశనం చేయండి.')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-full border border-blue-600 bg-white/80 px-4 py-1.5 text-sm font-medium text-blue-600 shadow-sm backdrop-blur transition-all hover:bg-blue-50"
-        >
-          <MessageCircle className="h-4 w-4 shrink-0 text-emerald-600" />
-          <span>మీ బిజినెస్ జోడించండి</span>
-        </a>
       </div>
     </section>
   )

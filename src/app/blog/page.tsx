@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { BlogList } from '@/components/content/blog-list'
 
-export const revalidate = 60
+export const revalidate = 3600
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 

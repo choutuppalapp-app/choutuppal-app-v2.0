@@ -21,8 +21,8 @@ const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans')
 const AgentCityCTA = nextDynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })))
 const SiteFooter = nextDynamic(() => import('@/components/home/site-footer').then(m => ({ default: m.SiteFooter })))
 
-// Home page using ISR 60-second revalidation for instant Edge caching
-export const revalidate = 60
+// Home page using ISR 1-hour revalidation for instant Edge caching
+export const revalidate = 3600
 
 export default async function Home() {
   const data = await getHomePageData()
