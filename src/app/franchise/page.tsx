@@ -16,8 +16,10 @@ import {
   Store,
   Crown,
   MapPin,
+  Phone,
   Check,
 } from 'lucide-react'
+import { SocialLinks } from '@/components/shared/social-links'
 
 export const metadata: Metadata = {
   title: 'White-Label App Franchise | మీ ఊరికి ఈ యాప్ కావాలా?',
@@ -328,12 +330,80 @@ export default function FranchisePage() {
       </section>
 
       {/* -------------------------------------------------------------------------- */}
-      {/* Minimal Standalone Footer                                                 */}
+      {/* Premium Standalone Franchise Footer                                       */}
       {/* -------------------------------------------------------------------------- */}
-      <footer className="border-t border-white/10 bg-slate-950 py-8 text-center text-xs text-slate-500">
-        <div className="mx-auto max-w-7xl px-4">
-          <p>© {new Date().getFullYear()} Choutuppal App Franchise. All rights reserved.</p>
-          <p className="mt-1">Powered by White-Label Super App Engine.</p>
+      <footer className="border-t border-white/10 bg-slate-950 py-12 text-slate-400">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            {/* 1. PAGES */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-widest text-amber-400">PAGES</h4>
+              <ul className="space-y-2 text-sm font-medium">
+                <li>
+                  <Link href="/" className="hover:text-amber-300 transition-colors">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/listings" className="hover:text-amber-300 transition-colors">
+                    Listings
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* 2. COMPANY */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-widest text-amber-400">COMPANY</h4>
+              <ul className="space-y-2 text-sm font-medium">
+                <li>
+                  <Link href="/about" className="hover:text-amber-300 transition-colors">
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <a
+                    href={WHATSAPP_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-amber-300 transition-colors"
+                  >
+                    Contact Us
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* 3. CONTACT */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-widest text-amber-400">CONTACT</h4>
+              <ul className="space-y-2.5 text-sm font-medium">
+                <li className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                  <span>Choutuppal, Telangana 508252</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-amber-400 shrink-0" />
+                  <a href="tel:9441348175" className="hover:text-amber-300 transition-colors">
+                    +91 9441348175
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* 4. CONNECT WITH US */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-widest text-amber-400">CONNECT WITH US</h4>
+              <div className="pt-1">
+                <SocialLinks />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p>© {new Date().getFullYear()} Choutuppal App Franchise. All rights reserved.</p>
+            <p className="text-slate-400 font-medium">Powered by White-Label Super App Engine</p>
+          </div>
         </div>
       </footer>
     </div>
