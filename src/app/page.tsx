@@ -19,7 +19,6 @@ const ShortsRail = nextDynamic(() => import('@/components/home/shorts-rail').the
 const Testimonials = nextDynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials })))
 const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans').then(m => ({ default: m.PricingPlans })))
 const AgentCityCTA = nextDynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })))
-const SiteFooter = nextDynamic(() => import('@/components/home/site-footer').then(m => ({ default: m.SiteFooter })))
 
 // Home page using ISR 1-hour revalidation for instant Edge caching
 export const revalidate = 3600
@@ -116,9 +115,6 @@ export default async function Home() {
           <div id="explore" className="scroll-mt-20" />
         </div>
       </main>
-
-      {/* Footer (sticky to bottom via mt-auto on flex-col wrapper) */}
-      <SiteFooter />
 
       {/* Bottom padding so content isn't hidden behind the mobile bottom nav */}
       <div className="h-20 md:hidden" aria-hidden />
