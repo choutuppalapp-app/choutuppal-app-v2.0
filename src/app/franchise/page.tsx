@@ -25,6 +25,11 @@ export const metadata: Metadata = {
   title: 'White-Label App Franchise | మీ ఊరికి ఈ యాప్ కావాలా?',
   description:
     'చౌటుప్పల్ యాప్ లాగా, మీ ఊరి పేరుతో కూడా ఒక సూపర్ యాప్ ని సెటప్ చేయొచ్చు. మీ ఊరి వ్యాపారాలను డిజిటల్ గా మార్చి నెలకు నిలకడైన ఆదాయం పొందండి.',
+  verification: {
+    other: {
+      'facebook-domain-verification': 'azmrpgp5okeykmb62of7zz6j5si5i8',
+    },
+  },
 }
 
 const WHATSAPP_TELUGU_TEXT =
