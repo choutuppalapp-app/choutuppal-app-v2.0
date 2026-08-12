@@ -26,6 +26,20 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.fbcdn.net" },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'franchise.choutuppal.in',
+          },
+        ],
+        destination: '/franchise/:path*',
+      },
+    ];
+  },
   async headers() {
     return [
       {
