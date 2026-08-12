@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { headers } from 'next/headers'
 import { Geist, Geist_Mono, Noto_Sans_Telugu } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
@@ -93,6 +94,10 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const headersList = await headers()
+  const host = headersList.get('host') || ''
+  const isFranchise = host.includes('franchise.choutuppal.in')
+
   const tenant = await getCurrentTenant()
   const isExpired = tenant.id !== DEFAULT_TENANT.id && tenant.subscriptionStatus === 'EXPIRED'
 
@@ -170,6 +175,8 @@ export default async function RootLayout({
                 </a>
               </div>
             </div>
+          ) : isFranchise ? (
+            children
           ) : (
             <>
               <SiteHeader tenant={tenant} />
