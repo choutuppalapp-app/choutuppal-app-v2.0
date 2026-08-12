@@ -8,8 +8,9 @@ import { cn } from '@/lib/utils'
 export function BottomNav() {
   const pathname = usePathname()
 
-  // Hide on admin, agent, business detail, and franchise routes
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/business') || pathname.startsWith('/franchise')) return null
+  // Hide on admin, agent, business detail, and franchise routes or subdomain
+  const isFranchiseSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('franchise.choutuppal.in')
+  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/business') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'

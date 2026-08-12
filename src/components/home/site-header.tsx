@@ -52,8 +52,9 @@ export function SiteHeader({ tenant = DEFAULT_TENANT }: SiteHeaderProps) {
     }
   }
 
-  // Hide on admin/agent/franchise routes — they have dedicated panel headers or landing layouts
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise')) return null
+  // Hide on admin/agent/franchise routes or franchise subdomain — they have dedicated panel headers or landing layouts
+  const isFranchiseSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('franchise.choutuppal.in')
+  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
 
   const isLoggedIn = !!session?.user
   const isDefault = tenant.id === DEFAULT_TENANT.id

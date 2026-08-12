@@ -17,7 +17,8 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
   const isDefault = tenant.id === DEFAULT_TENANT.id
   const cleanPhone = tenant.adminPhone ? tenant.adminPhone.replace(/\D/g, '') : '9441348175'
 
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise')) return null
+  const isFranchiseSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('franchise.choutuppal.in')
+  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
 
   return (
     <footer
