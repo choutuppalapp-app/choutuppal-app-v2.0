@@ -19,6 +19,7 @@ const ShortsRail = nextDynamic(() => import('@/components/home/shorts-rail').the
 const Testimonials = nextDynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials })))
 const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans').then(m => ({ default: m.PricingPlans })))
 const AgentCityCTA = nextDynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })))
+const CommunityHub = nextDynamic(() => import('@/components/home/community-hub').then(m => ({ default: m.CommunityHub })))
 
 // Home page using ISR 1-hour revalidation for instant Edge caching
 export const revalidate = 3600
@@ -110,6 +111,9 @@ export default async function Home() {
 
           {/* 14. Agent & City Expansion CTAs */}
           <AgentCityCTA />
+
+          {/* 15. Community & Opportunities Hub */}
+          <CommunityHub />
 
           {/* Explore anchor target (mobile bottom nav) */}
           <div id="explore" className="scroll-mt-20" />
