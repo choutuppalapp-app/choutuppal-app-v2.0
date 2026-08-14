@@ -11,11 +11,10 @@ export async function GET() {
   try {
     const user = await getCurrentUser()
     if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required' }, { status: 401 })
     }
 
     const setting = await prisma.whatsAppSetting.findFirst({
-      where: { isActive: true },
       orderBy: { updatedAt: 'desc' },
     })
 
@@ -28,9 +27,12 @@ export async function GET() {
         isActive: true,
       },
     })
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Admin WhatsApp Settings GET] Error:', err)
-    return NextResponse.json({ error: 'Failed to fetch WhatsApp settings' }, { status: 500 })
+    return NextResponse.json(
+      { ok: false, error: err?.message || String(err) || 'Failed to fetch WhatsApp settings' },
+      { status: 500 }
+    )
   }
 }
 
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser()
     if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ ok: false, error: 'Unauthorized: Admin access required' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -49,16 +51,9 @@ export async function POST(request: NextRequest) {
 
     if (!waToken || !waPhoneNumberId) {
       return NextResponse.json(
-        { error: 'WhatsApp Access Token and Phone Number ID are required.' },
+        { ok: false, error: 'WhatsApp Access Token and Phone Number ID are required.' },
         { status: 400 },
       )
-    }
-
-    // Deactivate previous settings if activating new one
-    if (isActive !== false) {
-      await prisma.whatsAppSetting.updateMany({
-        data: { isActive: false },
-      })
     }
 
     const existing = await prisma.whatsAppSetting.findFirst({
@@ -88,8 +83,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, setting })
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Admin WhatsApp Settings POST] Error:', err)
-    return NextResponse.json({ error: 'Failed to save WhatsApp settings' }, { status: 500 })
+    return NextResponse.json(
+      { ok: false, error: err?.message || String(err) || 'Failed to save WhatsApp settings' },
+      { status: 500 },
+    )
   }
 }
