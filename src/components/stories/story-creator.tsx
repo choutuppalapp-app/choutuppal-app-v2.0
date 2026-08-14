@@ -14,6 +14,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { ImageUploader } from '@/components/ui/image-uploader'
 
 interface StoryCreatorProps {
   open: boolean
@@ -106,41 +107,20 @@ export function StoryCreator({ open, onOpenChange, onCreated }: StoryCreatorProp
 
         <div className="space-y-4 p-6 pt-2">
           {/* Upload zone / preview */}
-          {mediaUrl ? (
-            <div className="relative overflow-hidden rounded-2xl">
-              {mediaType === 'VIDEO' ? (
-                <video src={mediaUrl} className="aspect-[9/16] w-full object-cover" muted loop autoPlay />
-              ) : (
-                <img src={mediaUrl} alt="story preview" className="aspect-[9/16] w-full object-cover" />
-              )}
-              <button
-                onClick={() => setMediaUrl(null)}
-                aria-label="Remove media"
-                className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => inputRef.current?.click()}
-              disabled={uploading}
-              className="grid aspect-[9/16] w-full place-items-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition hover:border-blue-400 hover:text-blue-600"
-            >
-              {uploading ? (
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                  <span className="text-xs">Uploading…</span>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <UploadCloud className="h-8 w-8" />
-                  <span className="text-xs font-medium">Upload photo or video</span>
-                  <span className="text-[10px] text-slate-400">Compressed to ~500KB</span>
-                </div>
-              )}
-            </button>
-          )}
+          <ImageUploader
+            value={mediaUrl}
+            onChange={(url) => {
+              setMediaUrl(url || null)
+              if (url?.match(/\.(mp4|webm|ogg|mov)$/i)) {
+                setMediaType('VIDEO')
+              } else {
+                setMediaType('IMAGE')
+              }
+            }}
+            folder="stories"
+            aspect="square"
+            label="Story Media (Photo or Video URL)"
+          />
           <input
             ref={inputRef}
             type="file"

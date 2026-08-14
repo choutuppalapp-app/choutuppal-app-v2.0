@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { ImageUploader } from '@/components/ui/image-uploader'
 
 interface BannerCreatorProps {
   open: boolean
@@ -106,37 +107,13 @@ export function BannerCreator({ open, onOpenChange, onCreated }: BannerCreatorPr
 
         <div className="space-y-4 p-6 pt-2">
           {/* Upload zone / preview (16:9) */}
-          {imageUrl ? (
-            <div className="relative overflow-hidden rounded-2xl">
-              <img loading="lazy" decoding="async" src={imageUrl} alt="banner preview" className="aspect-[16/9] w-full object-cover" />
-              <button
-                onClick={() => setImageUrl(null)}
-                aria-label="Remove image"
-                className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => inputRef.current?.click()}
-              disabled={uploading}
-              className="grid aspect-[16/9] w-full place-items-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400 transition hover:border-blue-400 hover:text-blue-600"
-            >
-              {uploading ? (
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                  <span className="text-xs">Uploading…</span>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <UploadCloud className="h-8 w-8" />
-                  <span className="text-xs font-medium">Upload 16:9 banner image</span>
-                  <span className="text-[10px] text-slate-400">Compressed to ~500KB</span>
-                </div>
-              )}
-            </button>
-          )}
+          <ImageUploader
+            value={imageUrl}
+            onChange={(url) => setImageUrl(url || null)}
+            folder="banners"
+            aspect="video"
+            label="Banner Ad Image (16:9)"
+          />
           <input
             ref={inputRef}
             type="file"
