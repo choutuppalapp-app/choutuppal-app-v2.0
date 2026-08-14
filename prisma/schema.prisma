@@ -657,6 +657,7 @@ model WhatsAppContact {
   name      String
   phone     String         @unique
   source    String?        @default("manual")
+  tag       String?        @default("Lead")
   groups    ContactGroup[]
   createdAt DateTime       @default(now())
 }
