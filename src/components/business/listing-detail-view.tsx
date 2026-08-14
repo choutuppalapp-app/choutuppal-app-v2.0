@@ -294,21 +294,25 @@ export function ListingDetailView({
             ) : null}
 
             {/* Customer to Business Owner Direct WhatsApp Button */}
-            {listing.whatsapp || listing.phone ? (
-              <div className="flex justify-center">
-                <a
-                  href={`https://wa.me/${(listing.whatsapp || listing.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(
-                    `నమస్కారం ${listing.title}, మీ బిజినెస్ ను చౌటుప్పల్ యాప్ లో చూశాను. వివరాలు తెలుసుకోవాలనుకుంటున్నాను.`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-yellow-500 px-5 py-3.5 text-sm font-bold text-white shadow-md transition active:scale-[0.98]"
-                >
-                  <MessageCircle className="h-5 w-5 shrink-0 text-white" />
-                  <span>WhatsApp లో వివరాలు అడగండి</span>
-                </a>
-              </div>
-            ) : null}
+            {(() => {
+              const rawNum = (listing.whatsapp || listing.phone || '919441348175').replace(/\D/g, '')
+              const cleanNum = rawNum.length >= 10 ? (rawNum.startsWith('91') ? rawNum : '91' + rawNum) : '919441348175'
+              const textMsg = encodeURIComponent(`నమస్కారం ${listing.title}, మీ బిజినెస్ ను చౌటుప్పల్ యాప్ లో చూశాను. వివరాలు తెలుసుకోవాలనుకుంటున్నాను.`)
+              const linkUrl = `https://wa.me/${cleanNum}?text=${textMsg}`
+              return (
+                <div className="flex justify-center">
+                  <a
+                    href={linkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-yellow-500 px-5 py-3.5 text-sm font-bold text-white shadow-md transition active:scale-[0.98]"
+                  >
+                    <MessageCircle className="h-5 w-5 shrink-0 text-white" />
+                    <span>WhatsApp లో వివరాలు అడగండి</span>
+                  </a>
+                </div>
+              )
+            })()}
 
             {/* Gallery Section */}
             {gallery.length > 0 ? (
@@ -449,8 +453,7 @@ export function ListingDetailView({
                 {/* 2. WhatsApp */}
                 <DesktopActionButton
                   icon={MessageCircle} label="WhatsApp" color="bg-green-600 hover:bg-green-700"
-                  href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}` : null}
-                  onClick={() => !listing.whatsapp && toast.error('No WhatsApp number provided')}
+                  href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`నమస్కారం ${listing.title}, ఈ బిజినెస్ గురించి సమాచారం కావాలి.`)}` : `https://wa.me/919441348175?text=${encodeURIComponent("నమస్కారం, ఈ బిజినెస్ గురించి సమాచారం కావాలి.")}`}
                 />
                 
                 {/* 3. Share */}
@@ -673,7 +676,7 @@ function MobileActionBar({ listing }: { listing: ListingDetailData['listing'] })
       {/* Call */}
       <MobileAction icon={Phone} label="Call" href={listing.phone ? `tel:${listing.phone}` : null} />
       {/* WhatsApp */}
-      <MobileAction icon={MessageCircle} label="WhatsApp" href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}` : null} />
+      <MobileAction icon={MessageCircle} label="WhatsApp" href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`నమస్కారం ${listing.title}, ఈ బిజినెస్ గురించి సమాచారం కావాలి.`)}` : `https://wa.me/919441348175?text=${encodeURIComponent("నమస్కారం, ఈ బిజినెస్ గురించి సమాచారం కావాలి.")}`} />
       {/* Share — Center FAB */}
       <div className="flex items-center justify-center">
         <button

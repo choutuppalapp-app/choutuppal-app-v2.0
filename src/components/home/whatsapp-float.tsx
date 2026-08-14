@@ -14,8 +14,8 @@ export function WhatsAppFloat({ tenant = DEFAULT_TENANT }: WhatsAppFloatProps) {
   const isFranchiseSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('franchise.choutuppal.in')
   if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
 
-  const phone = tenant.adminPhone ? tenant.adminPhone.replace(/\D/g, '') : '9441348175'
-  const messageText = encodeURIComponent(`నమస్తే, ${tenant.name} గురించి సమాచారం కావాలి`)
+  const phone = '9441348175'
+  const messageText = encodeURIComponent('నమస్కారం, చౌటుప్పల్ యాప్ గురించి సమాచారం కావాలి.')
   const whatsappLink = `https://wa.me/91${phone}?text=${messageText}`
 
   return (
