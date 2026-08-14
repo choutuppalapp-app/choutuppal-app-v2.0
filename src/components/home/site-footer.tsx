@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { MapPin, Phone, MessageCircle, Mail } from 'lucide-react'
 import { SocialLinks } from '@/components/shared/social-links'
-import { cn } from '@/lib/utils'
+import { cn, formatPhoneNumber } from '@/lib/utils'
 import { TenantConfig, DEFAULT_TENANT } from '@/lib/tenant-types'
 
 interface SiteFooterProps {
@@ -15,7 +15,8 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
   const pathname = usePathname()
   const isBusinessPage = pathname.startsWith('/business')
   const isDefault = tenant.id === DEFAULT_TENANT.id
-  const callPhone = tenant.adminPhone || '+91 94413 48175'
+  const rawCall = tenant.adminPhone || '9441348175'
+  const displayPhone = formatPhoneNumber(rawCall)
 
   const isFranchiseSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('franchise.choutuppal.in')
   if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
@@ -33,9 +34,9 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
           <div className="col-span-1 space-y-3">
             <div className="flex items-center gap-2">
               {tenant.logoUrl ? (
-                <img src={tenant.logoUrl} alt={tenant.name} className="h-9 w-auto object-contain" loading="lazy" />
+                <img src={tenant.logoUrl} alt={tenant.name} className="h-9 w-auto object-contain" loading="lazy" decoding="async" />
               ) : isDefault ? (
-                <img src="/logo.png" alt="Choutuppal App" className="h-9 w-auto" loading="lazy" />
+                <img src="/logo.png" alt="Choutuppal App" className="h-9 w-auto" loading="lazy" decoding="async" />
               ) : (
                 <div className="font-black text-slate-900 text-base flex items-center gap-1.5">
                   <div
@@ -117,8 +118,8 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-amber-500" />
-                <a href={`tel:${callPhone.replace(/\D/g, '')}`} className="font-semibold text-slate-700 hover:text-blue-600">
-                  {callPhone}
+                <a href={`tel:${rawCall.replace(/\D/g, '')}`} className="font-semibold text-slate-700 hover:text-blue-600">
+                  {displayPhone}
                 </a>
               </li>
               <li className="flex items-center gap-2">

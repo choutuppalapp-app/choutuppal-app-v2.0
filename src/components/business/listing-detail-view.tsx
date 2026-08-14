@@ -20,7 +20,7 @@ import {
   Loader2,
   CheckCircle2,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, formatPhoneNumber } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
@@ -437,7 +437,7 @@ export function ListingDetailView({
               <div className="flex flex-col gap-3">
                 {/* 1. Call (Primary) */}
                 <DesktopActionButton
-                  icon={Phone} label={listing.secondaryPhone ? `Call 1 (${listing.phone})` : "Call Now"} color="bg-emerald-500 hover:bg-emerald-600"
+                  icon={Phone} label={listing.secondaryPhone ? `Call 1 (${formatPhoneNumber(listing.phone)})` : "Call Now"} color="bg-emerald-500 hover:bg-emerald-600"
                   href={listing.phone ? `tel:${listing.phone}` : null}
                   onClick={() => !listing.phone && toast.error('No phone number provided')}
                 />
@@ -445,7 +445,7 @@ export function ListingDetailView({
                 {/* 1b. Call (Secondary) */}
                 {listing.secondaryPhone ? (
                   <DesktopActionButton
-                    icon={PhoneCall} label={`Call 2 (${listing.secondaryPhone})`} color="bg-teal-600 hover:bg-teal-700"
+                    icon={PhoneCall} label={`Call 2 (${formatPhoneNumber(listing.secondaryPhone)})`} color="bg-teal-600 hover:bg-teal-700"
                     href={`tel:${listing.secondaryPhone}`}
                   />
                 ) : null}

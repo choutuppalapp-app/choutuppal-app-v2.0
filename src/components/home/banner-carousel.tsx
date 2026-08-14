@@ -197,7 +197,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 
             {current?.imageUrl ? (
               <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
-                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="h-full w-full object-cover" />
+                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="h-full w-full object-cover" loading="lazy" decoding="async" />
               </div>
             ) : null}
 
