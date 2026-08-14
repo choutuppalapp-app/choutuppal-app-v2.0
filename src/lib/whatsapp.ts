@@ -31,7 +31,13 @@ export async function getWhatsAppCredentials(): Promise<{
   token: string | null
   phoneNumberId: string | null
   verifyToken: string | null
+  businessId?: string | null
 }> {
+  let token = process.env.WHATSAPP_TOKEN || process.env.WHATSAPP_API_KEY || null
+  let phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || null
+  let verifyToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'choutuppal_verify_token'
+  let businessId = process.env.WHATSAPP_BUSINESS_ID || null
+
   try {
     const dbSetting = await prisma.whatsAppSetting.findFirst({
       where: { isActive: true },
@@ -39,20 +45,21 @@ export async function getWhatsAppCredentials(): Promise<{
     })
 
     if (dbSetting?.waToken && dbSetting?.waPhoneNumberId) {
-      return {
-        token: dbSetting.waToken,
-        phoneNumberId: dbSetting.waPhoneNumberId,
-        verifyToken: dbSetting.waVerifyToken || null,
+      token = dbSetting.waToken
+      phoneNumberId = dbSetting.waPhoneNumberId
+      if (dbSetting.waVerifyToken) {
+        verifyToken = dbSetting.waVerifyToken
       }
     }
-  } catch (err) {
-    console.warn('[WhatsApp API] DB setting lookup error, falling back to env vars:', err)
+  } catch (error) {
+    console.log('Falling back to env vars for WhatsApp credentials:', error)
   }
 
   return {
-    token: process.env.WHATSAPP_TOKEN || process.env.WHATSAPP_API_KEY || null,
-    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || null,
-    verifyToken: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || null,
+    token,
+    phoneNumberId,
+    verifyToken,
+    businessId,
   }
 }
 
