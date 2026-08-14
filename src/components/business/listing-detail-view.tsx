@@ -295,8 +295,8 @@ export function ListingDetailView({
 
             {/* Customer to Business Owner Direct WhatsApp Button */}
             {(() => {
-              const rawNum = (listing.whatsapp || listing.phone || '919441348175').replace(/\D/g, '')
-              const cleanNum = rawNum.length >= 10 ? (rawNum.startsWith('91') ? rawNum : '91' + rawNum) : '919441348175'
+              const rawNum = (listing.whatsapp || listing.phone || '919494348175').replace(/\D/g, '')
+              const cleanNum = rawNum.length >= 10 ? (rawNum.startsWith('91') ? rawNum : '91' + rawNum) : '919494348175'
               const textMsg = encodeURIComponent(`నమస్కారం ${listing.title}, మీ బిజినెస్ ను చౌటుప్పల్ యాప్ లో చూశాను. వివరాలు తెలుసుకోవాలనుకుంటున్నాను.`)
               const linkUrl = `https://wa.me/${cleanNum}?text=${textMsg}`
               return (
@@ -453,7 +453,7 @@ export function ListingDetailView({
                 {/* 2. WhatsApp */}
                 <DesktopActionButton
                   icon={MessageCircle} label="WhatsApp" color="bg-green-600 hover:bg-green-700"
-                  href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`నమస్కారం ${listing.title}, ఈ బిజినెస్ గురించి సమాచారం కావాలి.`)}` : `https://wa.me/919441348175?text=${encodeURIComponent("నమస్కారం, ఈ బిజినెస్ గురించి సమాచారం కావాలి.")}`}
+                  href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`నమస్కారం ${listing.title}, ఈ బిజినెస్ గురించి సమాచారం కావాలి.`)}` : `https://wa.me/919494348175?text=${encodeURIComponent("నమస్కారం, ఈ బిజినెస్ గురించి సమాచారం కావాలి.")}`}
                 />
                 
                 {/* 3. Share */}
@@ -676,7 +676,7 @@ function MobileActionBar({ listing }: { listing: ListingDetailData['listing'] })
       {/* Call */}
       <MobileAction icon={Phone} label="Call" href={listing.phone ? `tel:${listing.phone}` : null} />
       {/* WhatsApp */}
-      <MobileAction icon={MessageCircle} label="WhatsApp" href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`నమస్కారం ${listing.title}, ఈ బిజినెస్ గురించి సమాచారం కావాలి.`)}` : `https://wa.me/919441348175?text=${encodeURIComponent("నమస్కారం, ఈ బిజినెస్ గురించి సమాచారం కావాలి.")}`} />
+      <MobileAction icon={MessageCircle} label="WhatsApp" href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`నమస్కారం ${listing.title}, ఈ బిజినెస్ గురించి సమాచారం కావాలి.`)}` : `https://wa.me/919494348175?text=${encodeURIComponent("నమస్కారం, ఈ బిజినెస్ గురించి సమాచారం కావాలి.")}`} />
       {/* Share — Center FAB */}
       <div className="flex items-center justify-center">
         <button

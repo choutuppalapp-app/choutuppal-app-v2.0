@@ -168,7 +168,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           View Offer Details
         </Button>
         <a
-          href={`https://wa.me/919441348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, నా బిజినెస్ కోసం బ్యానర్ అడ్ ఇవ్వాలనుకుంటున్నాను. వివరాలు దయచేసి పంచండి.')}`}
+          href={`https://wa.me/919494348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, నా బిజినెస్ కోసం బ్యానర్ అడ్ ఇవ్వాలనుకుంటున్నాను. వివరాలు దయచేసి పంచండి.')}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-full border border-blue-600 bg-white/80 px-4 py-1.5 text-sm font-medium text-blue-600 shadow-sm backdrop-blur transition-all hover:bg-blue-50"
@@ -225,7 +225,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               ) : null}
 
               <a
-                href={`https://wa.me/919441348175?text=${encodeURIComponent(`నమస్కారం, నేను ఈ బ్యానర్ ద్వారా సంప్రదిస్తున్నాను: ${current?.title}`)}`}
+                href={`https://wa.me/919494348175?text=${encodeURIComponent(`నమస్కారం, నేను ఈ బ్యానర్ ద్వారా సంప్రదిస్తున్నాను: ${current?.title}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:flex-1"

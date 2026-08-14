@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 
 const WHATSAPP_TELUGU_TEXT =
   'నమస్కారం, నా ఊరి కోసం ఒక వైట్-లేబుల్ సూపర్ యాప్ సెటప్ చేయాలనుకుంటున్నాను. సమాచారం కావాలి.'
-const WHATSAPP_LINK = `https://wa.me/919441348175?text=${encodeURIComponent(
+const WHATSAPP_LINK = `https://wa.me/919494348175?text=${encodeURIComponent(
   WHATSAPP_TELUGU_TEXT,
 )}`
 

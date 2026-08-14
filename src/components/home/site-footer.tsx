@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MapPin, Phone, MessageCircle } from 'lucide-react'
+import { MapPin, Phone, MessageCircle, Mail } from 'lucide-react'
 import { SocialLinks } from '@/components/shared/social-links'
 import { cn } from '@/lib/utils'
 import { TenantConfig, DEFAULT_TENANT } from '@/lib/tenant-types'
@@ -15,7 +15,7 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
   const pathname = usePathname()
   const isBusinessPage = pathname.startsWith('/business')
   const isDefault = tenant.id === DEFAULT_TENANT.id
-  const cleanPhone = tenant.adminPhone ? tenant.adminPhone.replace(/\D/g, '') : '9441348175'
+  const callPhone = tenant.adminPhone || '+91 94413 48175'
 
   const isFranchiseSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('franchise.choutuppal.in')
   if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
@@ -117,19 +117,28 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-amber-500" />
-                <a href={`tel:${cleanPhone}`} className="font-semibold text-slate-700 hover:text-blue-600">
-                  {tenant.adminPhone}
+                <a href={`tel:${callPhone.replace(/\D/g, '')}`} className="font-semibold text-slate-700 hover:text-blue-600">
+                  {callPhone}
                 </a>
               </li>
               <li className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4 shrink-0 text-green-500" />
                 <a
-                  href={`https://wa.me/91${cleanPhone}`}
+                  href="https://wa.me/919494348175"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-slate-700 hover:text-green-600"
                 >
-                  {tenant.adminPhone}
+                  +91 94943 48175
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <Mail className="h-4 w-4 shrink-0 text-indigo-500" />
+                <a
+                  href="mailto:info@choutuppal.in"
+                  className="font-semibold text-slate-700 hover:text-indigo-600"
+                >
+                  info@choutuppal.in
                 </a>
               </li>
             </ul>

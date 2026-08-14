@@ -136,7 +136,7 @@ export default async function NewsDetailPage({
 
       {/* Floating WhatsApp button */}
       <a
-        href="https://wa.me/919441348175"
+        href="https://wa.me/919494348175"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full bg-green-500 px-4 py-3 text-xs font-bold text-white shadow-lg transition hover:bg-green-600 md:bottom-6"

@@ -4,11 +4,11 @@ import { UserPlus, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const AGENT_WA_LINK =
-  'https://wa.me/919441348175?text=' +
+  'https://wa.me/919494348175?text=' +
   encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, ఏజెంట్ గా పనిచేయాలనుకుంటున్నాను. వివరాలు తెలపండి.')
 
 const CITY_WA_LINK =
-  'https://wa.me/919441348175?text=' +
+  'https://wa.me/919494348175?text=' +
   encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, వైట్ లేబుల్ గా మా ఊరి కోసం పనిచేయాలనుకుంటున్నాను. వివరాలు తెలపండి.')
 
 export function AgentCityCTA() {

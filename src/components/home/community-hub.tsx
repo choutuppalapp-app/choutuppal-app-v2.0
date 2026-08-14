@@ -4,11 +4,11 @@ import Link from 'next/link'
 import { Newspaper, Gift, UserCheck, Building, MessageCircle, Sparkles, ChevronRight } from 'lucide-react'
 
 export function CommunityHub() {
-  const newsWhatsAppLink = `https://wa.me/919441348175?text=${encodeURIComponent(
+  const newsWhatsAppLink = `https://wa.me/919494348175?text=${encodeURIComponent(
     'నమస్కారం, మా ఊరిలో ఒక లోకల్ న్యూస్/ఈవెంట్ ఉంది. దయచేసి యాప్ లో పబ్లిష్ చేయండి: ',
   )}`
 
-  const franchiseWhatsAppLink = `https://wa.me/919441348175?text=${encodeURIComponent(
+  const franchiseWhatsAppLink = `https://wa.me/919494348175?text=${encodeURIComponent(
     'నమస్కారం, నా ఊరి కోసం ఒక వైట్-లేబుల్ సూపర్ యాప్ సెటప్ చేయాలనుకుంటున్నాను. సమాచారం కావాలి.',
   )}`
 

@@ -16,7 +16,7 @@ type StoryWithCounts = Story & {
 }
 
 const WA_TELUGU_MESSAGE = "నమస్కారం చౌటుప్పల్ యాప్, నా బిజినెస్ కోసం బ్యానర్/స్టోరీ అడ్ ఇవ్వాలనుకుంటున్నాను (₹99/day). దయచేసి మార్గనిర్దేశనం చేయండి."
-const WA_PROMOTIONAL_URL = `https://wa.me/919441348175?text=${encodeURIComponent(WA_TELUGU_MESSAGE)}`
+const WA_PROMOTIONAL_URL = `https://wa.me/919494348175?text=${encodeURIComponent(WA_TELUGU_MESSAGE)}`
 
 /** Returns a live hh:mm:ss countdown string for a target date. */
 function useCountdown(target: Date) {

@@ -13,7 +13,7 @@ interface ShortsFeedProps {
 }
 
 const WHATSAPP_LINK =
-  'https://wa.me/919441348175?text=' +
+  'https://wa.me/919494348175?text=' +
   encodeURIComponent('నేను మా యూట్యూబ్ వీడియో చౌటుప్పల్ యాప్ లో పోస్ట్ చేయాలనుకుంటున్నాను')
 
 function embedUrl(youtubeId: string | null, videoUrl: string): string {

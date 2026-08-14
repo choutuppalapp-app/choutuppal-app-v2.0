@@ -3,7 +3,7 @@
 import { MessageCircle, Megaphone, Send } from 'lucide-react'
 
 export function SendNewsCTA() {
-  const whatsappUrl = `https://wa.me/919441348175?text=${encodeURIComponent(
+  const whatsappUrl = `https://wa.me/919494348175?text=${encodeURIComponent(
     'నమస్కారం చౌటుప్పల్ యాప్, మా ఊరిలో ఒక ముఖ్యమైన వార్త/అప్డేట్ ఉంది. దయచేసి దీన్ని యాప్ లో పోస్ట్ చేయండి.'
   )}`
 
