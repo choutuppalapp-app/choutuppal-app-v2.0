@@ -634,4 +634,19 @@ model Tenant {
   updatedAt    DateTime     @updatedAt
 }
 
+// ----------------------------------------------------------------------------
+// WHATSAPP CRM SETTINGS
+// ----------------------------------------------------------------------------
+
+model WhatsAppSetting {
+  id              String   @id @default(cuid())
+  waToken         String
+  waPhoneNumberId String
+  waVerifyToken   String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+
 

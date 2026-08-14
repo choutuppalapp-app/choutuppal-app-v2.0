@@ -1,20 +1,74 @@
-/**
- * WhatsApp Cloud API Utility (Graph API v18.0)
- * Sends automated WhatsApp text messages using Meta credentials.
- */
+import { prisma } from '@/lib/prisma'
 
+export interface WhatsAppMessagePayloadOptions {
+  messageType?: 'text' | 'template' | 'interactive_button' | 'interactive_list'
+  // Text & General
+  text?: string
+  headerText?: string
+  footerText?: string
+
+  // Template options
+  templateName?: string
+  templateLanguage?: string
+  templateComponents?: any[]
+
+  // Interactive Buttons options
+  buttonType?: 'quick_reply' | 'cta_url'
+  buttons?: { id?: string; title: string }[]
+  ctaTitle?: string
+  ctaUrl?: string
+
+  // List Message options
+  listButtonTitle?: string
+  listSectionTitle?: string
+  listOptions?: { id?: string; title: string; description?: string }[]
+}
+
+/**
+ * Get active Meta WhatsApp API credentials (Database priority -> process.env fallback)
+ */
+export async function getWhatsAppCredentials(): Promise<{
+  token: string | null
+  phoneNumberId: string | null
+  verifyToken: string | null
+}> {
+  try {
+    const dbSetting = await prisma.whatsAppSetting.findFirst({
+      where: { isActive: true },
+      orderBy: { updatedAt: 'desc' },
+    })
+
+    if (dbSetting?.waToken && dbSetting?.waPhoneNumberId) {
+      return {
+        token: dbSetting.waToken,
+        phoneNumberId: dbSetting.waPhoneNumberId,
+        verifyToken: dbSetting.waVerifyToken || null,
+      }
+    }
+  } catch (err) {
+    console.warn('[WhatsApp API] DB setting lookup error, falling back to env vars:', err)
+  }
+
+  return {
+    token: process.env.WHATSAPP_TOKEN || process.env.WHATSAPP_API_KEY || null,
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || null,
+    verifyToken: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || null,
+  }
+}
+
+/**
+ * Send Meta WhatsApp Cloud API Message (Text, Template, Interactive Buttons, or List)
+ */
 export async function sendWhatsAppMessage(
   toPhoneNumber: string,
   messageText: string,
+  options: WhatsAppMessagePayloadOptions = {},
 ): Promise<{ ok: boolean; data?: any; error?: string }> {
   try {
-    const token = process.env.WHATSAPP_TOKEN || process.env.WHATSAPP_API_KEY
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID
+    const { token, phoneNumberId } = await getWhatsAppCredentials()
 
     if (!token || !phoneNumberId) {
-      console.warn(
-        '[WhatsApp API] Missing WHATSAPP_TOKEN or WHATSAPP_PHONE_NUMBER_ID in environment variables.',
-      )
+      console.warn('[WhatsApp API] Missing WhatsApp Token or Phone Number ID credentials.')
       return { ok: false, error: 'WhatsApp API credentials not configured.' }
     }
 
@@ -24,14 +78,88 @@ export async function sendWhatsAppMessage(
     }
 
     const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`
-    const payload = {
+    let payload: any = {
       messaging_product: 'whatsapp',
       recipient_type: 'individual',
       to: cleanPhone,
-      type: 'text',
-      text: {
-        body: messageText,
-      },
+    }
+
+    const type = options.messageType || 'text'
+
+    if (type === 'template' && options.templateName) {
+      payload.type = 'template'
+      payload.template = {
+        name: options.templateName,
+        language: { code: options.templateLanguage || 'en' },
+        components: options.templateComponents || [],
+      }
+    } else if (type === 'interactive_button') {
+      payload.type = 'interactive'
+
+      if (options.buttonType === 'cta_url' && options.ctaUrl) {
+        payload.interactive = {
+          type: 'cta_url',
+          body: { text: messageText },
+          action: {
+            name: 'cta_url',
+            parameters: {
+              display_text: options.ctaTitle || 'Visit Link',
+              url: options.ctaUrl,
+            },
+          },
+        }
+      } else {
+        // Quick Reply Buttons (Max 3 buttons)
+        const formattedButtons = (options.buttons || [
+          { id: 'btn_1', title: 'Yes' },
+          { id: 'btn_2', title: 'More Info' },
+        ]).slice(0, 3).map((b, idx) => ({
+          type: 'reply',
+          reply: {
+            id: b.id || `btn_${idx + 1}`,
+            title: b.title.slice(0, 20),
+          },
+        }))
+
+        payload.interactive = {
+          type: 'button',
+          body: { text: messageText },
+          action: {
+            buttons: formattedButtons,
+          },
+        }
+        if (options.headerText) payload.interactive.header = { type: 'text', text: options.headerText }
+        if (options.footerText) payload.interactive.footer = { text: options.footerText }
+      }
+    } else if (type === 'interactive_list') {
+      payload.type = 'interactive'
+      const rows = (options.listOptions || [
+        { id: 'opt_1', title: 'Option 1', description: 'Select option 1' },
+      ]).slice(0, 10).map((opt, idx) => ({
+        id: opt.id || `opt_${idx + 1}`,
+        title: opt.title.slice(0, 24),
+        description: opt.description ? opt.description.slice(0, 72) : undefined,
+      }))
+
+      payload.interactive = {
+        type: 'list',
+        body: { text: messageText },
+        action: {
+          button: (options.listButtonTitle || 'Select Option').slice(0, 20),
+          sections: [
+            {
+              title: (options.listSectionTitle || 'Menu Options').slice(0, 24),
+              rows,
+            },
+          ],
+        },
+      }
+      if (options.headerText) payload.interactive.header = { type: 'text', text: options.headerText }
+      if (options.footerText) payload.interactive.footer = { text: options.footerText }
+    } else {
+      // Default: Plain Text Message
+      payload.type = 'text'
+      payload.text = { body: messageText }
     }
 
     const res = await fetch(url, {

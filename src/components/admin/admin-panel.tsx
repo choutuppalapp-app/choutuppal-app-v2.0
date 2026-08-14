@@ -63,7 +63,8 @@ import { AdminRealEstateTab } from './real-estate-tab'
 import { AdminBannersTab } from './banners-tab'
 import { AutoLinksTab } from './auto-links-tab'
 import { TenantsTab } from './tenants-tab'
-import { Link2, Globe } from 'lucide-react'
+import { WhatsAppCrmTab } from './whatsapp-crm-tab'
+import { Link2, Globe, MessageSquare } from 'lucide-react'
 
 interface Stats {
   totalUsers: number
@@ -181,6 +182,9 @@ export function AdminPanel({ adminName }: { adminName: string }) {
             <TabsTrigger value="push" className="gap-1.5 text-xs">
               <Bell className="h-3 w-3" /> Push
             </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="gap-1.5 text-xs">
+              <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp CRM
+            </TabsTrigger>
             <TabsTrigger value="autolinks" className="gap-1.5 text-xs">
               <Link2 className="h-3 w-3 text-blue-600" /> Auto Links
             </TabsTrigger>
@@ -199,6 +203,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           <TabsContent value="banners"><AdminBannersTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="push"><PushTab /></TabsContent>
+          <TabsContent value="whatsapp"><WhatsAppCrmTab /></TabsContent>
           <TabsContent value="autolinks"><AutoLinksTab /></TabsContent>
           <TabsContent value="settings"><SettingsTab /></TabsContent>
         </Tabs>
