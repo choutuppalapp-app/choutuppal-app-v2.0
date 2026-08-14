@@ -669,6 +669,15 @@ model ContactGroup {
   createdAt DateTime          @default(now())
 }
 
+model WhatsAppTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  payload   Json
+  createdAt DateTime @default(now())
+}
+
+
 
 
 

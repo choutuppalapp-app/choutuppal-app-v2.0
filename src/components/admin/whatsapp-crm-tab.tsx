@@ -29,6 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { WASettingsTab } from './wa-settings-tab'
 import { WAContactsTab, ContactGroupItem } from './wa-contacts-tab'
+import { WATemplatesTab } from './wa-templates-tab'
 import { toast } from 'sonner'
 
 export function WhatsAppCrmTab() {
@@ -187,47 +188,19 @@ export function WhatsAppCrmTab() {
     }
   }
 
-  // Pre-built Marketing Templates Loader
-  function applyPrebuiltTemplate(type: 'welcome' | 'festival' | 'expired' | 'realestate') {
-    if (type === 'welcome') {
-      setMessageType('interactive_button')
-      setButtonType('cta_url')
-      setHeaderText('Choutuppal App Business Onboarding')
-      setMessageText('నమస్కారం {name}! చౌటుప్పల్ యాప్ లో మీ బిజినెస్ ని ఉచితంగా లిస్ట్ చేయండి.')
-      setFooterText('Choutuppal App • choutuppal.in')
-      setCtaTitle('List Now')
-      setCtaUrl('https://choutuppal.in/dashboard')
-    } else if (type === 'festival') {
-      setMessageType('interactive_button')
-      setButtonType('cta_url')
-      setHeaderText('పండగ ఆఫర్లు & శుభాకాంక్షలు 🎉')
-      setMessageText('మీకు మరియు మీ కుటుంబానికి పండగ శుభాకాంక్షలు! చౌటుప్పల్ లో ప్రత్యేక ఆఫర్లు చూడండి.')
-      setFooterText('Choutuppal App Community')
-      setCtaTitle('View Offers')
-      setCtaUrl('https://choutuppal.in')
-    } else if (type === 'expired') {
-      setMessageType('interactive_button')
-      setButtonType('quick_reply')
-      setHeaderText('Listing Status Alert')
-      setMessageText('నమస్కారం {name}! మీ బిజినెస్ లిస్టింగ్ గడువు ముగిసింది. దయచేసి వివరాలను అప్డేట్ చేయండి.')
-      setFooterText('Support Hotline: 9441348175')
-      setButtons([
-        { id: 'btn_1', title: 'Update Now' },
-        { id: 'btn_2', title: 'Talk to Agent' },
-      ])
-    } else if (type === 'realestate') {
-      setMessageType('interactive_list')
-      setHeaderText('New Real Estate Opportunities')
-      setMessageText('చౌటుప్పల్ లో కొత్త ప్లాట్లు మరియు ఇండ్లు అందుబాటులో ఉన్నాయి. క్రింది కేటగిరీ ఎంచుకోండి:')
-      setFooterText('Choutuppal Real Estate Engine')
-      setListButtonTitle('కేటగిరీలు ఎంచుకోండి')
-      setListSectionTitle('Property Options')
-      setListOptions([
-        { id: 'opt_1', title: 'Open Plots', description: 'హైవే కి దగ్గరలో ప్లాట్లు' },
-        { id: 'opt_2', title: '2BHK Independent House', description: 'కొత్తగా నిర్మించిన ఇండ్లు' },
-        { id: 'opt_3', title: 'Rental Commercial Space', description: 'షాపులు & ఆఫీసు స్థలాలు' },
-      ])
-    }
+  function handleSelectCustomTemplate(payload: any) {
+    if (!payload) return
+    if (payload.messageType) setMessageType(payload.messageType)
+    if (payload.headerText !== undefined) setHeaderText(payload.headerText)
+    if (payload.messageText !== undefined) setMessageText(payload.messageText)
+    if (payload.footerText !== undefined) setFooterText(payload.footerText)
+    if (payload.buttonType) setButtonType(payload.buttonType)
+    if (payload.buttons) setButtons(payload.buttons)
+    if (payload.ctaTitle) setCtaTitle(payload.ctaTitle)
+    if (payload.ctaUrl) setCtaUrl(payload.ctaUrl)
+    if (payload.listButtonTitle) setListButtonTitle(payload.listButtonTitle)
+    if (payload.listSectionTitle) setListSectionTitle(payload.listSectionTitle)
+    if (payload.listOptions) setListOptions(payload.listOptions)
 
     setActiveTab('sender')
     toast.success('Template loaded into Campaign Builder!')
@@ -246,7 +219,7 @@ export function WhatsAppCrmTab() {
           </div>
           <h1 className="text-2xl font-black tracking-tight sm:text-3xl">WhatsApp Marketing & Automated CRM</h1>
           <p className="mt-1 text-xs text-slate-300">
-            Auto-Replies, Pre-built Marketing Templates, Smart Lead Capture & Meta Cloud API Bulk Campaigns.
+            Auto-Replies, Custom Dynamic Template Builder, Smart Lead Capture & Meta Cloud API Bulk Campaigns.
           </p>
         </div>
       </div>
@@ -669,110 +642,9 @@ export function WhatsAppCrmTab() {
           </div>
         </TabsContent>
 
-        {/* Pre-built Saved Templates Sub-Tab */}
-        <TabsContent value="templates" className="mt-6 space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Zap className="h-4 w-4 text-amber-500" />
-                <span>Pre-built Marketing Templates Library</span>
-              </h3>
-              <p className="text-xs text-slate-500">
-                Click &quot;Use Template&quot; on any ready-to-use marketing template below to load it into the Campaign Builder.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              {/* Template 1: Welcome Offer */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                      1. Welcome Offer
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-bold">CTA Button</span>
-                  </div>
-                  <p className="text-xs text-slate-800 leading-relaxed font-medium">
-                    &quot;నమస్కారం &#123;name&#125;! చౌటుప్పల్ యాప్ లో మీ బిజినెస్ ని ఉచితంగా లిస్ట్ చేయండి.&quot;
-                  </p>
-                  <div className="text-[11px] text-slate-500 bg-white p-2 rounded-xl border border-slate-200">
-                    Button: <span className="font-bold text-emerald-600">List Now &rarr; https://choutuppal.in/dashboard</span>
-                  </div>
-                </div>
-                <Button onClick={() => applyPrebuiltTemplate('welcome')} size="sm" className="w-full gap-1.5 bg-blue-600 text-white font-bold text-xs mt-2">
-                  <Zap className="h-3.5 w-3.5 text-amber-400" />
-                  <span>Use Template</span>
-                </Button>
-              </div>
-
-              {/* Template 2: Festival Greeting */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                      2. Festival Greeting 🎉
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-bold">CTA Button</span>
-                  </div>
-                  <p className="text-xs text-slate-800 leading-relaxed font-medium">
-                    &quot;మీకు మరియు మీ కుటుంబానికి పండగ శుభాకాంక్షలు! చౌటుప్పల్ లో ప్రత్యేక ఆఫర్లు చూడండి.&quot;
-                  </p>
-                  <div className="text-[11px] text-slate-500 bg-white p-2 rounded-xl border border-slate-200">
-                    Button: <span className="font-bold text-emerald-600">View Offers &rarr; https://choutuppal.in</span>
-                  </div>
-                </div>
-                <Button onClick={() => applyPrebuiltTemplate('festival')} size="sm" className="w-full gap-1.5 bg-blue-600 text-white font-bold text-xs mt-2">
-                  <Zap className="h-3.5 w-3.5 text-amber-400" />
-                  <span>Use Template</span>
-                </Button>
-              </div>
-
-              {/* Template 3: Expired Listing */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
-                      3. Expired Listing
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-bold">Quick Replies</span>
-                  </div>
-                  <p className="text-xs text-slate-800 leading-relaxed font-medium">
-                    &quot;నమస్కారం &#123;name&#125;! మీ బిజినెస్ లిస్టింగ్ గడువు ముగిసింది. దయచేసి వివరాలను అప్డేట్ చేయండి.&quot;
-                  </p>
-                  <div className="text-[11px] text-slate-500 bg-white p-2 rounded-xl border border-slate-200 flex gap-2">
-                    <span className="font-bold text-blue-600">[Update Now]</span>
-                    <span className="font-bold text-blue-600">[Talk to Agent]</span>
-                  </div>
-                </div>
-                <Button onClick={() => applyPrebuiltTemplate('expired')} size="sm" className="w-full gap-1.5 bg-blue-600 text-white font-bold text-xs mt-2">
-                  <Zap className="h-3.5 w-3.5 text-amber-400" />
-                  <span>Use Template</span>
-                </Button>
-              </div>
-
-              {/* Template 4: Real Estate Lead */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      4. Real Estate Lead
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-bold">List Message</span>
-                  </div>
-                  <p className="text-xs text-slate-800 leading-relaxed font-medium">
-                    &quot;చౌటుప్పల్ లో కొత్త ప్లాట్లు మరియు ఇండ్లు అందుబాటులో ఉన్నాయి. క్రింది కేటగిరీ ఎంచుకోండి:&quot;
-                  </p>
-                  <div className="text-[11px] text-slate-500 bg-white p-2 rounded-xl border border-slate-200">
-                    Menu Options: <span className="font-bold text-emerald-600">Open Plots, 2BHK House, Commercial</span>
-                  </div>
-                </div>
-                <Button onClick={() => applyPrebuiltTemplate('realestate')} size="sm" className="w-full gap-1.5 bg-blue-600 text-white font-bold text-xs mt-2">
-                  <Zap className="h-3.5 w-3.5 text-amber-400" />
-                  <span>Use Template</span>
-                </Button>
-              </div>
-            </div>
-          </div>
+        {/* Dynamic Custom Saved Templates Sub-Tab */}
+        <TabsContent value="templates" className="mt-6">
+          <WATemplatesTab onSelectTemplate={handleSelectCustomTemplate} />
         </TabsContent>
 
         <TabsContent value="contacts" className="mt-6">
