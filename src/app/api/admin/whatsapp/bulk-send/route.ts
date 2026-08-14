@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const {
-      recipientMode, // 'ALL_USERS' | 'CUSTOM_NUMBERS'
+      recipientMode, // 'ALL_USERS' | 'CUSTOM_NUMBERS' | 'CONTACT_GROUP'
+      groupId,
       customPhones,  // string or string[]
       messageText,   // string
       messageType,   // 'text' | 'template' | 'interactive_button' | 'interactive_list'
@@ -52,6 +53,16 @@ export async function POST(request: NextRequest) {
       targets = users
         .filter((u) => u.phone && u.phone.trim().length > 5)
         .map((u) => ({ phone: u.phone!, name: u.name || 'Valued User' }))
+    } else if (recipientMode === 'CONTACT_GROUP' && groupId) {
+      const groupContacts = await prisma.whatsAppContact.findMany({
+        where: {
+          groups: {
+            some: { id: groupId },
+          },
+        },
+        select: { phone: true, name: true },
+      })
+      targets = groupContacts.map((c) => ({ phone: c.phone, name: c.name || 'User' }))
     } else {
       let phoneArray: string[] = []
       if (Array.isArray(customPhones)) {

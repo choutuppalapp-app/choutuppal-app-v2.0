@@ -648,5 +648,26 @@ model WhatsAppSetting {
   updatedAt       DateTime @updatedAt
 }
 
+// ----------------------------------------------------------------------------
+// WHATSAPP CONTACTS & GROUPS
+// ----------------------------------------------------------------------------
+
+model WhatsAppContact {
+  id        String         @id @default(cuid())
+  name      String
+  phone     String         @unique
+  source    String?        @default("manual")
+  groups    ContactGroup[]
+  createdAt DateTime       @default(now())
+}
+
+model ContactGroup {
+  id        String            @id @default(cuid())
+  name      String            @unique
+  contacts  WhatsAppContact[]
+  createdAt DateTime          @default(now())
+}
+
+
 
 

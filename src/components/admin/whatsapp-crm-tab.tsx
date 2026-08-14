@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   MessageSquare,
   Send,
@@ -16,6 +16,8 @@ import {
   Loader2,
   CheckCircle2,
   Smartphone,
+  FolderGit2,
+  UserCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,14 +26,17 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { WASettingsTab } from './wa-settings-tab'
+import { WAContactsTab, ContactGroupItem } from './wa-contacts-tab'
 import { toast } from 'sonner'
 
 export function WhatsAppCrmTab() {
-  const [activeTab, setActiveTab] = useState<'sender' | 'settings'>('sender')
+  const [activeTab, setActiveTab] = useState<'sender' | 'contacts' | 'settings'>('sender')
 
   // Recipient Config
-  const [recipientMode, setRecipientMode] = useState<'ALL_USERS' | 'CUSTOM_NUMBERS'>('ALL_USERS')
+  const [recipientMode, setRecipientMode] = useState<'ALL_USERS' | 'CUSTOM_NUMBERS' | 'CONTACT_GROUP'>('ALL_USERS')
   const [customPhones, setCustomPhones] = useState('')
+  const [selectedGroupId, setSelectedGroupId] = useState('')
+  const [groups, setGroups] = useState<ContactGroupItem[]>([])
 
   // Message Type Config
   const [messageType, setMessageType] = useState<'text' | 'template' | 'interactive_button' | 'interactive_list'>('text')
@@ -66,6 +71,25 @@ export function WhatsAppCrmTab() {
   // Sending State
   const [sending, setSending] = useState(false)
   const [lastResult, setLastResult] = useState<any>(null)
+
+  useEffect(() => {
+    fetchGroups()
+  }, [])
+
+  async function fetchGroups() {
+    try {
+      const res = await fetch('/api/admin/whatsapp/groups')
+      const data = await res.json()
+      if (res.ok && data.groups) {
+        setGroups(data.groups)
+        if (data.groups.length > 0 && !selectedGroupId) {
+          setSelectedGroupId(data.groups[0].id)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch groups for audience selection:', err)
+    }
+  }
 
   function addQuickReplyButton() {
     if (buttons.length >= 3) {
@@ -115,6 +139,10 @@ export function WhatsAppCrmTab() {
       toast.error('Please enter recipient phone numbers.')
       return
     }
+    if (recipientMode === 'CONTACT_GROUP' && !selectedGroupId) {
+      toast.error('Please select a contact group.')
+      return
+    }
 
     try {
       setSending(true)
@@ -122,6 +150,7 @@ export function WhatsAppCrmTab() {
 
       const payload = {
         recipientMode,
+        groupId: selectedGroupId,
         customPhones,
         messageText,
         messageType,
@@ -148,13 +177,15 @@ export function WhatsAppCrmTab() {
       if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to dispatch campaign')
 
       setLastResult(data)
-      toast.success(`Campaign Dispatched! Successfully sent to ${data.successCount} users.`)
+      toast.success(`Campaign Dispatched! Successfully sent to ${data.successCount} recipients.`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Campaign dispatch failed')
     } finally {
       setSending(false)
     }
   }
+
+  const selectedGroupObj = groups.find((g) => g.id === selectedGroupId)
 
   return (
     <div className="space-y-6">
@@ -167,21 +198,25 @@ export function WhatsAppCrmTab() {
           </div>
           <h1 className="text-2xl font-black tracking-tight sm:text-3xl">WhatsApp Marketing & Automated CRM</h1>
           <p className="mt-1 text-xs text-slate-300">
-            Send Interactive Buttons, Dynamic Lists, Templates, and Text campaigns backed by Meta Cloud API.
+            Send Interactive Buttons, Dynamic Lists, Templates, and Group Campaigns backed by Meta Cloud API.
           </p>
         </div>
       </div>
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-lg">
           <TabsTrigger value="sender" className="gap-2 text-xs font-bold">
             <Send className="h-3.5 w-3.5" />
             <span>Campaign Builder</span>
           </TabsTrigger>
+          <TabsTrigger value="contacts" className="gap-2 text-xs font-bold">
+            <Users className="h-3.5 w-3.5" />
+            <span>Contacts & Groups</span>
+          </TabsTrigger>
           <TabsTrigger value="settings" className="gap-2 text-xs font-bold">
             <Settings className="h-3.5 w-3.5" />
-            <span>API Credentials Settings</span>
+            <span>API Settings</span>
           </TabsTrigger>
         </TabsList>
 
@@ -193,36 +228,72 @@ export function WhatsAppCrmTab() {
               <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                   <Users className="h-4 w-4 text-blue-600" />
-                  <span>1. Select Audience & Recipients</span>
+                  <span>1. Select Audience & Target Group</span>
                 </h3>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setRecipientMode('ALL_USERS')}
-                    className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-center transition-all ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all ${
                       recipientMode === 'ALL_USERS'
                         ? 'border-blue-600 bg-blue-50/50 text-blue-700 font-bold shadow-sm'
                         : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                     }`}
                   >
-                    <Users className="h-5 w-5 mb-1 text-blue-600" />
-                    <span className="text-xs">All Registered Users</span>
+                    <Users className="h-4 w-4 mb-1 text-blue-600" />
+                    <span className="text-[11px]">All App Users</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRecipientMode('CONTACT_GROUP')}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all ${
+                      recipientMode === 'CONTACT_GROUP'
+                        ? 'border-blue-600 bg-blue-50/50 text-blue-700 font-bold shadow-sm'
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <FolderGit2 className="h-4 w-4 mb-1 text-amber-500" />
+                    <span className="text-[11px]">Contact Group</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setRecipientMode('CUSTOM_NUMBERS')}
-                    className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-center transition-all ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all ${
                       recipientMode === 'CUSTOM_NUMBERS'
                         ? 'border-blue-600 bg-blue-50/50 text-blue-700 font-bold shadow-sm'
                         : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                     }`}
                   >
-                    <PhoneCall className="h-5 w-5 mb-1 text-emerald-600" />
-                    <span className="text-xs">Custom Phone List</span>
+                    <PhoneCall className="h-4 w-4 mb-1 text-emerald-600" />
+                    <span className="text-[11px]">Custom List</span>
                   </button>
                 </div>
+
+                {recipientMode === 'CONTACT_GROUP' && (
+                  <div className="space-y-2 pt-2">
+                    <Label className="text-xs font-semibold text-slate-700">Select Contact Group</Label>
+                    <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                      <SelectTrigger className="text-xs font-bold">
+                        <SelectValue placeholder="Select group..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {groups.map((g) => (
+                          <SelectItem key={g.id} value={g.id}>
+                            {g.name} ({g._count?.contacts || 0} members)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedGroupObj && (
+                      <p className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
+                        Sending to {selectedGroupObj._count?.contacts || 0} contacts in [{selectedGroupObj.name}]
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {recipientMode === 'CUSTOM_NUMBERS' && (
                   <div className="space-y-1.5 pt-2">
@@ -543,6 +614,10 @@ export function WhatsAppCrmTab() {
               </div>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="contacts" className="mt-6">
+          <WAContactsTab />
         </TabsContent>
 
         <TabsContent value="settings" className="mt-6">
