@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
 import { Geist, Geist_Mono, Noto_Sans_Telugu } from 'next/font/google'
 import Script from 'next/script'
+import { Suspense } from 'react'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'
@@ -11,6 +12,7 @@ import { SiteHeader } from '@/components/home/site-header'
 import { SiteFooter } from '@/components/home/site-footer'
 import { BottomNav } from '@/components/home/bottom-nav'
 import { WhatsAppFloat } from '@/components/home/whatsapp-float'
+import { MetaPixel } from '@/components/analytics/meta-pixel'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -104,8 +106,8 @@ export default async function RootLayout({
   const rawGa = process.env.NEXT_PUBLIC_GA4_ID?.trim()
   const gaId = rawGa && !rawGa.includes('XXXXX') && rawGa.length > 5 ? rawGa : null
 
-  const rawFb = process.env.NEXT_PUBLIC_FB_PIXEL_ID?.trim()
-  const fbPixelId = rawFb && !rawFb.includes('XXXXX') && rawFb.length > 5 ? rawFb : null
+  const rawFb = (process.env.NEXT_PUBLIC_META_PIXEL_ID || process.env.NEXT_PUBLIC_FB_PIXEL_ID || '1644414366433411').trim()
+  const fbPixelId = rawFb && !rawFb.includes('XXXXX') && rawFb.length > 5 ? rawFb : '1644414366433411'
 
   return (
     <html lang="te" suppressHydrationWarning>
@@ -133,20 +135,34 @@ export default async function RootLayout({
           ) : null}
 
           {fbPixelId ? (
-            <Script id="fb-pixel" strategy="lazyOnload">
-              {`
-                !function(f,b,e,v,n,t,s)
-                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                n.queue=[];t=b.createElement(e);t.async=!0;
-                t.src=v;s=b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t,s)}(window, document,'script',
-                'https://connect.facebook.net/en_US/fbevents.js');
-                fbq('init', '${fbPixelId}');
-                fbq('track', 'PageView');
-              `}
-            </Script>
+            <>
+              <Script id="fb-pixel" strategy="afterInteractive">
+                {`
+                  !function(f,b,e,v,n,t,s)
+                  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                  n.queue=[];t=b.createElement(e);t.async=!0;
+                  t.src=v;s=b.getElementsByTagName(e)[0];
+                  s.parentNode.insertBefore(t,s)}(window, document,'script',
+                  'https://connect.facebook.net/en_US/fbevents.js');
+                  fbq('init', '${fbPixelId}');
+                  fbq('track', 'PageView');
+                `}
+              </Script>
+              <noscript>
+                <img
+                  height="1"
+                  width="1"
+                  style={{ display: 'none' }}
+                  src={`https://www.facebook.com/tr?id=${fbPixelId}&ev=PageView&noscript=1`}
+                  alt=""
+                />
+              </noscript>
+              <Suspense fallback={null}>
+                <MetaPixel pixelId={fbPixelId} />
+              </Suspense>
+            </>
           ) : null}
 
           {isExpired ? (
