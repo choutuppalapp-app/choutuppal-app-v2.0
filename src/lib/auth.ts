@@ -60,14 +60,17 @@ export const authOptions: NextAuthOptions = {
         try {
           const rawIdentifier = credentials?.identifier?.trim()
           const password = credentials?.password
+          console.log('[Auth authorize] Login attempt for identifier:', rawIdentifier)
+
           if (!rawIdentifier || !password) {
+            console.log('[Auth authorize] Missing identifier or password')
             return null
           }
 
           const key = rawIdentifier.toLowerCase()
           const phoneClean = rawIdentifier.replace(/[^\d+]/g, '')
 
-          // Case-insensitive query by email, username, or phone
+          // Query user by email, username, or phone (case-insensitive)
           const user = await prisma.user.findFirst({
             where: {
               OR: [
@@ -79,29 +82,39 @@ export const authOptions: NextAuthOptions = {
             },
           })
 
-          if (!user || !user.passwordHash) {
-            console.warn(`[NextAuth authorize] User not found or no password hash for: ${rawIdentifier}`)
+          if (!user) {
+            console.log(`[Auth authorize] User NOT found for identifier: ${rawIdentifier}`)
+            return null
+          }
+
+          console.log(`[Auth authorize] User found: ${user.email || user.username || user.id} | Role: ${user.role}`)
+
+          if (!user.passwordHash) {
+            console.log(`[Auth authorize] User ${user.email} has no password hash set`)
             return null
           }
 
           if (user.isBanned) {
-            console.warn(`[NextAuth authorize] Banned user login attempt: ${user.id}`)
+            console.log(`[Auth authorize] User ${user.email} is banned`)
             return null
           }
 
           let isPasswordValid = await bcrypt.compare(password, user.passwordHash)
           if (!isPasswordValid) {
-            // Fallback for initial admin seed if plaintext
+            // Check plaintext fallback match (e.g. initial setup)
             if (password === user.passwordHash) {
               isPasswordValid = true
-              console.log('[NextAuth authorize] Plaintext password match validated')
-            } else {
-              console.warn(`[NextAuth authorize] Password mismatch for: ${user.email || user.username}`)
-              return null
+              console.log('[Auth authorize] Plaintext password match validated')
             }
           }
 
-          console.log(`[NextAuth authorize] Authentication successful for ${user.email || user.id} (Role: ${user.role})`)
+          console.log(`[Auth authorize] Password match result for ${user.email}: ${isPasswordValid ? 'MATCH' : 'MISMATCH'}`)
+
+          if (!isPasswordValid) {
+            return null
+          }
+
+          console.log(`[Auth authorize] Login SUCCESSFUL for ${user.email} (Role: ${user.role})`)
 
           return {
             id: user.id,
@@ -112,8 +125,8 @@ export const authOptions: NextAuthOptions = {
             username: user.username,
             isPublic: user.isPublic,
           }
-        } catch (err) {
-          console.error('[Auth authorize] Database exception or connection timeout during login:', err)
+        } catch (error) {
+          console.error("Login DB/Server Error:", error)
           return null
         }
       },
