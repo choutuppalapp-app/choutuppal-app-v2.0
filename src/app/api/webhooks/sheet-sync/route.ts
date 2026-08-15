@@ -4,6 +4,7 @@ import { DEFAULT_TENANT } from '@/lib/tenant-types'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 const SECRET_TOKEN = process.env.SHEET_SYNC_SECRET || 'sheet_sync_secret_choutuppal_2026'
 
@@ -163,6 +164,44 @@ async function getOrCreateVillage(villageName?: string) {
   })
 }
 
+async function resolveCategoriesMap(items: Array<Record<string, any>>): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  const rawNames = Array.from(
+    new Set(
+      items
+        .map((i) => i.category)
+        .filter((c): c is string => typeof c === 'string' && Boolean(c.trim())),
+    ),
+  )
+
+  for (const rawName of rawNames) {
+    const category = await getOrCreateCategory(rawName)
+    if (category) {
+      map.set(rawName.trim().toLowerCase(), category.id)
+    }
+  }
+  return map
+}
+
+async function resolveVillagesMap(items: Array<Record<string, any>>): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  const rawNames = Array.from(
+    new Set(
+      items
+        .map((i) => i.village)
+        .filter((v): v is string => typeof v === 'string' && Boolean(v.trim())),
+    ),
+  )
+
+  for (const rawName of rawNames) {
+    const village = await getOrCreateVillage(rawName)
+    if (village) {
+      map.set(rawName.trim().toLowerCase(), village.id)
+    }
+  }
+  return map
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Authorization check
@@ -200,13 +239,16 @@ export async function POST(req: NextRequest) {
     const candidateTenantId = bodyTenantId || DEFAULT_TENANT.id
     const targetTenantId = await resolveValidTenantId(candidateTenantId)
 
-    const results: Array<{ action: string; id: string; title: string | null }> = []
     const sheetType = String(type).trim().toLowerCase()
+    let processedCount = 0
 
-    // 3. Process records based on sheet type
+    // 3. Process records in bulk using Prisma createMany
     if (sheetType === 'listings' || sheetType === 'business' || sheetType === 'listing') {
-      for (const row of items) {
-        const title = row.title || row.name || 'Untitled Business'
+      const categoryMap = await resolveCategoriesMap(items)
+      const villageMap = await resolveVillagesMap(items)
+
+      const mappedListings = items.map((row, idx) => {
+        const title = row.title || row.name || `Business ${idx + 1}`
         const phone = row.phone ? String(row.phone).trim() : null
         const secondaryPhone = row.secondaryPhone ? String(row.secondaryPhone).trim() : null
         const whatsapp = row.whatsapp ? String(row.whatsapp).trim() : phone
@@ -216,69 +258,46 @@ export async function POST(req: NextRequest) {
         const description = row.description || `${title} in Choutuppal.`
         const hours = row.hours ? { raw: row.hours } : null
         const servicesCatalog = parseServices(row.services)
+        const categoryId = row.category ? categoryMap.get(String(row.category).trim().toLowerCase()) || null : null
+        const villageId = row.village ? villageMap.get(String(row.village).trim().toLowerCase()) || null : null
+        const baseSlug = slugify(title)
+        const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 7)}`
 
-        const category = await getOrCreateCategory(row.category)
-        const village = await getOrCreateVillage(row.village)
-
-        let existing: any = null
-        if (phone) {
-          existing = await prisma.listing.findFirst({ where: { phone } })
+        return {
+          title,
+          slug,
+          description,
+          coverImage,
+          logo,
+          phone,
+          secondaryPhone,
+          whatsapp,
+          address,
+          businessHours: hours ? (hours as any) : undefined,
+          servicesCatalog: servicesCatalog ? (servicesCatalog as any) : undefined,
+          categoryId,
+          villageId,
+          ownerId,
+          tenantId: targetTenantId,
+          status: 'APPROVED',
         }
+      })
 
-        if (existing) {
-          const updated = await prisma.listing.update({
-            where: { id: existing.id },
-            data: {
-              title,
-              description,
-              coverImage: coverImage ?? existing.coverImage,
-              logo: logo ?? existing.logo,
-              phone: phone ?? existing.phone,
-              secondaryPhone: secondaryPhone ?? existing.secondaryPhone,
-              whatsapp: whatsapp ?? existing.whatsapp,
-              address: address || existing.address,
-              businessHours: hours ? (hours as any) : (existing.businessHours as any),
-              servicesCatalog: servicesCatalog ? (servicesCatalog as any) : (existing.servicesCatalog as any),
-              categoryId: category?.id ?? existing.categoryId,
-              villageId: village?.id ?? existing.villageId,
-              tenantId: targetTenantId,
-              status: 'APPROVED',
-            },
-          })
-          results.push({ action: 'updated', id: updated.id, title: updated.title })
-        } else {
-          const slug = `${slugify(title)}-${Math.random().toString(36).substring(2, 7)}`
-          const created = await prisma.listing.create({
-            data: {
-              title,
-              slug,
-              description,
-              coverImage,
-              logo,
-              phone,
-              secondaryPhone: secondaryPhone ?? undefined,
-              whatsapp,
-              address,
-              businessHours: hours ? (hours as any) : undefined,
-              servicesCatalog: servicesCatalog ? (servicesCatalog as any) : undefined,
-              categoryId: category?.id,
-              villageId: village?.id,
-              ownerId,
-              tenantId: targetTenantId,
-              status: 'APPROVED',
-            },
-          })
-          results.push({ action: 'created', id: created.id, title: created.title })
-        }
-      }
+      const res = await prisma.listing.createMany({
+        data: mappedListings,
+        skipDuplicates: true,
+      })
+      processedCount = res.count
     } else if (
       sheetType === 'real estate' ||
       sheetType === 'realestate' ||
       sheetType === 'properties' ||
       sheetType === 'property'
     ) {
-      for (const row of items) {
-        const title = row.title || 'Property in Choutuppal'
+      const villageMap = await resolveVillagesMap(items)
+
+      const mappedProperties = items.map((row, idx) => {
+        const title = row.title || `Property ${idx + 1}`
         const rawType = String(row.type || 'PLOT').toUpperCase()
         const propType = ['PLOT', 'HOUSE', 'COMMERCIAL', 'AGRICULTURE', 'RENTAL'].includes(rawType)
           ? rawType
@@ -290,145 +309,91 @@ export async function POST(req: NextRequest) {
         const coverImage = row.coverImage || null
         const description = row.description || title
         const bhk = parseInt(row.bhk || row.bedrooms) || null
+        const villageId = row.village ? villageMap.get(String(row.village).trim().toLowerCase()) || null : null
+        const baseSlug = slugify(title)
+        const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 7)}`
 
-        const village = await getOrCreateVillage(row.village)
-
-        let existing: any = null
-        if (phone) {
-          existing = await prisma.realEstate.findFirst({
-            where: { title, contactPhone: phone },
-          })
+        return {
+          title,
+          slug,
+          description,
+          type: propType,
+          listingType,
+          price,
+          bedrooms: bhk,
+          address,
+          contactPhone: phone,
+          contactWhatsapp: row.whatsapp ?? phone,
+          coverImage,
+          villageId,
+          ownerId,
+          tenantId: targetTenantId,
+          status: 'APPROVED',
         }
+      })
 
-        if (existing) {
-          const updated = await prisma.realEstate.update({
-            where: { id: existing.id },
-            data: {
-              title,
-              description,
-              type: propType,
-              listingType,
-              price,
-              bedrooms: bhk ?? existing.bedrooms,
-              address,
-              contactPhone: phone ?? existing.contactPhone,
-              contactWhatsapp: row.whatsapp ?? phone ?? existing.contactWhatsapp,
-              coverImage: coverImage ?? existing.coverImage,
-              villageId: village?.id ?? existing.villageId,
-              tenantId: targetTenantId,
-              status: 'APPROVED',
-            },
-          })
-          results.push({ action: 'updated', id: updated.id, title: updated.title })
-        } else {
-          const slug = `${slugify(title)}-${Math.random().toString(36).substring(2, 7)}`
-          const created = await prisma.realEstate.create({
-            data: {
-              title,
-              slug,
-              description,
-              type: propType,
-              listingType,
-              price,
-              bedrooms: bhk,
-              address,
-              contactPhone: phone,
-              contactWhatsapp: row.whatsapp ?? phone,
-              coverImage,
-              villageId: village?.id,
-              ownerId,
-              tenantId: targetTenantId,
-              status: 'APPROVED',
-            },
-          })
-          results.push({ action: 'created', id: created.id, title: created.title })
-        }
-      }
+      const res = await prisma.realEstate.createMany({
+        data: mappedProperties,
+        skipDuplicates: true,
+      })
+      processedCount = res.count
     } else if (sheetType === 'news') {
-      for (const row of items) {
-        const title = row.title || 'Choutuppal News'
+      const mappedNews = items.map((row, idx) => {
+        const title = row.title || `Choutuppal News ${idx + 1}`
         const content = row.content || row.description || title
         const summary = row.summary || row.excerpt || content.substring(0, 150)
         const image = row.coverImage || row.image || null
-        const slug = slugify(title)
+        const baseSlug = slugify(title)
+        const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 7)}`
 
-        const existing = await prisma.news.findUnique({ where: { slug } })
-
-        if (existing) {
-          const updated = await prisma.news.update({
-            where: { id: existing.id },
-            data: {
-              title,
-              summary,
-              content,
-              image: image ?? existing.image,
-              tenantId: targetTenantId,
-              isPublished: true,
-              publishedAt: new Date(),
-            },
-          })
-          results.push({ action: 'updated', id: updated.id, title: updated.title })
-        } else {
-          const created = await prisma.news.create({
-            data: {
-              title,
-              slug,
-              summary,
-              content,
-              image,
-              tenantId: targetTenantId,
-              isPublished: true,
-              publishedAt: new Date(),
-              authorId: ownerId,
-            },
-          })
-          results.push({ action: 'created', id: created.id, title: created.title })
+        return {
+          title,
+          slug,
+          summary,
+          content,
+          image,
+          tenantId: targetTenantId,
+          isPublished: true,
+          publishedAt: new Date(),
+          authorId: ownerId,
         }
-      }
+      })
+
+      const res = await prisma.news.createMany({
+        data: mappedNews,
+        skipDuplicates: true,
+      })
+      processedCount = res.count
     } else if (sheetType === 'blogs' || sheetType === 'blog') {
-      for (const row of items) {
-        const title = row.title || 'Choutuppal Blog'
+      const mappedBlogs = items.map((row, idx) => {
+        const title = row.title || `Choutuppal Blog ${idx + 1}`
         const content = row.content || row.description || title
         const excerpt = row.excerpt || row.summary || content.substring(0, 150)
         const coverImage = row.coverImage || row.image || null
-        const slug = slugify(title)
+        const baseSlug = slugify(title)
+        const slug = `${baseSlug}-${Math.random().toString(36).substring(2, 7)}`
 
-        const existing = await prisma.blog.findUnique({ where: { slug } })
-
-        if (existing) {
-          const updated = await prisma.blog.update({
-            where: { id: existing.id },
-            data: {
-              title,
-              excerpt,
-              content,
-              coverImage: coverImage ?? existing.coverImage,
-              tenantId: targetTenantId,
-              isPublished: true,
-              publishedAt: new Date(),
-            },
-          })
-          results.push({ action: 'updated', id: updated.id, title: updated.title })
-        } else {
-          const created = await prisma.blog.create({
-            data: {
-              title,
-              slug,
-              excerpt,
-              content,
-              coverImage,
-              tenantId: targetTenantId,
-              isPublished: true,
-              publishedAt: new Date(),
-              authorId: ownerId,
-            },
-          })
-          results.push({ action: 'created', id: created.id, title: created.title })
+        return {
+          title,
+          slug,
+          excerpt,
+          content,
+          coverImage,
+          tenantId: targetTenantId,
+          isPublished: true,
+          publishedAt: new Date(),
+          authorId: ownerId,
         }
-      }
+      })
+
+      const res = await prisma.blog.createMany({
+        data: mappedBlogs,
+        skipDuplicates: true,
+      })
+      processedCount = res.count
     } else {
       return NextResponse.json(
-        { ok: false, error: `Unsupported type: "${type}". Supported types: Listings, Real Estate, News, Blogs, Shorts.` },
+        { ok: false, error: `Unsupported type: "${type}". Supported types: Listings, Real Estate, News, Blogs.` },
         { status: 400 },
       )
     }
@@ -436,8 +401,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       success: true,
-      message: `Processed ${results.length} record(s) for type "${type}".`,
-      results,
+      message: `Processed ${processedCount} records successfully for type "${type}".`,
+      count: processedCount,
     })
   } catch (error) {
     console.error('[SheetSync Webhook Error]:', error)
