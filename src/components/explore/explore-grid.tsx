@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   Search, MapPin, Tag, SlidersHorizontal, X, Star,
   MessageCircle, Home as HomeIcon, IndianRupee, BedDouble, Maximize, Crown,
   UtensilsCrossed, HeartPulse, Car, GraduationCap, ShoppingBag, Wrench,
-  Sprout, Truck, Smartphone, Store, Layers,
+  Sprout, Truck, Smartphone, Store, Layers, Loader2,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -78,7 +78,7 @@ const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
 }
 
 export function ExploreGrid({
-  listings,
+  listings: initialListings,
   realEstates,
   villages,
   categories,
@@ -94,9 +94,75 @@ export function ExploreGrid({
   const [village, setVillage] = useState(initialVillage)
   const [sheetOpen, setSheetOpen] = useState(false)
 
+  // Infinite Scroll state
+  const [items, setItems] = useState<ListingItem[]>(initialListings)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(initialListings.length >= 24)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const observerTarget = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setItems(initialListings)
+    setPage(1)
+    setHasMore(initialListings.length >= 24)
+  }, [initialListings])
+
+  const fetchNextPage = useCallback(async () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+
+    const nextPage = page + 1
+    const params = new URLSearchParams({
+      page: String(nextPage),
+      limit: '24',
+    })
+    if (category && category !== 'all') params.set('category', category)
+    if (village && village !== 'all') params.set('village', village)
+    if (query.trim()) params.set('q', query.trim())
+
+    try {
+      const res = await fetch(`/api/listings/public?${params.toString()}`)
+      const j = await res.json()
+      if (j.ok && Array.isArray(j.listings) && j.listings.length > 0) {
+        setItems((prev) => {
+          const existingIds = new Set(prev.map((i) => i.id))
+          const newItems = j.listings.filter((i: ListingItem) => !existingIds.has(i.id))
+          return [...prev, ...newItems]
+        })
+        setPage(nextPage)
+        setHasMore(Boolean(j.hasMore))
+      } else {
+        setHasMore(false)
+      }
+    } catch (err) {
+      console.error('Failed to fetch next page:', err)
+      setHasMore(false)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [page, hasMore, loadingMore, category, village, query])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !loadingMore) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    const target = observerTarget.current
+    if (target) observer.observe(target)
+
+    return () => {
+      if (target) observer.unobserve(target)
+    }
+  }, [fetchNextPage, hasMore, loadingMore])
+
   // Dynamic instant client-side filtering by category, village, and search query
   const filteredListings = useMemo(() => {
-    let result = listings
+    let result = items
 
     // Filter by selected category pill/select
     if (category && category !== 'all') {
@@ -125,7 +191,7 @@ export function ExploreGrid({
     }
 
     return result
-  }, [listings, category, village, query])
+  }, [items, category, village, query])
 
   const filteredRE = useMemo(() => {
     let result = realEstates
@@ -421,6 +487,22 @@ export function ExploreGrid({
             </div>
           )
         ) : null}
+
+        {/* Infinite Scroll Sentinel */}
+        {tab === 'businesses' && (
+          <div ref={observerTarget} className="py-6 flex justify-center w-full">
+            {loadingMore ? (
+              <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                <span>Loading more listings…</span>
+              </div>
+            ) : hasMore ? (
+              <div className="h-4" />
+            ) : items.length > 0 ? (
+              <p className="text-xs text-slate-400">All available listings loaded</p>
+            ) : null}
+          </div>
+        )}
 
         {/* Real Estate grid */}
         {tab === 'realestate' ? (

@@ -5,36 +5,85 @@ import { prisma } from '@/lib/prisma'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-/** GET /api/admin/listings — fetch all listings & real estate for admin management */
-export async function GET() {
+/** GET /api/admin/listings — fetch paginated listings & real estate for admin management */
+export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser()
     if (!user || !isAdminRole(user.role)) {
       return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const [listings, realEstates] = await Promise.all([
+    const { searchParams } = new URL(request.url)
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50', 10)))
+    const skip = (page - 1) * limit
+    const search = searchParams.get('search')?.trim()
+
+    const where: any = {}
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+        { category: { name: { contains: search, mode: 'insensitive' } } },
+        { village: { name: { contains: search, mode: 'insensitive' } } },
+        { owner: { name: { contains: search, mode: 'insensitive' } } },
+        { owner: { email: { contains: search, mode: 'insensitive' } } },
+      ]
+    }
+
+    const [listings, total, realEstates] = await Promise.all([
       prisma.listing.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
-        include: {
-          category: { select: { name: true } },
-          village: { select: { name: true } },
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          status: true,
+          isFeatured: true,
+          isPremium: true,
+          phone: true,
+          whatsapp: true,
+          expiresAt: true,
+          createdAt: true,
+          category: { select: { id: true, name: true, slug: true } },
+          village: { select: { id: true, name: true, slug: true } },
           owner: { select: { id: true, name: true, email: true, phone: true } },
         },
       }),
+      prisma.listing.count({ where }),
       prisma.realEstate.findMany({
         orderBy: { createdAt: 'desc' },
-        include: {
-          village: { select: { name: true } },
+        take: 50,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          status: true,
+          price: true,
+          createdAt: true,
+          village: { select: { id: true, name: true } },
           owner: { select: { id: true, name: true, email: true, phone: true } },
         },
       }),
     ])
 
-    return NextResponse.json({ ok: true, listings, realEstates })
+    const totalPages = Math.max(1, Math.ceil(total / limit))
+
+    return NextResponse.json({
+      ok: true,
+      listings,
+      total,
+      page,
+      limit,
+      totalPages,
+      realEstates,
+    })
   } catch (err) {
     console.error('[AdminListingsAPI] GET error:', err)
-    return NextResponse.json({ ok: false, listings: [], realEstates: [] }, { status: 500 })
+    return NextResponse.json({ ok: false, listings: [], total: 0, page: 1, limit: 50, totalPages: 1, realEstates: [] }, { status: 500 })
   }
 }
 

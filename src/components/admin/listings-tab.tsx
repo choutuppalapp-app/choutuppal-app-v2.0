@@ -96,16 +96,30 @@ export function AdminListingsTab() {
   const [customLogoUrl, setCustomLogoUrl] = useState<string>('')
   const [customCoverUrl, setCustomCoverUrl] = useState<string>('')
 
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+
   const load = useCallback(() => {
     setLoading(true)
-    fetch('/api/admin/listings')
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: '50',
+    })
+    if (search.trim()) params.set('search', search.trim())
+
+    fetch(`/api/admin/listings?${params.toString()}`)
       .then((r) => r.json())
       .then((j) => {
-        if (j.ok) setListings(j.listings ?? [])
+        if (j.ok) {
+          setListings(j.listings ?? [])
+          setTotalCount(j.total ?? 0)
+          setTotalPages(j.totalPages ?? 1)
+        }
       })
       .catch(() => toast.error('Failed to load listings'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [page, search])
 
   useEffect(() => {
     load()
@@ -537,6 +551,37 @@ export function AdminListingsTab() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between border-t border-slate-200/60 bg-white/50 px-4 py-3 text-xs text-slate-500 gap-2">
+          <div>
+            Showing <strong className="text-slate-800">{listings.length}</strong> of{' '}
+            <strong className="text-slate-800">{totalCount}</strong> listings
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1 || loading}
+              className="h-8 px-3 text-xs font-medium"
+            >
+              Previous Page
+            </Button>
+            <span className="font-semibold text-slate-700">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages || loading}
+              className="h-8 px-3 text-xs font-medium"
+            >
+              Next Page
+            </Button>
+          </div>
         </div>
       </div>
 
