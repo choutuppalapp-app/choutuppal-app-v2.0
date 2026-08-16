@@ -482,12 +482,14 @@ export function ExploreGrid({
 
 function EmptyState({ query, category }: { query?: string; category?: string }) {
   return (
-    <div className="rounded-3xl glass p-10 text-center my-6 border border-slate-200/60 shadow-xs">
-      <Search className="mx-auto h-10 w-10 text-slate-300" />
-      <h3 className="mt-3 text-base font-bold text-slate-800">No Listings Found</h3>
-      <p className="mt-1 text-sm text-slate-500 max-w-sm mx-auto">
-        {query ? `No matching listings for "${query}".` : category && category !== 'all' ? `No listings currently in this category.` : 'Try adjusting your search query or filters.'}
-      </p>
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4 my-4 animate-pulse">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="overflow-hidden rounded-2xl glass border border-slate-200/50 p-2.5 space-y-2">
+          <div className="aspect-[16/9] bg-slate-200/80 rounded-xl" />
+          <div className="h-4 bg-slate-200/80 rounded-md w-3/4" />
+          <div className="h-3 bg-slate-200/60 rounded-md w-1/2" />
+        </div>
+      ))}
     </div>
   )
 }

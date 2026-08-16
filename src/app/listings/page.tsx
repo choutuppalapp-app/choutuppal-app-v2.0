@@ -49,6 +49,7 @@ export default async function ListingsPage({
               : {}),
           },
           orderBy: { createdAt: 'desc' },
+          take: 50,
           select: {
             id: true,
             title: true,
