@@ -31,6 +31,7 @@ import {
   FileSpreadsheet,
   LogOut,
   Search,
+  Menu,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -125,22 +126,51 @@ interface AdminUser {
 }
 
 export function AdminPanel({ adminName }: { adminName: string }) {
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('overview')
+
+  const navItems = [
+    { value: 'overview', label: 'Overview', icon: Home },
+    { value: 'approvals', label: 'Approvals', icon: Clock },
+    { value: 'tenants', label: 'Tenants', icon: Globe },
+    { value: 'content', label: 'Content', icon: Newspaper },
+    { value: 'listings', label: 'Listings', icon: Store },
+    { value: 'realestate', label: 'Real Estate', icon: Home },
+    { value: 'stories', label: 'Stories', icon: ImageIcon },
+    { value: 'banners', label: 'Banners', icon: ImageIcon },
+    { value: 'users', label: 'Users', icon: Users },
+    { value: 'push', label: 'Push', icon: Bell },
+    { value: 'whatsapp', label: 'WhatsApp CRM', icon: MessageSquare },
+    { value: 'autolinks', label: 'Auto Links', icon: Link2 },
+    { value: 'settings', label: 'Settings', icon: Megaphone },
+  ]
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/60 via-white to-amber-50/50">
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-white/50 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-4 lg:px-6">
-          <Link href="/" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200" title="Back to home">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setDrawerOpen(!drawerOpen)}
+            className="md:hidden grid h-9 w-9 place-items-center rounded-lg border border-slate-200"
+            title="Toggle Menu"
+          >
+            <Menu className="h-5 w-5 text-slate-700" />
+          </Button>
+
+          <Link href="/" className="hidden md:grid h-9 w-9 place-items-center rounded-lg border border-slate-200" title="Back to home">
             <ChevronLeft className="h-4 w-4" />
           </Link>
           <img src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
-          <span className="font-bold text-slate-900">Admin Panel</span>
+          <span className="font-bold text-slate-900 text-sm sm:text-base">Admin Panel</span>
           <div className="ml-auto flex items-center gap-2">
             <Button
               onClick={() => signOut({ callbackUrl: '/' })}
               variant="outline"
               size="sm"
-              className="gap-1.5 border-slate-200 text-slate-700 hover:text-red-600"
+              className="gap-1.5 border-slate-200 text-slate-700 hover:text-red-600 text-xs sm:text-sm"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Logout</span>
@@ -149,48 +179,60 @@ export function AdminPanel({ adminName }: { adminName: string }) {
         </div>
       </header>
 
+      {/* Slide-in Mobile Sidebar Drawer */}
+      {drawerOpen ? (
+        <div className="fixed inset-0 z-50 md:hidden" onClick={() => setDrawerOpen(false)}>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs" />
+          <div
+            className="fixed inset-y-0 left-0 z-50 w-64 bg-white p-5 shadow-2xl space-y-4 overflow-y-auto transform transition-transform duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="Logo" className="h-7 w-auto" />
+                <span className="font-bold text-sm text-slate-900">Admin Navigation</span>
+              </div>
+              <button onClick={() => setDrawerOpen(false)} aria-label="Close">
+                <X className="h-5 w-5 text-slate-400" />
+              </button>
+            </div>
+            <div className="space-y-1">
+              {navItems.map((item) => {
+                const Icon = item.icon
+                const isActive = activeTab === item.value
+                return (
+                  <button
+                    key={item.value}
+                    onClick={() => {
+                      setActiveTab(item.value)
+                      setDrawerOpen(false)
+                    }}
+                    className={cn(
+                      'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition',
+                      isActive ? 'bg-blue-600 text-white shadow' : 'text-slate-700 hover:bg-slate-100'
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <main className="mx-auto max-w-7xl px-3 py-6 sm:px-4 lg:px-6">
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 lg:grid-cols-12">
-            <TabsTrigger value="overview" className="gap-1.5 text-xs">
-              <Home className="h-3 w-3" /> Overview
-            </TabsTrigger>
-            <TabsTrigger value="approvals" className="gap-1.5 text-xs">
-              <Clock className="h-3 w-3" /> Approvals
-            </TabsTrigger>
-            <TabsTrigger value="tenants" className="gap-1.5 text-xs">
-              <Globe className="h-3 w-3 text-emerald-600" /> Tenants
-            </TabsTrigger>
-            <TabsTrigger value="content" className="gap-1.5 text-xs">
-              <Newspaper className="h-3 w-3" /> Content
-            </TabsTrigger>
-            <TabsTrigger value="listings" className="gap-1.5 text-xs">
-              <Store className="h-3 w-3" /> Listings
-            </TabsTrigger>
-            <TabsTrigger value="realestate" className="gap-1.5 text-xs">
-              <Home className="h-3 w-3" /> Real Estate
-            </TabsTrigger>
-            <TabsTrigger value="stories" className="gap-1.5 text-xs">
-              <ImageIcon className="h-3 w-3" /> Stories
-            </TabsTrigger>
-            <TabsTrigger value="banners" className="gap-1.5 text-xs">
-              <ImageIcon className="h-3 w-3" /> Banners
-            </TabsTrigger>
-            <TabsTrigger value="users" className="gap-1.5 text-xs">
-              <Users className="h-3 w-3" /> Users
-            </TabsTrigger>
-            <TabsTrigger value="push" className="gap-1.5 text-xs">
-              <Bell className="h-3 w-3" /> Push
-            </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="gap-1.5 text-xs">
-              <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp CRM
-            </TabsTrigger>
-            <TabsTrigger value="autolinks" className="gap-1.5 text-xs">
-              <Link2 className="h-3 w-3 text-blue-600" /> Auto Links
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-1.5 text-xs">
-              <Megaphone className="h-3 w-3" /> Settings
-            </TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar whitespace-nowrap justify-start gap-1.5 p-1 bg-slate-100/80 rounded-xl">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <TabsTrigger key={item.value} value={item.value} className="gap-1.5 text-xs shrink-0 px-3 py-1.5">
+                  <Icon className="h-3.5 w-3.5" /> {item.label}
+                </TabsTrigger>
+              )
+            })}
           </TabsList>
 
           <TabsContent value="overview"><OverviewTab /></TabsContent>
