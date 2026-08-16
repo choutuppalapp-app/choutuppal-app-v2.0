@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getCoverUrl, getVillage } from '@/lib/listing-utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -382,6 +383,8 @@ export function ExploreGrid({
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
               {filteredListings.map((l) => {
                 const rating = (4 + (((l.views ?? 0) * 7) % 10) / 10).toFixed(1)
+                const cover = getCoverUrl(l)
+                const villageName = getVillage(l)
                 return (
                   <Link
                     key={l.id}
@@ -389,13 +392,7 @@ export function ExploreGrid({
                     className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden">
-                      {l.coverImage ? (
-                        <img loading="lazy" decoding="async" src={l.coverImage} alt={l.title} className="h-full w-full object-cover transition group-hover:scale-105" />
-                      ) : (
-                        <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white">
-                          {l.title.charAt(0)}
-                        </div>
-                      )}
+                      <img loading="lazy" decoding="async" src={cover} alt={l.title} className="h-full w-full object-cover transition group-hover:scale-105" />
                       {l.isFeatured ? (
                         <span className="absolute left-2 top-2 flex items-center gap-0.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 shadow-xs">
                           <Crown className="h-2.5 w-2.5" /> Premium
@@ -412,7 +409,7 @@ export function ExploreGrid({
                         <span className="truncate">{l.category?.name ?? 'Business'}</span>
                       </div>
                       <div className="mt-1 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400 md:text-xs">{l.village?.name ?? 'Choutuppal'}</span>
+                        <span className="text-[10px] text-slate-400 md:text-xs">{villageName}</span>
                         {l.whatsapp ? (
                           <MessageCircle className="h-3.5 w-3.5 text-green-500 shrink-0" />
                         ) : null}
@@ -431,22 +428,20 @@ export function ExploreGrid({
             <EmptyState query={query} category={category} />
           ) : (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-              {filteredRE.map((r) => (
-                <Link
-                  key={r.id}
-                  href={`/business/${r.slug}`}
-                  className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
-                >
-                  <div className="relative aspect-[16/9] overflow-hidden">
-                    {r.coverImage ? (
-                      <img loading="lazy" decoding="async" src={r.coverImage} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
-                    ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-blue-500 to-amber-400" />
-                    )}
-                    <Badge className={`absolute left-2 top-2 ${r.listingType === 'SALE' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
-                      For {r.listingType === 'SALE' ? 'Sale' : 'Rent'}
-                    </Badge>
-                  </div>
+              {filteredRE.map((r) => {
+                const reCover = getCoverUrl(r)
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/business/${r.slug}`}
+                    className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
+                  >
+                    <div className="relative aspect-[16/9] overflow-hidden">
+                      <img loading="lazy" decoding="async" src={reCover} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                      <Badge className={`absolute left-2 top-2 ${r.listingType === 'SALE' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
+                        For {r.listingType === 'SALE' ? 'Sale' : 'Rent'}
+                      </Badge>
+                    </div>
                   <div className="p-2.5 md:p-3">
                     <h3 className="truncate text-xs font-bold text-slate-900 md:text-sm">{r.title}</h3>
                     <div className="mt-0.5 flex items-baseline gap-0.5 text-blue-700">
@@ -462,7 +457,8 @@ export function ExploreGrid({
                     </div>
                   </div>
                 </Link>
-              ))}
+                )
+              })}
             </div>
           )
         ) : null}

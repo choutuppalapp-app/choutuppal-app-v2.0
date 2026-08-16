@@ -21,6 +21,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { cn, formatPhoneNumber } from '@/lib/utils'
+import { getLogoUrl, getCoverUrl, getBusinessHours, getVillage, getServices } from '@/lib/listing-utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
@@ -138,15 +139,11 @@ export function ListingDetailView({
           <div className="relative">
             {/* Cover Image (16:9 aspect ratio) */}
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-              {listing.coverImage ? (
-                <img
-                  src={listing.coverImage}
-                  alt={`${listing.title} cover`}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="h-full w-full gradient-brand" />
-              )}
+              <img
+                src={getCoverUrl(listing)}
+                alt={`${listing.title} cover`}
+                className="h-full w-full object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>
 
@@ -156,19 +153,13 @@ export function ListingDetailView({
                 
                 {/* Logo (1:1 aspect ratio) */}
                 <div className="h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg relative z-10">
-                  {listing.logo ? (
-                    <img
-                      loading="lazy"
-                      decoding="async"
-                      src={listing.logo}
-                      alt={listing.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white sm:text-4xl">
-                      {listing.title.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <img
+                    loading="lazy"
+                    decoding="async"
+                    src={getLogoUrl(listing)}
+                    alt={listing.title}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
 
                 {/* Business Title, Category, Rating & Hours */}
@@ -201,15 +192,13 @@ export function ListingDetailView({
                       </div>
 
                       {/* Hours / Open status */}
-                      {todayHours ? (
-                        <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                          <Clock className="h-3.5 w-3.5 text-blue-600" />
-                          <span>{todayHours.open} - {todayHours.close}</span>
-                          <span className={`ml-1 rounded-full px-1.5 py-0.2 text-[9px] font-bold ${isOpenNow ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {isOpenNow ? 'Open' : 'Closed'}
-                          </span>
-                        </div>
-                      ) : null}
+                      <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 shadow-sm">
+                        <Clock className="h-3.5 w-3.5 text-blue-600" />
+                        <span>{getBusinessHours(listing)}</span>
+                        <span className="ml-1 rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-green-100 text-green-700">
+                          Open
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -250,8 +239,8 @@ export function ListingDetailView({
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <InfoTile icon={Star} label="Rating" value={`${avgRatingDisplay} / 5`} accent="amber" />
               <InfoTile icon={Eye} label="Total Views" value={listing.views.toString()} accent="blue" />
-              <InfoTile icon={Clock} label="Business Hours" value={todayHours ? `${todayHours.open} - ${todayHours.close}` : '9 AM - 9 PM'} accent="green" />
-              <InfoTile icon={MapPin} label="Location" value={listing.village?.name ?? 'Choutuppal'} accent="blue" />
+              <InfoTile icon={Clock} label="Business Hours" value={getBusinessHours(listing)} accent="green" />
+              <InfoTile icon={MapPin} label="Location" value={getVillage(listing)} accent="blue" />
             </div>
 
             {/* About Section */}
