@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
-import { ShieldCheck, LogIn, Lock, Mail, ArrowLeft } from 'lucide-react'
+import { ShieldCheck, LogIn, Lock, Mail, ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -114,7 +114,7 @@ export function AdminLoginForm() {
             disabled={loading}
             className="h-11 w-full gap-2 gradient-brand font-bold text-white shadow-lg shadow-blue-500/20 transition active:scale-[0.98]"
           >
-            <LogIn className="h-4 w-4" />
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
             {loading ? 'Authenticating…' : 'Log In to Admin Panel'}
           </Button>
         </form>

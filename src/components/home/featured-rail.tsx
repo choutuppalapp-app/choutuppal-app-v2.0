@@ -63,7 +63,7 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
                 <img
                   src={imgUrl}
                   alt={l.title}
-                  loading="lazy"
+                  loading={i < 4 ? 'eager' : 'lazy'}
                   decoding="async"
                   className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                 />

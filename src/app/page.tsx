@@ -21,8 +21,9 @@ const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans')
 const AgentCityCTA = nextDynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })))
 const CommunityHub = nextDynamic(() => import('@/components/home/community-hub').then(m => ({ default: m.CommunityHub })))
 
-// Home page using ISR 1-hour revalidation for instant Edge caching
+// Home page using ISR 1-hour revalidation & force-static for instant Edge caching
 export const revalidate = 3600
+export const dynamic = 'force-static'
 
 export default async function Home() {
   const data = await getHomePageData()

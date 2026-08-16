@@ -447,7 +447,7 @@ export function ExploreGrid({
             <EmptyState query={query} category={category} />
           ) : (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-              {filteredListings.map((l) => {
+              {filteredListings.map((l, idx) => {
                 const rating = (4 + (((l.views ?? 0) * 7) % 10) / 10).toFixed(1)
                 const cover = getCoverUrl(l)
                 const villageName = getVillage(l)
@@ -458,7 +458,13 @@ export function ExploreGrid({
                     className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden">
-                      <img loading="lazy" decoding="async" src={cover} alt={l.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                      <img
+                        loading={idx < 4 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        src={cover}
+                        alt={l.title}
+                        className="h-full w-full object-cover transition group-hover:scale-105"
+                      />
                       {l.isFeatured ? (
                         <span className="absolute left-2 top-2 flex items-center gap-0.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 shadow-xs">
                           <Crown className="h-2.5 w-2.5" /> Premium
