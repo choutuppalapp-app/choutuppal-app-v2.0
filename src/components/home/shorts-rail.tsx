@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Play, ChevronRight, X, Eye, Heart, Instagram } from 'lucide-react'
+import { Play, ChevronRight, X, Eye, Heart, Instagram, Plus, Send, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { SectionHeading } from './section-heading'
 import type { Short } from '@prisma/client'
 import Script from 'next/script'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface ShortsRailProps {
   shorts: (Short & {
@@ -30,6 +33,13 @@ function embedUrl(youtubeId: string | null, videoUrl: string): string {
 export function ShortsRail({ shorts }: ShortsRailProps) {
   const [active, setActive] = useState<number | null>(null)
 
+  // Upload Reel Modal state
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [reelUrl, setReelUrl] = useState('')
+  const [title, setTitle] = useState('')
+  const [phone, setPhone] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
   useEffect(() => {
     if (active !== null && shorts[active]?.platform === 'INSTAGRAM') {
       const timer = setTimeout(() => {
@@ -42,6 +52,34 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
     }
   }, [active, shorts])
 
+  async function handleUploadSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!reelUrl.trim()) {
+      toast.error('Please enter an Instagram or YouTube Reel link')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/shorts/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: reelUrl, title, phone }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Failed to submit Reel')
+
+      toast.success('Reel submitted! It will appear on the homepage after review.')
+      setUploadOpen(false)
+      setReelUrl('')
+      setTitle('')
+      setPhone('')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <section id="shorts" className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <Script src="https://www.instagram.com/embed.js" strategy="afterInteractive" />
@@ -50,13 +88,15 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
         title="Shorts & Reels"
         subtitle="Local moments, business reels & temple darshan."
         action={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1 text-blue-600 hover:bg-blue-50"
-          >
-            View all <ChevronRight className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setUploadOpen(true)}
+              size="sm"
+              className="gap-1.5 gradient-brand font-bold text-xs text-white shadow-xs"
+            >
+              <Plus className="h-3.5 w-3.5" /> Submit Reel
+            </Button>
+          </div>
         }
       />
       <div
@@ -110,7 +150,7 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
         })}
       </div>
 
-      {/* In-app iframe/blockquote player (modal) */}
+      {/* Modal Player */}
       {active !== null && shorts[active] ? (
         <div
           className="fixed inset-0 z-[100] grid place-items-center bg-black/90 backdrop-blur-sm"
@@ -154,6 +194,62 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
           </div>
         </div>
       ) : null}
+
+      {/* Upload Reel Modal */}
+      <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+        <DialogContent className="max-w-md bg-white border-gray-200 text-gray-900 font-sans">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold">
+              <Instagram className="h-5 w-5 text-pink-600" /> Submit Reel for Promotion
+            </DialogTitle>
+            <DialogDescription className="text-xs text-gray-500">
+              Paste your Instagram Reel or YouTube Shorts link to showcase your shop or talent on the homepage.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleUploadSubmit} className="space-y-3.5 py-2">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Reel / Shorts URL *</label>
+              <Input
+                value={reelUrl}
+                onChange={(e) => setReelUrl(e.target.value)}
+                placeholder="https://www.instagram.com/reel/..."
+                className="border-gray-200 bg-white text-xs text-gray-900 placeholder:text-gray-400"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Reel Title / Shop Name</label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Sri Lakshmi Textiles Offer Reel"
+                className="border-gray-200 bg-white text-xs text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">WhatsApp Phone Number</label>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="9441348175"
+                className="border-gray-200 bg-white text-xs text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full gap-2 gradient-brand text-white font-bold text-xs h-10 mt-2"
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              Submit Reel for Homepage
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
