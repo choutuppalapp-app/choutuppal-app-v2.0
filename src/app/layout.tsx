@@ -98,7 +98,14 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const headersList = await headers()
   const host = headersList.get('host') || ''
+  const pathname = headersList.get('x-pathname') || headersList.get('next-url') || ''
   const isFranchise = host.includes('franchise.choutuppal.in')
+
+  const hideGlobalChrome =
+    isFranchise ||
+    pathname.startsWith('/crm') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/franchise')
 
   const tenant = await getCurrentTenant()
   const isExpired = tenant.id !== DEFAULT_TENANT.id && tenant.subscriptionStatus === 'EXPIRED'
@@ -191,7 +198,7 @@ export default async function RootLayout({
                 </a>
               </div>
             </div>
-          ) : isFranchise ? (
+          ) : hideGlobalChrome ? (
             children
           ) : (
             <>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { MessageSquare, Brain, Sparkles, RefreshCw } from 'lucide-react'
+import { MessageSquare, Brain, RefreshCw } from 'lucide-react'
 import { InboxList, ChatItem } from '@/components/crm/inbox-list'
 import { ChatWindow } from '@/components/crm/chat-window'
 import { ContactPanel } from '@/components/crm/contact-panel'
@@ -42,16 +42,16 @@ export default function CrmPage() {
   const selectedContact = chats.find((c) => c.phone === selectedPhone) || null
 
   return (
-    <div className="flex h-full w-full flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      {/* Secondary Navigation Bar */}
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-slate-800 bg-slate-900/40 px-4">
+    <div className="flex h-full w-full flex-col bg-gray-50 text-gray-900 overflow-hidden font-sans">
+      {/* Secondary Navigation Bar (Interakt Light Style) */}
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
         <div className="flex items-center gap-1">
           <button
             onClick={() => setActiveTab('chats')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
               activeTab === 'chats'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                ? 'bg-blue-50 text-blue-600 border border-blue-200 shadow-xs'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
             }`}
           >
             <MessageSquare className="h-3.5 w-3.5" /> Inbox & Chats
@@ -59,10 +59,10 @@ export default function CrmPage() {
 
           <button
             onClick={() => setActiveTab('ai_brain')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
               activeTab === 'ai_brain'
-                ? 'bg-purple-600 text-white shadow-xs'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                ? 'bg-purple-50 text-purple-600 border border-purple-200 shadow-xs'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
             }`}
           >
             <Brain className="h-3.5 w-3.5" /> AI Brain (Training)
@@ -75,7 +75,7 @@ export default function CrmPage() {
             size="sm"
             onClick={fetchChats}
             disabled={loading}
-            className="h-7 text-xs text-slate-400 hover:text-white gap-1"
+            className="h-7 text-xs text-gray-600 hover:text-gray-900 gap-1"
           >
             <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </Button>
@@ -89,9 +89,8 @@ export default function CrmPage() {
         ) : (
           /* Chats Layout */
           <div className="flex h-full w-full overflow-hidden">
-            {/* Mobile View Switching */}
             <div
-              className={`flex-1 md:grid md:grid-cols-[320px_1fr_300px] lg:grid-cols-[360px_1fr_320px] h-full overflow-hidden`}
+              className={`flex-1 md:grid md:grid-cols-[320px_1fr_300px] lg:grid-cols-[340px_1fr_320px] h-full overflow-hidden`}
             >
               {/* Left Column (Inbox) */}
               <div

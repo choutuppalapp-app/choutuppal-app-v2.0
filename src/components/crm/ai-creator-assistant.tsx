@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Sparkles, Loader2, Send, Copy, Layers, ListFilter, Check } from 'lucide-react'
+import { Sparkles, Loader2, Send, Layers, ListFilter } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,19 +53,19 @@ export function AiCreatorAssistant({ open, onOpenChange, onUsePayload }: AiCreat
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl border-slate-800 bg-slate-950 text-white font-sans">
+      <DialogContent className="max-w-xl border-gray-200 bg-white text-gray-900 font-sans">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base font-bold text-white">
-            <Sparkles className="h-5 w-5 text-purple-400" /> AI Content Creator Assistant
+          <DialogTitle className="flex items-center gap-2 text-base font-bold text-gray-900">
+            <Sparkles className="h-5 w-5 text-purple-600" /> AI Content Creator Assistant
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-400">
+          <DialogDescription className="text-xs text-gray-500">
             Generate Meta WhatsApp templates, quick reply buttons, list messages, or promotional flows in one click.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <Tabs value={type} onValueChange={(val) => setType(val as any)} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 border-slate-800 bg-slate-900 text-xs">
+            <TabsList className="grid w-full grid-cols-3 border-gray-200 bg-gray-50 text-xs">
               <TabsTrigger value="interactive" className="gap-1.5 text-xs font-semibold">
                 <Sparkles className="h-3.5 w-3.5" /> Buttons
               </TabsTrigger>
@@ -83,13 +83,13 @@ export function AiCreatorAssistant({ open, onOpenChange, onUsePayload }: AiCreat
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="e.g. Generate Diwali special offer for shop owners with button..."
-              className="border-slate-800 bg-slate-900 text-xs text-white placeholder:text-slate-500 focus:border-purple-500"
+              className="border-gray-200 bg-white text-xs text-gray-900 placeholder:text-gray-400 focus:border-purple-500 rounded-lg"
               onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
             />
             <Button
               onClick={handleGenerate}
               disabled={generating}
-              className="gap-1.5 gradient-brand font-bold text-xs text-white shrink-0"
+              className="gap-1.5 bg-purple-600 hover:bg-purple-700 font-bold text-xs text-white shrink-0 shadow-xs"
             >
               {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
               Generate
@@ -98,29 +98,29 @@ export function AiCreatorAssistant({ open, onOpenChange, onUsePayload }: AiCreat
 
           {/* Generated Result Preview */}
           {result ? (
-            <div className="space-y-3 rounded-xl border border-purple-500/30 bg-purple-500/10 p-3.5">
+            <div className="space-y-3 rounded-xl border border-purple-200 bg-purple-50 p-3.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-purple-300">Generated Preview</span>
-                <Button onClick={handleUseThis} size="sm" className="gap-1.5 bg-purple-600 hover:bg-purple-500 text-xs text-white font-bold h-7">
+                <span className="text-xs font-bold text-purple-900">Generated Preview</span>
+                <Button onClick={handleUseThis} size="sm" className="gap-1.5 bg-purple-600 hover:bg-purple-700 text-xs text-white font-bold h-7">
                   <Send className="h-3 w-3" /> Use This in Chat
                 </Button>
               </div>
 
-              <div className="rounded-lg bg-slate-900 p-3 border border-slate-800 space-y-2">
-                <p className="text-xs whitespace-pre-wrap text-slate-100">{result.textMessage}</p>
+              <div className="rounded-lg bg-white p-3 border border-purple-200 space-y-2">
+                <p className="text-xs whitespace-pre-wrap text-gray-900">{result.textMessage}</p>
                 {result.options?.buttons ? (
-                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800">
+                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-gray-100">
                     {result.options.buttons.map((b: any, idx: number) => (
-                      <span key={idx} className="rounded bg-blue-600/30 border border-blue-500/40 px-2 py-0.5 text-[10px] font-bold text-blue-300">
+                      <span key={idx} className="rounded bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-700">
                         [Button] {b.title}
                       </span>
                     ))}
                   </div>
                 ) : null}
                 {result.options?.listOptions ? (
-                  <div className="space-y-1 pt-2 border-t border-slate-800">
+                  <div className="space-y-1 pt-2 border-t border-gray-100">
                     {result.options.listOptions.map((opt: any, idx: number) => (
-                      <div key={idx} className="text-[10px] text-slate-300 font-medium">
+                      <div key={idx} className="text-[10px] text-gray-700 font-medium">
                         • {opt.title} {opt.description ? `- ${opt.description}` : ''}
                       </div>
                     ))}

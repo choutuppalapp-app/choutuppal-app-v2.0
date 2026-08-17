@@ -9,7 +9,6 @@ import {
   Brain,
   MessageSquare,
   Zap,
-  ListFilter,
   CheckCheck,
   Plus,
 } from 'lucide-react'
@@ -159,7 +158,6 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
     if (!suggestion) return
     setAddingToBrain(true)
     try {
-      // First fetch existing brain prompt
       const getRes = await fetch('/api/crm/ai-brain')
       const getJson = await getRes.json()
       const currentContent = getJson.content || ''
@@ -182,34 +180,34 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
 
   if (!phone) {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-6 text-center text-slate-500 bg-slate-950">
-        <MessageSquare className="h-10 w-10 text-slate-800 mb-2" />
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center text-gray-400 bg-gray-50">
+        <MessageSquare className="h-10 w-10 text-gray-300 mb-2" />
         <p className="text-xs">Select a conversation from the left to start chatting.</p>
       </div>
     )
   }
 
   return (
-    <div className="flex h-full flex-col bg-slate-950">
-      {/* Chat Window Header */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-800 bg-slate-900/60 px-4">
+    <div className="flex h-full flex-col bg-gray-50">
+      {/* Chat Window Header (Interakt Light) */}
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
         <div className="flex items-center gap-3">
           {onBackMobile ? (
             <Button
               variant="ghost"
               size="icon"
               onClick={onBackMobile}
-              className="md:hidden h-8 w-8 text-slate-300"
+              className="md:hidden h-8 w-8 text-gray-600"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
           ) : null}
 
           <div>
-            <h3 className="font-bold text-xs text-white">
+            <h3 className="font-bold text-xs text-gray-900">
               {contact?.name || 'WhatsApp Contact'}
             </h3>
-            <p className="text-[10px] text-slate-400">{phone}</p>
+            <p className="text-[10px] text-gray-500">{phone}</p>
           </div>
         </div>
 
@@ -220,16 +218,16 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
             variant="outline"
             onClick={handleAnalyzeConversation}
             disabled={analyzing || logs.length === 0}
-            className="gap-1.5 border-purple-500/30 bg-purple-500/10 text-[11px] font-semibold text-purple-300 hover:bg-purple-500/20 h-7"
+            className="gap-1.5 border-purple-200 bg-purple-50 text-[11px] font-semibold text-purple-700 hover:bg-purple-100 h-7"
           >
-            {analyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3 text-purple-400" />}
+            {analyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3 text-purple-600" />}
             Analyze & Learn
           </Button>
 
           <Button
             size="sm"
             onClick={() => setAiModalOpen(true)}
-            className="gap-1.5 gradient-brand text-[11px] font-bold text-white h-7"
+            className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-[11px] font-bold text-white h-7 shadow-xs"
           >
             <Sparkles className="h-3 w-3" /> AI Assistant
           </Button>
@@ -238,16 +236,16 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
 
       {/* AI Self-Analysis Suggestion Banner */}
       {suggestion ? (
-        <div className="m-3 p-3 rounded-xl border border-purple-500/40 bg-purple-950/60 space-y-2 text-xs text-purple-200">
-          <div className="flex items-center justify-between font-bold text-purple-300">
+        <div className="m-3 p-3 rounded-xl border border-purple-200 bg-purple-50 space-y-2 text-xs text-purple-900 shadow-xs">
+          <div className="flex items-center justify-between font-bold text-purple-950">
             <span className="flex items-center gap-1.5">
-              <Brain className="h-4 w-4 text-purple-400" /> AI Brain Learning Suggestion:
+              <Brain className="h-4 w-4 text-purple-600" /> AI Brain Learning Suggestion:
             </span>
-            <button onClick={() => setSuggestion(null)} className="text-slate-400 hover:text-white text-xs">
+            <button onClick={() => setSuggestion(null)} className="text-gray-400 hover:text-gray-700 text-xs">
               ✕
             </button>
           </div>
-          <p className="text-[11px] text-slate-300 italic bg-slate-900/60 p-2 rounded border border-purple-500/20">
+          <p className="text-[11px] text-purple-900 italic bg-white p-2 rounded border border-purple-200">
             "{suggestion}"
           </p>
           <div className="flex justify-end">
@@ -255,7 +253,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
               size="sm"
               onClick={handleAddToBrain}
               disabled={addingToBrain}
-              className="gap-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs h-7"
+              className="gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs h-7"
             >
               {addingToBrain ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
               Add to AI Brain Live
@@ -267,11 +265,11 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
       {/* Message Bubbles Body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 fancy-scroll">
         {loading ? (
-          <div className="flex h-full items-center justify-center text-xs text-slate-500">
+          <div className="flex h-full items-center justify-center text-xs text-gray-500">
             <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading chat messages...
           </div>
         ) : logs.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-xs text-slate-500">
+          <div className="flex h-full flex-col items-center justify-center text-xs text-gray-400">
             No message history recorded yet. Type a message below to send via Meta WhatsApp API.
           </div>
         ) : (
@@ -290,14 +288,14 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
                 <div
                   className={`max-w-[80%] rounded-2xl px-3.5 py-2 text-xs shadow-xs ${
                     isInbound
-                      ? 'bg-slate-800 text-slate-100 rounded-tl-xs border border-slate-700'
-                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-tr-xs shadow-md'
+                      ? 'bg-gray-200 text-gray-900 rounded-tl-xs border border-gray-300'
+                      : 'bg-blue-600 text-white rounded-tr-xs shadow-xs'
                   }`}
                 >
                   <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>
                   <div
                     className={`mt-1 flex items-center justify-end gap-1 text-[9px] ${
-                      isInbound ? 'text-slate-400' : 'text-blue-200'
+                      isInbound ? 'text-gray-500' : 'text-blue-100'
                     }`}
                   >
                     <span>{timeStr}</span>
@@ -312,11 +310,11 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
       </div>
 
       {/* Sticky Bottom Area: Quick Replies & Input */}
-      <div className="sticky bottom-0 border-t border-slate-800 bg-slate-900/90 p-3 space-y-2 backdrop-blur">
+      <div className="sticky bottom-0 border-t border-gray-200 bg-white p-3 space-y-2">
         {/* Quick Replies Row */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
-            <Zap className="h-3 w-3 text-amber-400" /> Quick Replies:
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <Zap className="h-3 w-3 text-amber-500" /> Quick Replies:
           </span>
           <button
             onClick={() =>
@@ -324,7 +322,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
                 'నమస్తే! చౌటుప్పల్ యాప్ ఉచిత లిస్టింగ్ కోసం: https://choutuppal.in/dashboard',
               )
             }
-            className="shrink-0 rounded-full border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] text-slate-300 hover:border-blue-500 hover:text-white transition"
+            className="shrink-0 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] text-gray-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition"
           >
             + Listing Link
           </button>
@@ -335,7 +333,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
                 '🚨 అత్యవసర నంబర్లు:\nపోలీస్: 100 | అంబులెన్స్: 108 | ఫైర్: 101 | హాస్పిటల్: 08694-273200',
               )
             }
-            className="shrink-0 rounded-full border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] text-slate-300 hover:border-blue-500 hover:text-white transition"
+            className="shrink-0 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] text-gray-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition"
           >
             + Emergency Numbers
           </button>
@@ -344,7 +342,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
             <button
               key={tpl.id}
               onClick={() => setInputMessage(tpl.name)}
-              className="shrink-0 rounded-full border border-slate-700 bg-slate-800 px-2.5 py-1 text-[10px] text-slate-300 hover:border-blue-500 hover:text-white transition"
+              className="shrink-0 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] text-gray-700 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 transition"
             >
               + {tpl.name}
             </button>
@@ -357,14 +355,14 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="Type a response or AI prompt..."
-            className="border-slate-800 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:border-blue-500 h-10 rounded-xl"
+            className="border-gray-200 bg-white text-xs text-gray-900 placeholder:text-gray-400 focus:border-blue-500 h-10 rounded-xl"
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
           />
 
           <Button
             onClick={() => handleSendMessage()}
             disabled={sending || !inputMessage.trim()}
-            className="h-10 w-10 shrink-0 rounded-xl gradient-brand text-white shadow-md grid place-items-center"
+            className="h-10 w-10 shrink-0 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-xs grid place-items-center"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>

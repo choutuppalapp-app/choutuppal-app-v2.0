@@ -24,6 +24,7 @@ export default function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-tenant-domain', cleanHost)
+  requestHeaders.set('x-pathname', url.pathname)
 
   const response = NextResponse.next({
     request: {
