@@ -46,11 +46,11 @@ export function CrmSidebar({ currentView, onSelectView, userRole }: SidebarProps
       <div className="flex h-14 items-center justify-between border-b border-gray-200 px-4 bg-gray-50/50">
         <div className="flex items-center gap-2.5">
           <div className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-600 text-white font-black shadow-xs">
-            W
+            C
           </div>
           <div>
-            <h1 className="text-sm font-extrabold text-gray-900 leading-tight">Wapi CRM</h1>
-            <p className="text-[10px] text-gray-500 font-medium">WhatsApp Super Console</p>
+            <h1 className="text-sm font-extrabold text-gray-900 leading-tight">Choutuppal CRM</h1>
+            <p className="text-[10px] text-gray-500 font-medium">WhatsApp Console</p>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { MessageSquare, Brain, RefreshCw, FlaskConical, Loader2, Send, Download 
 import { CrmSidebar, CrmView } from '@/components/crm/sidebar'
 import { DashboardView } from '@/components/crm/dashboard-view'
 import { ConversationsView } from '@/components/crm/conversations-view'
+import { TemplatesView } from '@/components/crm/templates-view'
 import { AiTrainingPanel } from '@/components/crm/ai-training-panel'
 import { ChatItem } from '@/components/crm/inbox-list'
 import { Button } from '@/components/ui/button'
@@ -119,6 +120,14 @@ export default function CrmPage() {
               Chats
             </button>
             <button
+              onClick={() => setCurrentView('templates')}
+              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+                currentView === 'templates' ? 'bg-emerald-600 text-white' : 'text-gray-600'
+              }`}
+            >
+              Templates
+            </button>
+            <button
               onClick={() => setCurrentView('ai_brain')}
               className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
                 currentView === 'ai_brain' ? 'bg-emerald-600 text-white' : 'text-gray-600'
@@ -187,7 +196,9 @@ export default function CrmPage() {
             />
           )}
 
-          {(currentView === 'ai_brain' || currentView === 'templates' || currentView === 'settings') && (
+          {currentView === 'templates' && <TemplatesView />}
+
+          {(currentView === 'ai_brain' || currentView === 'settings') && (
             <AiTrainingPanel />
           )}
 

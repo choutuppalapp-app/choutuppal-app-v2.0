@@ -12,37 +12,48 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
+    // 1. Total Contacts
+    const totalContacts = await prisma.whatsAppContact.count()
 
-    // 1. Total WhatsApp Users
-    const totalUsers = await prisma.whatsAppContact.count()
-
-    // 2. Active Business Owners
+    // 2. Business Owners Count
     const businessOwnersCount = await prisma.whatsAppContact.count({
       where: { userType: 'business_owner' },
     })
 
-    // 3. Messages sent today
-    const messagesTodayCount = await prisma.whatsAppLog.count({
-      where: { createdAt: { gte: startOfDay } },
+    // 3. Outbound Messages Sent
+    const messagesSentCount = await prisma.whatsAppLog.count({
+      where: { direction: 'outbound' },
     })
 
-    // 4. Latest 5 WhatsApp contacts
-    const latestUsers = await prisma.whatsAppContact.findMany({
+    // 4. Templates Count
+    const templatesCount = await prisma.whatsAppTemplate.count()
+
+    // 5. Recent 5 Inbound Conversations with contact names
+    const recentLogs = await prisma.whatsAppLog.findMany({
+      where: { direction: 'inbound' },
       orderBy: { createdAt: 'desc' },
       take: 5,
-      select: {
-        id: true,
-        phone: true,
-        name: true,
-        userType: true,
-        tag: true,
-        createdAt: true,
-      },
     })
 
-    // Calculated Revenue Metrics
+    const recentInbound = await Promise.all(
+      recentLogs.map(async (log) => {
+        const contact = await prisma.whatsAppContact.findUnique({
+          where: { phone: log.phone },
+          select: { name: true, userType: true },
+        })
+
+        return {
+          id: log.id,
+          phone: log.phone,
+          name: contact?.name || 'WhatsApp Lead',
+          userType: contact?.userType || 'customer',
+          message: log.message,
+          createdAt: log.createdAt,
+        }
+      }),
+    )
+
+    // Calculated Revenue Metrics for chart representation
     const revenueData = [
       { name: 'Story / Banner Ads (₹99)', value: 14850, color: '#3b82f6' },
       { name: 'Bulk Promo Messages (₹499)', value: 19960, color: '#10b981' },
@@ -50,17 +61,15 @@ export async function GET() {
       { name: 'Festival Greetings (₹199)', value: 5970, color: '#f59e0b' },
     ]
 
-    const totalRevenue = revenueData.reduce((acc, item) => acc + item.value, 0)
-
     return NextResponse.json({
       ok: true,
       stats: {
-        totalUsers: totalUsers || 208,
-        businessOwnersCount: businessOwnersCount || 42,
-        totalRevenue,
-        messagesTodayCount: messagesTodayCount || 38,
+        totalContacts,
+        businessOwnersCount,
+        messagesSentCount,
+        templatesCount,
       },
-      latestUsers,
+      recentInbound,
       revenueData,
     })
   } catch (err) {
