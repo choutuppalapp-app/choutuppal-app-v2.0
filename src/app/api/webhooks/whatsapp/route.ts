@@ -62,6 +62,19 @@ export async function POST(request: NextRequest) {
         const cleanPhone = senderPhone.replace(/\D/g, '')
         console.log(`[WhatsApp Webhook] Inbound from ${cleanPhone}: "${rawText}"`)
 
+        try {
+          await prisma.whatsAppLog.create({
+            data: {
+              phone: cleanPhone,
+              direction: 'inbound',
+              message: rawText,
+              status: 'received',
+            },
+          })
+        } catch (logErr) {
+          console.warn('[WhatsApp Webhook] Inbound log error:', logErr)
+        }
+
         // Lookup Contact Record
         let dbContact = await prisma.whatsAppContact.findUnique({
           where: { phone: cleanPhone },

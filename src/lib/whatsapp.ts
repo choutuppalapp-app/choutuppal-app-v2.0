@@ -185,6 +185,19 @@ export async function sendWhatsAppMessage(
       return { ok: false, error: data?.error?.message || 'Failed to send WhatsApp message', data }
     }
 
+    try {
+      await prisma.whatsAppLog.create({
+        data: {
+          phone: cleanPhone,
+          direction: 'outbound',
+          message: messageText,
+          status: 'sent',
+        },
+      })
+    } catch (logErr) {
+      console.warn('[WhatsApp API] Log error:', logErr)
+    }
+
     return { ok: true, data }
   } catch (err) {
     console.error('[WhatsApp API] Exception:', err)

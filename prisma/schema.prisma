@@ -682,6 +682,26 @@ model WhatsAppTemplate {
   createdAt DateTime @default(now())
 }
 
+model WhatsAppLog {
+  id        String   @id @default(cuid())
+  phone     String
+  direction String   // "inbound" or "outbound"
+  message   String
+  status    String?  @default("sent")
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([direction])
+  @@index([createdAt])
+}
+
+model SystemPrompt {
+  id        String   @id @default(cuid())
+  key       String   @unique @default("whatsapp_ai_brain")
+  content   String
+  updatedAt DateTime @updatedAt
+}
+
 
 
 

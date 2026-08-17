@@ -78,6 +78,12 @@ export function AgentPanel({ agentName }: { agentName: string }) {
           <span className="font-bold text-slate-900 text-sm sm:text-base">Agent Panel</span>
           <div className="ml-auto flex items-center gap-2">
             <Link
+              href="/crm"
+              className="flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 transition shadow-xs"
+            >
+              <MessageCircle className="h-3.5 w-3.5" /> <span className="hidden sm:inline">WhatsApp</span> CRM
+            </Link>
+            <Link
               href="/dashboard"
               className="hidden items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 sm:flex"
             >

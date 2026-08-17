@@ -126,7 +126,19 @@ export async function getAIResponse(
     process.env.GOOGLE_API_KEY
 
   const displayName = userName || 'మిత్రమా'
-  const systemInstruction = `You are a friendly, human-like local assistant for Choutuppal town. The user's name is ${displayName}. Be polite, realistic, and answer in Telugu unless the user uses English. Do not sound like a robot. Use the provided database context to answer queries about local businesses, real estate, and news. Keep answers concise, direct, and helpful.`
+  let customBrainInstructions = ''
+  try {
+    const dbPrompt = await prisma.systemPrompt.findUnique({
+      where: { key: 'whatsapp_ai_brain' },
+    })
+    if (dbPrompt?.content) {
+      customBrainInstructions = `\n\nCustom Admin AI Brain Rules & Directives:\n${dbPrompt.content}`
+    }
+  } catch (err) {
+    console.warn('[AIAgent] Could not fetch SystemPrompt:', err)
+  }
+
+  const systemInstruction = `You are a friendly, human-like local assistant for Choutuppal town. The user's name is ${displayName}. Be polite, realistic, and answer in Telugu unless the user uses English. Do not sound like a robot. Use the provided database context to answer queries about local businesses, real estate, and news. Keep answers concise, direct, and helpful.${customBrainInstructions}`
 
   if (!apiKey) {
     console.warn('[AIAgent] GEMINI_API_KEY missing. Returning DB context directly.')

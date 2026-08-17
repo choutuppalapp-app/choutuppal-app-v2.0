@@ -140,7 +140,6 @@ export function AdminPanel({ adminName }: { adminName: string }) {
     { value: 'banners', label: 'Banners', icon: ImageIcon },
     { value: 'users', label: 'Users', icon: Users },
     { value: 'push', label: 'Push', icon: Bell },
-    { value: 'whatsapp', label: 'WhatsApp CRM', icon: MessageSquare },
     { value: 'autolinks', label: 'Auto Links', icon: Link2 },
     { value: 'settings', label: 'Settings', icon: Megaphone },
   ]
@@ -166,6 +165,12 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           <img src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
           <span className="font-bold text-slate-900 text-sm sm:text-base">Admin Panel</span>
           <div className="ml-auto flex items-center gap-2">
+            <Link
+              href="/crm"
+              className="flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 transition shadow-xs"
+            >
+              <MessageSquare className="h-3.5 w-3.5" /> <span className="hidden sm:inline">WhatsApp</span> CRM
+            </Link>
             <Button
               onClick={() => signOut({ callbackUrl: '/' })}
               variant="outline"
@@ -245,7 +250,6 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           <TabsContent value="banners"><AdminBannersTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="push"><PushTab /></TabsContent>
-          <TabsContent value="whatsapp"><WhatsAppCrmTab /></TabsContent>
           <TabsContent value="autolinks"><AutoLinksTab /></TabsContent>
           <TabsContent value="settings"><SettingsTab /></TabsContent>
         </Tabs>
