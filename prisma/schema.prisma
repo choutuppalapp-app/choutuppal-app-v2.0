@@ -653,13 +653,18 @@ model WhatsAppSetting {
 // ----------------------------------------------------------------------------
 
 model WhatsAppContact {
-  id        String         @id @default(cuid())
-  name      String
-  phone     String         @unique
-  source    String?        @default("manual")
-  tag       String?        @default("Lead")
-  groups    ContactGroup[]
-  createdAt DateTime       @default(now())
+  id           String         @id @default(cuid())
+  name         String?
+  phone        String         @unique
+  source       String?        @default("manual")
+  tag          String?        @default("Lead")
+  userType     String?        @default("customer")
+  messageCount Int            @default(0)
+  dateOfBirth  String?
+  anniversary  String?
+  chatState    String?        @default("none")
+  groups       ContactGroup[]
+  createdAt    DateTime       @default(now())
 }
 
 model ContactGroup {

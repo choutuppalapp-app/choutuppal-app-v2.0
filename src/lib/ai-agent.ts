@@ -117,6 +117,7 @@ async function fetchDbContext(userMessage: string): Promise<string> {
 export async function getAIResponse(
   userPhone: string,
   userMessage: string,
+  userName?: string,
 ): Promise<string> {
   const dbContext = await fetchDbContext(userMessage)
   const apiKey =
@@ -124,20 +125,22 @@ export async function getAIResponse(
     process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
     process.env.GOOGLE_API_KEY
 
+  const displayName = userName || 'మిత్రమా'
+  const systemInstruction = `You are a friendly, human-like local assistant for Choutuppal town. The user's name is ${displayName}. Be polite, realistic, and answer in Telugu unless the user uses English. Do not sound like a robot. Use the provided database context to answer queries about local businesses, real estate, and news. Keep answers concise, direct, and helpful.`
+
   if (!apiKey) {
     console.warn('[AIAgent] GEMINI_API_KEY missing. Returning DB context directly.')
     if (dbContext) {
-      return `నమస్తే! చౌటుప్పల్ యాప్ సమాచారం:\n\n${dbContext}\n\nమరిన్ని వివరాల కోసం choutuppal.in విజిట్ చేయండి.`
+      return `నమస్తే ${displayName} గారు! చౌటుప్పల్ యాప్ నుండి లభించిన వివరాలు:\n\n${dbContext}\n\nమరిన్ని వివరాల కోసం choutuppal.in విజిట్ చేయండి.`
     }
-    return `నమస్కారం! చౌటుప్పల్ యాప్ అసిస్టెంట్. వ్యాపారాలు, రియల్ ఎస్టేట్ మరియు వార్తల సమాచారం కోసం choutuppal.in చూడగలరు.`
+    return `నమస్కారం ${displayName} గారు! వ్యాపారాలు, రియల్ ఎస్టేట్ మరియు వార్తల సమాచారం కోసం choutuppal.in విజిట్ చేయగలరు.`
   }
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey)
-    // Use gemini-1.5-flash for fast response times
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',
-      systemInstruction: SYSTEM_PROMPT,
+      systemInstruction,
     })
 
     const prompt = `Database Context:\n${

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/webhooks/whatsapp — Smart Rule-Based Auto-Replies & Auto Lead Capture
+ * POST /api/webhooks/whatsapp — Human-like Smart Webhook & State Machine
  */
 export async function POST(request: NextRequest) {
   try {
@@ -48,121 +48,233 @@ export async function POST(request: NextRequest) {
     if (message && (message.type === 'text' || message.type === 'interactive')) {
       const senderPhone = message.from
       let rawText = ''
+      let buttonId = ''
       if (message.type === 'text') {
         rawText = (message.text?.body || '').trim()
       } else if (message.type === 'interactive') {
         rawText = message.interactive?.button_reply?.title || message.interactive?.list_reply?.title || ''
+        buttonId = message.interactive?.button_reply?.id || message.interactive?.list_reply?.id || ''
       }
 
       const lowerText = rawText.toLowerCase()
-      const senderName = contact?.profile?.name || 'WhatsApp Lead'
 
       if (senderPhone && rawText) {
-        console.log(`[WhatsApp Webhook] Inbound from ${senderPhone} (${senderName}): "${rawText}"`)
+        const cleanPhone = senderPhone.replace(/\D/g, '')
+        console.log(`[WhatsApp Webhook] Inbound from ${cleanPhone}: "${rawText}"`)
 
-        // 1. Auto Lead Capture & Tagging in Database
-        let tag = 'General Inquiry'
-        if (rawText.includes('వైట్-లేబుల్') || rawText.includes('ఫ్రాంచైజీ') || lowerText.includes('franchise')) {
-          tag = 'Franchise Lead'
-        } else if (rawText.includes('న్యూస్') || rawText.includes('వార్త') || lowerText.includes('news')) {
-          tag = 'News Lead'
-        } else if (lowerText.includes('list') || lowerText.includes('business') || rawText.includes('బిజినెస్')) {
-          tag = 'Business Owner'
-        } else if (lowerText.includes('offer') || lowerText.includes('ad')) {
-          tag = 'Ad Lead'
-        }
+        // Lookup Contact Record
+        let dbContact = await prisma.whatsAppContact.findUnique({
+          where: { phone: cleanPhone },
+        })
 
-        try {
-          const cleanPhone = senderPhone.replace(/\D/g, '')
-          await prisma.whatsAppContact.upsert({
-            where: { phone: cleanPhone },
-            update: {
-              name: senderName !== 'WhatsApp Lead' ? senderName : undefined,
-              tag,
-            },
-            create: {
-              name: senderName,
+        // ----------------------------------------------------------------------
+        // STEP 2: New User Onboarding (Phone NOT in DB)
+        // ----------------------------------------------------------------------
+        if (!dbContact) {
+          await prisma.whatsAppContact.create({
+            data: {
               phone: cleanPhone,
+              messageCount: 1,
+              chatState: 'awaiting_name',
               source: 'inbound_whatsapp',
-              tag,
+              tag: 'New Lead',
             },
           })
-          console.log(`[WhatsApp Lead Engine] Saved/Updated contact ${cleanPhone} tagged as "${tag}"`)
-        } catch (dbErr) {
-          console.error('[WhatsApp Lead Engine] DB contact capture error:', dbErr)
-        }
 
-        // 2. Rule-Based Smart Auto-Reply Engine
-        if (rawText.includes('చౌటుప్పల్ యాప్ గురించి సమాచారం') || (lowerText.includes('సమాచారం') && lowerText.includes('కావాలి'))) {
-          // Floating Button CTA Auto-Reply
           await sendWhatsAppMessage(
             senderPhone,
-            'నమస్కారం! చౌటుప్పల్ యాప్ కి స్వాగతం. మీకు ఏ సమాచారం కావాలి?',
+            'నమస్కారం! చౌటుప్పల్ యాప్ కి స్వాగతం. 🙏 మీ పేరు ఏమిటి?',
+          )
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        // ----------------------------------------------------------------------
+        // STEP 3: Name Capture (chatState === "awaiting_name")
+        // ----------------------------------------------------------------------
+        if (dbContact.chatState === 'awaiting_name') {
+          const userName = rawText.trim()
+          await prisma.whatsAppContact.update({
+            where: { phone: cleanPhone },
+            data: {
+              name: userName,
+              chatState: 'awaiting_type',
+              messageCount: (dbContact.messageCount || 0) + 1,
+            },
+          })
+
+          await sendWhatsAppMessage(
+            senderPhone,
+            `శుభోదయం ${userName} గారు! మీరు చౌటుప్పల్ లో ఏమి చేస్తున్నారు? మీకు సర్వీసెస్ కావాలా? లేదా మీరే ఏదైనా బిజినెస్/సర్వీస్ చేస్తున్నారా?`,
             {
               messageType: 'interactive_button',
               buttonType: 'quick_reply',
-              headerText: 'Choutuppal App Official',
+              headerText: 'Choutuppal App Community',
               footerText: 'choutuppal.in • Local Super App',
               buttons: [
-                { id: 'btn_list', title: 'బిజినెస్ లిస్ట్ చేయడం' },
-                { id: 'btn_news', title: 'న్యూస్ అందించడం' },
-                { id: 'btn_franchise', title: 'ఫ్రాంచైజీ' },
+                { id: 'btn_customer', title: 'కస్టమర్' },
+                { id: 'btn_business_owner', title: 'బిజినెస్ ఓనర్' },
               ],
             },
           )
-        } else if (rawText.includes('లోకల్ న్యూస్/ఈవెంట్') || rawText.includes('న్యూస్ అందించడం')) {
-          // News CTA Auto-Reply
-          await sendWhatsAppMessage(
-            senderPhone,
-            'మీరు షేర్ చేయదలచిన న్యూస్/ఈవెంట్ వివరాలను దయచేసి ఇక్కడ టైప్ చేయండి లేదా ఫొటో పంపండి.',
-          )
-        } else if (rawText.includes('వైట్-లేబుల్ సూపర్ యాప్') || rawText.includes('ఫ్రాంచైజీ')) {
-          // Franchise CTA Auto-Reply
-          await sendWhatsAppMessage(
-            senderPhone,
-            'మీ ఊరి కోసం యాప్ సెటప్ చేయడానికి మా టీమ్ మీతో వెంటనే కనెక్ట్ అవుతుంది. దయచేసి మీ ఊరి పేరు తెలియజేయండి.',
-          )
-        } else if (lowerText.includes('hi') || lowerText.includes('hello') || rawText.includes('హలో') || rawText.includes('నమస్తే')) {
-          // Greeting -> Interactive List Message
-          await sendWhatsAppMessage(senderPhone, 'నమస్కారం! చౌటుప్పల్ యాప్ అసిస్టెంట్ కు స్వాగతం. క్రింది ఆప్షన్లలో ఒకదాన్ని ఎంచుకోండి:', {
-            messageType: 'interactive_list',
-            headerText: 'Choutuppal App Help Engine',
-            footerText: 'choutuppal.in • Local Super App',
-            listButtonTitle: 'ఆప్షన్లు ఎంచుకోండి',
-            listSectionTitle: 'ముఖ్యమైన సేవలు',
-            listOptions: [
-              { id: 'opt_business', title: 'List my Business', description: 'మీ షాప్ లేదా సర్వీస్ ఉచితంగా ప్రచురించండి' },
-              { id: 'opt_offers', title: "View Today's Offers", description: 'చౌటుప్పల్ లో ఈరోజు ప్రత్యేక ఆఫర్లు' },
-              { id: 'opt_support', title: 'Talk to Support', description: 'మా కస్టమర్ సపోర్ట్ టీమ్ తో మాట్లాడండి' },
-            ],
-          })
-        } else if (lowerText.includes('offer') || lowerText.includes('ad') || rawText.includes('ఆఫర్')) {
-          // Banner Ads / Offers
-          await sendWhatsAppMessage(
-            senderPhone,
-            'చౌటుప్పల్ యాప్ లో ₹99/రోజుకే మీ వ్యాపార ప్రకటనల బ్యానర్ ని వేలాదిమంది ప్రజలకు చూపించండి!',
-            {
-              messageType: 'interactive_button',
-              buttonType: 'quick_reply',
-              headerText: '₹99/Day Banner Ads Monetization',
-              footerText: 'చౌటుప్పల్ యాప్ బ్రాండింగ్',
-              buttons: [
-                { id: 'btn_ad_99', title: 'Get ₹99/day Ad' },
-                { id: 'btn_call', title: 'Call Support' },
-              ],
-            },
-          )
-        } else if (lowerText.includes('list') || lowerText.includes('business') || rawText.includes('బిజినెస్ లిస్ట్ చేయడం') || rawText.includes('బిజినెస్')) {
-          // Business Listing
-          await sendWhatsAppMessage(
-            senderPhone,
-            'నమస్తే! మీ షాప్ లేదా వ్యాపారాన్ని చౌటుప్పల్ యాప్ లో లిస్ట్ చేయడం చాలా సులభం.\n\nక్రింది లింక్ ద్వారా లాగిన్ అయి మీ బిజినెస్ వివరాలు నమోదు చేయగలరు:\nhttps://choutuppal.in/dashboard',
-          )
-        } else {
-          // Default: RAG AI Agent Intelligent Reply
-          const aiReply = await getAIResponse(senderPhone, rawText)
-          await sendWhatsAppMessage(senderPhone, aiReply)
+          return NextResponse.json({ ok: true }, { status: 200 })
         }
+
+        // ----------------------------------------------------------------------
+        // STEP 4: User Type & Listing Pitch (chatState === "awaiting_type")
+        // ----------------------------------------------------------------------
+        if (dbContact.chatState === 'awaiting_type') {
+          const isBusinessOwner =
+            buttonId === 'btn_business_owner' ||
+            lowerText.includes('బిజినెస్') ||
+            lowerText.includes('business') ||
+            rawText.includes('2')
+
+          if (isBusinessOwner) {
+            await prisma.whatsAppContact.update({
+              where: { phone: cleanPhone },
+              data: {
+                userType: 'business_owner',
+                tag: 'Business Owner',
+                chatState: 'none',
+                messageCount: (dbContact.messageCount || 0) + 1,
+              },
+            })
+
+            await sendWhatsAppMessage(
+              senderPhone,
+              'అద్భుతం! మీ బిజినెస్ ని మన వెబ్సైట్ లో ఉచితంగా లిస్ట్ చేయండి. రెడీ అయితే "LIST" అని టైప్ చేయండి, నేను లింక్ పంపుతాను.',
+            )
+          } else {
+            await prisma.whatsAppContact.update({
+              where: { phone: cleanPhone },
+              data: {
+                userType: 'customer',
+                tag: 'Service Seeker',
+                chatState: 'none',
+                messageCount: (dbContact.messageCount || 0) + 1,
+              },
+            })
+
+            await sendWhatsAppMessage(
+              senderPhone,
+              `ధన్యవాదాలు ${dbContact.name || ''} గారు! మీకు కావలసిన సమాచారం చెప్పండి, నేను సహాయం చేస్తాను.`,
+            )
+          }
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        // ----------------------------------------------------------------------
+        // STEP 5: DOB Capture (chatState === "awaiting_dob")
+        // ----------------------------------------------------------------------
+        if (dbContact.chatState === 'awaiting_dob') {
+          if (lowerText.includes('skip') || rawText.includes('స్కిప్')) {
+            await prisma.whatsAppContact.update({
+              where: { phone: cleanPhone },
+              data: {
+                chatState: 'none',
+                messageCount: (dbContact.messageCount || 0) + 1,
+              },
+            })
+            await sendWhatsAppMessage(
+              senderPhone,
+              'సరే అండి! ✅ ఇప్పుడు మీకు ఎలా సహాయం చేయగలను?',
+            )
+          } else {
+            await prisma.whatsAppContact.update({
+              where: { phone: cleanPhone },
+              data: {
+                dateOfBirth: rawText.trim(),
+                chatState: 'none',
+                messageCount: (dbContact.messageCount || 0) + 1,
+              },
+            })
+            await sendWhatsAppMessage(
+              senderPhone,
+              'మీ డేటా సేవ్ అయింది. ✅ ఇప్పుడు మీకు ఎలా సహాయం చేయగలను?',
+            )
+          }
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        // ----------------------------------------------------------------------
+        // STEP 1 & DELAYED DOB LOGIC: Existing User & Interaction Count
+        // ----------------------------------------------------------------------
+        const newCount = (dbContact.messageCount || 0) + 1
+
+        // Trigger Delayed DOB request on 3rd interaction if DOB is missing
+        if (newCount === 3 && !dbContact.dateOfBirth) {
+          await prisma.whatsAppContact.update({
+            where: { phone: cleanPhone },
+            data: {
+              chatState: 'awaiting_dob',
+              messageCount: newCount,
+            },
+          })
+
+          const displayName = dbContact.name || 'మిత్రమా'
+          await sendWhatsAppMessage(
+            senderPhone,
+            `${displayName} గారు, మీ పుట్టినరోజు తేదీ (DD-MM) ఇవ్వగలరా? మీకు ప్రత్యేక ఆఫర్స్ పంపుతాము! 🎁 (లేదంటే 'Skip' అనండి)`,
+          )
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        // Increment message count for general interaction
+        await prisma.whatsAppContact.update({
+          where: { phone: cleanPhone },
+          data: { messageCount: newCount },
+        })
+
+        // ----------------------------------------------------------------------
+        // STEP 6: Action Keywords (Fast Reply - No AI Cost)
+        // ----------------------------------------------------------------------
+        if (lowerText.includes('list') || rawText.includes('లిస్ట్') || buttonId === 'btn_list') {
+          await sendWhatsAppMessage(
+            senderPhone,
+            'నమస్తే! మీ షాప్ లేదా వ్యాపారాన్ని చౌటుప్పల్ యాప్ లో ఉచితంగా లిస్ట్ చేయడానికి క్రింది లింక్ పై క్లిక్ చేయండి:\n\nhttps://choutuppal.in/dashboard',
+          )
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        if (lowerText.includes('news') || rawText.includes('న్యూస్') || rawText.includes('వార్త')) {
+          const latestNews = await prisma.news.findMany({
+            where: { isPublished: true },
+            orderBy: { createdAt: 'desc' },
+            take: 3,
+            select: { title: true, summary: true, slug: true },
+          })
+
+          if (latestNews.length > 0) {
+            let newsMsg = '📰 చౌటుప్పల్ తాజా వార్తలు:\n\n'
+            latestNews.forEach((n, i) => {
+              newsMsg += `${i + 1}. ${n.title}\n`
+              if (n.summary) newsMsg += `${n.summary.slice(0, 100)}…\n`
+              newsMsg += '\n'
+            })
+            newsMsg += 'మరిన్ని వార్తల కోసం: https://choutuppal.in/news'
+            await sendWhatsAppMessage(senderPhone, newsMsg)
+          } else {
+            await sendWhatsAppMessage(
+              senderPhone,
+              'చౌటుప్పల్ తాజా వార్తల కోసం మన వెబ్సైట్ https://choutuppal.in/news ని చూడగలరు.',
+            )
+          }
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        if (lowerText.includes('emergency') || rawText.includes('ఎమర్జెన్సీ') || rawText.includes('అత్యవసర')) {
+          await sendWhatsAppMessage(
+            senderPhone,
+            '🚨 చౌటుప్పల్ అత్యవసర ఫోన్ నంబర్లు:\n\n• పోలీస్ స్టేషన్: 100 / 08694-222033\n• అంబులెన్స్ (Emergency): 108\n• ప్రభుత్వ ఆసుపత్రి: 08694-273200\n• ఫైర్ స్టేషన్: 101\n• విద్యుత్ శాఖ (TSECL): 1912 / 9491065911',
+          )
+          return NextResponse.json({ ok: true }, { status: 200 })
+        }
+
+        // ----------------------------------------------------------------------
+        // STEP 7: Complex Queries (Gemini AI Agent with Personalization)
+        // ----------------------------------------------------------------------
+        const aiReply = await getAIResponse(senderPhone, rawText, dbContact.name || undefined)
+        await sendWhatsAppMessage(senderPhone, aiReply)
       }
     }
 
