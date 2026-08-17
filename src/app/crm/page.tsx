@@ -6,6 +6,7 @@ import { CrmSidebar, CrmView } from '@/components/crm/sidebar'
 import { DashboardView } from '@/components/crm/dashboard-view'
 import { ConversationsView } from '@/components/crm/conversations-view'
 import { TemplatesView } from '@/components/crm/templates-view'
+import { CampaignsView } from '@/components/crm/campaigns-view'
 import { AiTrainingPanel } from '@/components/crm/ai-training-panel'
 import { ChatItem } from '@/components/crm/inbox-list'
 import { Button } from '@/components/ui/button'
@@ -93,7 +94,7 @@ export default function CrmPage() {
   return (
     <div className="flex h-full w-full bg-gray-50 text-gray-900 overflow-hidden font-sans">
       {/* Permanent Left Sidebar (Width 250px) */}
-      <div className="hidden md:block h-full">
+      <div className="hidden md:block h-full shrink-0">
         <CrmSidebar currentView={currentView} onSelectView={setCurrentView} />
       </div>
 
@@ -102,10 +103,10 @@ export default function CrmPage() {
         {/* Top Control Bar */}
         <div className="flex h-11 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
           {/* Mobile view switcher pills */}
-          <div className="flex items-center gap-1 md:hidden">
+          <div className="flex items-center gap-1 md:hidden overflow-x-auto py-1">
             <button
               onClick={() => setCurrentView('dashboard')}
-              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
                 currentView === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-600'
               }`}
             >
@@ -113,7 +114,7 @@ export default function CrmPage() {
             </button>
             <button
               onClick={() => setCurrentView('conversations')}
-              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
                 currentView === 'conversations' ? 'bg-emerald-600 text-white' : 'text-gray-600'
               }`}
             >
@@ -121,15 +122,23 @@ export default function CrmPage() {
             </button>
             <button
               onClick={() => setCurrentView('templates')}
-              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
                 currentView === 'templates' ? 'bg-emerald-600 text-white' : 'text-gray-600'
               }`}
             >
               Templates
             </button>
             <button
+              onClick={() => setCurrentView('campaigns')}
+              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
+                currentView === 'campaigns' ? 'bg-emerald-600 text-white' : 'text-gray-600'
+              }`}
+            >
+              Campaigns
+            </button>
+            <button
               onClick={() => setCurrentView('ai_brain')}
-              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
                 currentView === 'ai_brain' ? 'bg-emerald-600 text-white' : 'text-gray-600'
               }`}
             >
@@ -165,7 +174,7 @@ export default function CrmPage() {
               onClick={() => setBulkOpen(true)}
               className="h-7 text-[11px] border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 gap-1 font-bold"
             >
-              <Send className="h-3 w-3 text-emerald-600" /> Bulk Sender
+              <Send className="h-3 w-3 text-emerald-600" /> Quick Broadcast
             </Button>
 
             <Button
@@ -198,31 +207,20 @@ export default function CrmPage() {
 
           {currentView === 'templates' && <TemplatesView />}
 
+          {currentView === 'campaigns' && <CampaignsView />}
+
           {(currentView === 'ai_brain' || currentView === 'settings') && (
             <AiTrainingPanel />
-          )}
-
-          {currentView === 'campaigns' && (
-            <div className="flex h-full flex-col items-center justify-center p-6 text-center text-gray-500 bg-white">
-              <Send className="h-10 w-10 text-emerald-600 mb-2" />
-              <h3 className="text-sm font-bold text-gray-900">Bulk Broadcast Campaigns</h3>
-              <p className="text-xs text-gray-500 max-w-sm mt-1 mb-4">
-                Launch targeted WhatsApp campaigns to all business owners, real estate agents, or local residents.
-              </p>
-              <Button onClick={() => setBulkOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9">
-                Open Campaign Creator
-              </Button>
-            </div>
           )}
         </div>
       </div>
 
-      {/* Bulk Broadcast Modal */}
+      {/* Quick Broadcast Modal */}
       <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
         <DialogContent className="max-w-lg bg-white border-gray-200 text-gray-900 font-sans">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-bold">
-              <Send className="h-5 w-5 text-emerald-600" /> Bulk Broadcast Campaign Creator
+              <Send className="h-5 w-5 text-emerald-600" /> Quick Broadcast Sender
             </DialogTitle>
             <DialogDescription className="text-xs text-gray-500">
               Send promotional offers, festival greetings, or ad broadcasts to stored WhatsApp contacts.

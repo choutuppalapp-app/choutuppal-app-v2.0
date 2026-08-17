@@ -676,11 +676,20 @@ model ContactGroup {
 }
 
 model WhatsAppTemplate {
-  id        String   @id @default(cuid())
-  name      String
-  type      String
-  payload   Json
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // "TEXT", "BUTTON", "LIST", "FLOW", "REVENUE_PITCH"
+  triggerText String?
+  payload     Json
+  createdAt   DateTime @default(now())
+}
+
+model TriggerRule {
+  id          String   @id @default(cuid())
+  keyword     String   @unique
+  templateId  String?
+  replyText   String?
+  createdAt   DateTime @default(now())
 }
 
 model WhatsAppLog {

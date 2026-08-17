@@ -9,22 +9,27 @@ const DEFAULT_TEMPLATES = [
   {
     name: 'Welcome Greeting',
     type: 'TEXT',
+    triggerText: 'hi',
     payload: {
       text: 'నమస్కారం! చౌటుప్పల్ యాప్ కి స్వాగతం. 🙏 మీకు ఏ సమాచారం కావాలో ఇక్కడ టైప్ చేయండి.',
     },
   },
   {
     name: '₹99 Story Banner Ad Pitch',
-    type: 'REVENUE_PITCH',
+    type: 'BUTTON',
+    triggerText: 'ad',
     payload: {
-      text: '📢 మీ షాప్ ని వేలాదిమందికి చూపించండి! ₹99/రోజుకే చౌటుప్పల్ యాప్ టాప్ బ్యానర్ ఆడ్. బుక్ చేయడానికి "AD" అని రిప్లై చేయండి. 🎁',
+      text: '📢 మీ షాప్ ని వేలాదిమందికి చూపించండి! ₹99/రోజుకే చౌటుప్పల్ యాప్ టాప్ బ్యానర్ ఆడ్. 🎁',
+      buttons: [{ title: 'Book Ad Now' }, { title: 'Call Support' }],
     },
   },
   {
     name: '₹299 Reels Promotion Pitch',
-    type: 'REVENUE_PITCH',
+    type: 'BUTTON',
+    triggerText: 'reel',
     payload: {
       text: '🎬 మీ బిజినెస్ రీల్ ని చౌటుప్పల్ యాప్ లో ప్రమోట్ చేయండి (₹299/3 రోజులు). రీల్ లింక్ ఇక్కడ పంపండి!',
+      buttons: [{ title: 'Submit Reel Link' }],
     },
   },
 ]
@@ -66,19 +71,30 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, type, textMessage } = body
+    const { name, type, triggerText, payload } = body
 
-    if (!name || !textMessage) {
-      return NextResponse.json({ error: 'Template name and text message required' }, { status: 400 })
+    if (!name || !payload) {
+      return NextResponse.json({ error: 'Template name and payload required' }, { status: 400 })
     }
 
     const template = await prisma.whatsAppTemplate.create({
       data: {
         name,
         type: type || 'TEXT',
-        payload: { text: textMessage },
+        triggerText: triggerText ? triggerText.trim().toLowerCase() : null,
+        payload,
       },
     })
+
+    // Also sync trigger keyword if triggerText provided
+    if (triggerText) {
+      const cleanKw = triggerText.trim().toLowerCase()
+      await prisma.triggerRule.upsert({
+        where: { keyword: cleanKw },
+        update: { templateId: template.id, replyText: typeof payload === 'object' ? payload.text : String(payload) },
+        create: { keyword: cleanKw, templateId: template.id, replyText: typeof payload === 'object' ? payload.text : String(payload) },
+      })
+    }
 
     return NextResponse.json({ ok: true, template })
   } catch (err) {

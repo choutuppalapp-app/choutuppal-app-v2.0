@@ -239,6 +239,45 @@ export async function POST(request: NextRequest) {
         })
 
         // ----------------------------------------------------------------------
+        // STEP 5.5: Exact-Match Trigger Rules & Saved Templates (No AI Cost)
+        // ----------------------------------------------------------------------
+        const exactRule = await prisma.triggerRule.findFirst({
+          where: { keyword: { equals: lowerText, mode: 'insensitive' } },
+        })
+
+        if (exactRule) {
+          let triggerMsg = exactRule.replyText
+          if (exactRule.templateId) {
+            const linkedTpl = await prisma.whatsAppTemplate.findUnique({
+              where: { id: exactRule.templateId },
+            })
+            if (linkedTpl?.payload) {
+              triggerMsg = typeof linkedTpl.payload === 'object' && (linkedTpl.payload as any).text
+                ? (linkedTpl.payload as any).text
+                : String(linkedTpl.payload)
+            }
+          }
+          if (triggerMsg) {
+            await sendWhatsAppMessage(senderPhone, triggerMsg)
+            return NextResponse.json({ ok: true }, { status: 200 })
+          }
+        }
+
+        const tplTrigger = await prisma.whatsAppTemplate.findFirst({
+          where: { triggerText: { equals: lowerText, mode: 'insensitive' } },
+        })
+
+        if (tplTrigger?.payload) {
+          const tplMsg = typeof tplTrigger.payload === 'object' && (tplTrigger.payload as any).text
+            ? (tplTrigger.payload as any).text
+            : String(tplTrigger.payload)
+          if (tplMsg) {
+            await sendWhatsAppMessage(senderPhone, tplMsg)
+            return NextResponse.json({ ok: true }, { status: 200 })
+          }
+        }
+
+        // ----------------------------------------------------------------------
         // STEP 6: Action Keywords (Fast Reply - No AI Cost)
         // ----------------------------------------------------------------------
         if (lowerText.includes('list') || rawText.includes('లిస్ట్') || buttonId === 'btn_list') {
