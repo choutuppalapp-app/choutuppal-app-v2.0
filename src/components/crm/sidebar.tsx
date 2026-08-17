@@ -41,7 +41,7 @@ export function CrmSidebar({ currentView, onSelectView, userRole }: SidebarProps
   ]
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col border-r border-gray-200 bg-white font-sans text-gray-900 h-full select-none">
+    <aside className="w-[250px] shrink-0 flex flex-col border-r border-gray-200 bg-white font-sans text-gray-900 h-full select-none">
       {/* Sidebar Brand Header */}
       <div className="flex h-14 items-center justify-between border-b border-gray-200 px-4 bg-gray-50/50">
         <div className="flex items-center gap-2.5">
