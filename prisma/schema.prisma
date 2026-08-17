@@ -662,6 +662,7 @@ model WhatsAppContact {
   messageCount Int            @default(0)
   dateOfBirth  String?
   anniversary  String?
+  notes        String?
   chatState    String?        @default("none")
   groups       ContactGroup[]
   createdAt    DateTime       @default(now())
@@ -687,6 +688,8 @@ model WhatsAppLog {
   phone     String
   direction String   // "inbound" or "outbound"
   message   String
+  mediaUrl  String?
+  imageUrl  String?
   status    String?  @default("sent")
   createdAt DateTime @default(now())
 

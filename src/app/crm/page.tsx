@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { MessageSquare, Brain, RefreshCw, FlaskConical, Loader2, Send, Users } from 'lucide-react'
-import { InboxList, ChatItem } from '@/components/crm/inbox-list'
-import { ChatWindow } from '@/components/crm/chat-window'
-import { ContactPanel } from '@/components/crm/contact-panel'
+import { MessageSquare, Brain, RefreshCw, FlaskConical, Loader2, Send, Download } from 'lucide-react'
+import { CrmSidebar, CrmView } from '@/components/crm/sidebar'
+import { DashboardView } from '@/components/crm/dashboard-view'
+import { ConversationsView } from '@/components/crm/conversations-view'
 import { AiTrainingPanel } from '@/components/crm/ai-training-panel'
+import { ChatItem } from '@/components/crm/inbox-list'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
@@ -13,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 
 export default function CrmPage() {
-  const [activeTab, setActiveTab] = useState<'chats' | 'ai_brain'>('chats')
+  const [currentView, setCurrentView] = useState<CrmView>('dashboard')
   const [chats, setChats] = useState<ChatItem[]>([])
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -24,9 +25,6 @@ export default function CrmPage() {
   const [bulkText, setBulkText] = useState('')
   const [audience, setAudience] = useState<'all' | 'business_owner' | 'customer'>('all')
   const [sendingBulk, setSendingBulk] = useState(false)
-
-  // Mobile Single-Column state
-  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
 
   const fetchChats = useCallback(async () => {
     setLoading(true)
@@ -91,43 +89,72 @@ export default function CrmPage() {
     }
   }
 
-  const selectedContact = chats.find((c) => c.phone === selectedPhone) || null
-
   return (
-    <div className="flex h-full w-full flex-col bg-gray-50 text-gray-900 overflow-hidden font-sans">
-      {/* Secondary Navigation Bar (Interakt Light Style) */}
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setActiveTab('chats')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-              activeTab === 'chats'
-                ? 'bg-blue-50 text-blue-600 border border-blue-200 shadow-xs'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-            }`}
-          >
-            <MessageSquare className="h-3.5 w-3.5" /> Inbox & Chats
-          </button>
+    <div className="flex h-full w-full bg-gray-50 text-gray-900 overflow-hidden font-sans">
+      {/* Permanent Left Sidebar (Width 250px) */}
+      <div className="hidden md:block h-full">
+        <CrmSidebar currentView={currentView} onSelectView={setCurrentView} />
+      </div>
 
-          <button
-            onClick={() => setActiveTab('ai_brain')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-              activeTab === 'ai_brain'
-                ? 'bg-purple-50 text-purple-600 border border-purple-200 shadow-xs'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-            }`}
-          >
-            <Brain className="h-3.5 w-3.5" /> AI Brain (Training)
-          </button>
-        </div>
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col overflow-hidden h-full">
+        {/* Top Control Bar */}
+        <div className="flex h-11 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
+          {/* Mobile view switcher pills */}
+          <div className="flex items-center gap-1 md:hidden">
+            <button
+              onClick={() => setCurrentView('dashboard')}
+              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+                currentView === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-600'
+              }`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => setCurrentView('conversations')}
+              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+                currentView === 'conversations' ? 'bg-emerald-600 text-white' : 'text-gray-600'
+              }`}
+            >
+              Chats
+            </button>
+            <button
+              onClick={() => setCurrentView('ai_brain')}
+              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${
+                currentView === 'ai_brain' ? 'bg-emerald-600 text-white' : 'text-gray-600'
+              }`}
+            >
+              AI Brain
+            </button>
+          </div>
 
-        {activeTab === 'chats' ? (
+          <div className="hidden md:flex items-center gap-2">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-gray-500">
+              Console View: <span className="text-gray-900">{currentView.toUpperCase()}</span>
+            </span>
+          </div>
+
           <div className="flex items-center gap-2">
+            {/* Download Meta Custom Audience CSV */}
+            <a
+              href="/api/admin/whatsapp/contacts/export-meta"
+              download="Choutuppal_Meta_Audience.csv"
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-[11px] border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 gap-1 font-bold"
+                title="Download Meta Custom Audience CSV for Ads"
+              >
+                <Download className="h-3 w-3 text-blue-600" /> Meta CSV
+              </Button>
+            </a>
+
             <Button
               variant="outline"
               size="sm"
               onClick={() => setBulkOpen(true)}
-              className="h-7 text-xs border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 gap-1.5 font-bold"
+              className="h-7 text-[11px] border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 gap-1 font-bold"
             >
               <Send className="h-3 w-3 text-emerald-600" /> Bulk Sender
             </Button>
@@ -137,88 +164,57 @@ export default function CrmPage() {
               size="sm"
               onClick={handleSeedTest}
               disabled={seeding}
-              className="h-7 text-xs border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 gap-1.5 font-bold"
+              className="h-7 text-[11px] border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 gap-1 font-bold"
             >
               {seeding ? <Loader2 className="h-3 w-3 animate-spin" /> : <FlaskConical className="h-3 w-3 text-amber-600" />}
               Seed Test Data
             </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={fetchChats}
-              disabled={loading}
-              className="h-7 text-xs text-gray-600 hover:text-gray-900 gap-1"
-            >
-              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} /> Refresh
-            </Button>
           </div>
-        ) : null}
-      </div>
+        </div>
 
-      {/* Content Area */}
-      <div className="flex-1 overflow-hidden">
-        {activeTab === 'ai_brain' ? (
-          <AiTrainingPanel />
-        ) : (
-          /* Chats Layout */
-          <div className="flex h-full w-full overflow-hidden">
-            <div
-              className={`flex-1 md:grid md:grid-cols-[320px_1fr_300px] lg:grid-cols-[340px_1fr_320px] h-full overflow-hidden`}
-            >
-              {/* Left Column (Inbox) */}
-              <div
-                className={`${
-                  mobileView === 'list' ? 'block' : 'hidden'
-                } md:block h-full overflow-hidden`}
-              >
-                <InboxList
-                  chats={chats}
-                  selectedPhone={selectedPhone}
-                  onSelectChat={(phone) => {
-                    setSelectedPhone(phone)
-                    setMobileView('chat')
-                  }}
-                  onRefresh={fetchChats}
-                  loading={loading}
-                  onSeedTest={handleSeedTest}
-                />
-              </div>
+        {/* Dynamic View Content */}
+        <div className="flex-1 overflow-hidden">
+          {currentView === 'dashboard' && <DashboardView />}
 
-              {/* Middle Column (Chat Window) */}
-              <div
-                className={`${
-                  mobileView === 'chat' ? 'block' : 'hidden'
-                } md:block h-full overflow-hidden`}
-              >
-                <ChatWindow
-                  phone={selectedPhone}
-                  onBackMobile={() => setMobileView('list')}
-                  onContactUpdated={fetchChats}
-                />
-              </div>
+          {(currentView === 'conversations' || currentView === 'contacts') && (
+            <ConversationsView
+              chats={chats}
+              selectedPhone={selectedPhone}
+              onSelectChat={setSelectedPhone}
+              onRefresh={fetchChats}
+              loading={loading}
+              onSeedTest={handleSeedTest}
+            />
+          )}
 
-              {/* Right Column (Contact Panel) */}
-              <div className="hidden lg:block h-full overflow-hidden">
-                <ContactPanel
-                  contact={selectedContact}
-                  onContactUpdated={fetchChats}
-                />
-              </div>
+          {(currentView === 'ai_brain' || currentView === 'templates' || currentView === 'settings') && (
+            <AiTrainingPanel />
+          )}
+
+          {currentView === 'campaigns' && (
+            <div className="flex h-full flex-col items-center justify-center p-6 text-center text-gray-500 bg-white">
+              <Send className="h-10 w-10 text-emerald-600 mb-2" />
+              <h3 className="text-sm font-bold text-gray-900">Bulk Broadcast Campaigns</h3>
+              <p className="text-xs text-gray-500 max-w-sm mt-1 mb-4">
+                Launch targeted WhatsApp campaigns to all business owners, real estate agents, or local residents.
+              </p>
+              <Button onClick={() => setBulkOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9">
+                Open Campaign Creator
+              </Button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Bulk Greetings & Promotions Modal */}
+      {/* Bulk Broadcast Modal */}
       <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
         <DialogContent className="max-w-lg bg-white border-gray-200 text-gray-900 font-sans">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-bold">
-              <Users className="h-5 w-5 text-emerald-600" /> Bulk Greetings & Broadcast Sender
+              <Send className="h-5 w-5 text-emerald-600" /> Bulk Broadcast Campaign Creator
             </DialogTitle>
             <DialogDescription className="text-xs text-gray-500">
-              Send promotional offers, festival greetings, or ad broadcasts to all stored WhatsApp contacts in sequence.
+              Send promotional offers, festival greetings, or ad broadcasts to stored WhatsApp contacts.
             </DialogDescription>
           </DialogHeader>
 
@@ -232,7 +228,7 @@ export default function CrmPage() {
                 <SelectContent className="bg-white border-gray-200 text-xs">
                   <SelectItem value="all">All Saved Contacts</SelectItem>
                   <SelectItem value="business_owner">Business Owners Only</SelectItem>
-                  <SelectItem value="customer">Customers / Service Seekers Only</SelectItem>
+                  <SelectItem value="customer">Customers Only</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -19,7 +19,7 @@ export async function PATCH(
     const cleanPhone = phone.replace(/\D/g, '')
     const body = await request.json()
 
-    const { name, tag, userType, dateOfBirth, anniversary } = body
+    const { name, tag, userType, dateOfBirth, anniversary, notes } = body
 
     const updated = await prisma.whatsAppContact.upsert({
       where: { phone: cleanPhone },
@@ -29,6 +29,7 @@ export async function PATCH(
         userType: userType !== undefined ? userType : undefined,
         dateOfBirth: dateOfBirth !== undefined ? dateOfBirth : undefined,
         anniversary: anniversary !== undefined ? anniversary : undefined,
+        notes: notes !== undefined ? notes : undefined,
       },
       create: {
         phone: cleanPhone,
@@ -37,6 +38,7 @@ export async function PATCH(
         userType: userType || 'customer',
         dateOfBirth,
         anniversary,
+        notes,
       },
     })
 

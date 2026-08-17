@@ -25,6 +25,8 @@ interface LogMessage {
   phone: string
   direction: 'inbound' | 'outbound'
   message: string
+  mediaUrl?: string | null
+  imageUrl?: string | null
   status?: string | null
   createdAt: string
 }
@@ -351,6 +353,15 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
                       : 'bg-[#d9fdd3] text-gray-900 rounded-tr-xs border border-[#c1e8b8]'
                   }`}
                 >
+                  {m.imageUrl || m.mediaUrl ? (
+                    <div className="mb-2 overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                      <img
+                        src={m.imageUrl || m.mediaUrl || ''}
+                        alt="Attachment preview"
+                        className="max-h-48 w-full object-cover"
+                      />
+                    </div>
+                  ) : null}
                   <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>
                   <div
                     className={`mt-1 flex items-center justify-end gap-1 text-[9px] ${
