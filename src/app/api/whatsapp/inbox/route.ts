@@ -67,7 +67,7 @@ export async function GET() {
 
     return NextResponse.json({ ok: true, chats, conversations: chats })
   } catch (err) {
-    console.error('[CRM Chats API] Error:', err)
-    return NextResponse.json({ error: 'Failed to fetch chats' }, { status: 500 })
+    console.error('[WhatsApp Inbox API] Error:', err)
+    return NextResponse.json({ error: 'Failed to fetch inbox' }, { status: 500 })
   }
 }

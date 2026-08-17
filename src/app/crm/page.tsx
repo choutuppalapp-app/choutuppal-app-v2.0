@@ -1,18 +1,20 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { MessageSquare, Brain, RefreshCw } from 'lucide-react'
+import { MessageSquare, Brain, RefreshCw, FlaskConical, Loader2 } from 'lucide-react'
 import { InboxList, ChatItem } from '@/components/crm/inbox-list'
 import { ChatWindow } from '@/components/crm/chat-window'
 import { ContactPanel } from '@/components/crm/contact-panel'
 import { AiTrainingPanel } from '@/components/crm/ai-training-panel'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 export default function CrmPage() {
   const [activeTab, setActiveTab] = useState<'chats' | 'ai_brain'>('chats')
   const [chats, setChats] = useState<ChatItem[]>([])
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [seeding, setSeeding] = useState(false)
 
   // Mobile Single-Column state
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
@@ -20,12 +22,13 @@ export default function CrmPage() {
   const fetchChats = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/crm/chats')
+      const res = await fetch('/api/whatsapp/inbox')
       const json = await res.json()
-      if (res.ok && Array.isArray(json.chats)) {
-        setChats(json.chats)
-        if (json.chats.length > 0 && !selectedPhone) {
-          setSelectedPhone(json.chats[0].phone)
+      const list = json.chats || json.conversations || []
+      if (res.ok && Array.isArray(list)) {
+        setChats(list)
+        if (list.length > 0 && !selectedPhone) {
+          setSelectedPhone(list[0].phone)
         }
       }
     } catch (e) {
@@ -38,6 +41,21 @@ export default function CrmPage() {
   useEffect(() => {
     fetchChats()
   }, [fetchChats])
+
+  async function handleSeedTest() {
+    setSeeding(true)
+    try {
+      const res = await fetch('/api/whatsapp/seed-test', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Failed to seed test conversation')
+      toast.success('Test conversations seeded successfully!')
+      await fetchChats()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Seeding failed')
+    } finally {
+      setSeeding(false)
+    }
+  }
 
   const selectedContact = chats.find((c) => c.phone === selectedPhone) || null
 
@@ -70,15 +88,29 @@ export default function CrmPage() {
         </div>
 
         {activeTab === 'chats' ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={fetchChats}
-            disabled={loading}
-            className="h-7 text-xs text-gray-600 hover:text-gray-900 gap-1"
-          >
-            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSeedTest}
+              disabled={seeding}
+              className="h-7 text-xs border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 gap-1.5 font-bold"
+              title="Seed test conversation data to test CRM UI"
+            >
+              {seeding ? <Loader2 className="h-3 w-3 animate-spin" /> : <FlaskConical className="h-3 w-3 text-amber-600" />}
+              Seed Test Data
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fetchChats}
+              disabled={loading}
+              className="h-7 text-xs text-gray-600 hover:text-gray-900 gap-1"
+            >
+              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} /> Refresh
+            </Button>
+          </div>
         ) : null}
       </div>
 
@@ -107,6 +139,7 @@ export default function CrmPage() {
                   }}
                   onRefresh={fetchChats}
                   loading={loading}
+                  onSeedTest={handleSeedTest}
                 />
               </div>
 

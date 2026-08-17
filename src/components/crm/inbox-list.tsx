@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, RefreshCw } from 'lucide-react'
+import { Search, RefreshCw, FlaskConical, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
@@ -24,6 +24,7 @@ interface InboxListProps {
   onSelectChat: (phone: string) => void
   onRefresh: () => void
   loading?: boolean
+  onSeedTest?: () => void
 }
 
 export function InboxList({
@@ -32,6 +33,7 @@ export function InboxList({
   onSelectChat,
   onRefresh,
   loading,
+  onSeedTest,
 }: InboxListProps) {
   const [search, setSearch] = useState('')
 
@@ -77,8 +79,27 @@ export function InboxList({
       {/* Chat List */}
       <div className="flex-1 overflow-y-auto divide-y divide-gray-100 fancy-scroll">
         {filtered.length === 0 ? (
-          <div className="p-6 text-center text-xs text-gray-500">
-            {loading ? 'Loading chats...' : 'No conversations found'}
+          <div className="p-6 text-center space-y-3">
+            <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+              <MessageSquare className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-900">
+                {loading ? 'Loading conversations...' : 'No conversations found'}
+              </p>
+              <p className="text-[11px] text-gray-500 mt-1">
+                Incoming WhatsApp messages will automatically appear here.
+              </p>
+            </div>
+            {onSeedTest ? (
+              <Button
+                onClick={onSeedTest}
+                size="sm"
+                className="gap-1.5 bg-amber-500 hover:bg-amber-600 font-bold text-xs text-white shadow-xs"
+              >
+                <FlaskConical className="h-3.5 w-3.5" /> Seed Test Conversation
+              </Button>
+            ) : null}
           </div>
         ) : (
           filtered.map((chat) => {
