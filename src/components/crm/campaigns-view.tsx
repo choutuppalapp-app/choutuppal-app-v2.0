@@ -29,6 +29,7 @@ import {
   Paperclip,
   X,
   Image as ImageIcon,
+  ShieldAlert,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -132,12 +133,17 @@ export function CampaignsView() {
       const listG = jsonG.groups || []
       const listT = jsonT.templates || []
 
-      setContacts(listC)
+      // Exclude emergency/govt/leader contacts from default selection
+      const eligibleContacts = Array.isArray(listC)
+        ? listC.filter((c: any) => c.userType !== 'emergency_govt_leader')
+        : []
+
+      setContacts(eligibleContacts)
       setGroups(listG)
       setTemplates(listT)
 
-      if (Array.isArray(listC) && listC.length > 0 && selectedPhones.size === 0) {
-        setSelectedPhones(new Set(listC.map((c: any) => c.phone)))
+      if (eligibleContacts.length > 0 && selectedPhones.size === 0) {
+        setSelectedPhones(new Set(eligibleContacts.map((c: any) => c.phone)))
       }
     } catch {
       toast.error('Failed to load campaign data')
@@ -193,7 +199,9 @@ export function CampaignsView() {
 
     const grp = groups.find((g) => g.id === groupId)
     if (grp && grp.contacts) {
-      const gPhones = new Set<string>(grp.contacts.map((c: any) => c.phone))
+      const gPhones = new Set<string>(
+        grp.contacts.filter((c: any) => c.userType !== 'emergency_govt_leader').map((c: any) => c.phone),
+      )
       setSelectedPhones(gPhones)
       toast.success(`Selected group "${grp.name}" (${gPhones.size} contacts)`)
     }
@@ -547,35 +555,45 @@ export function CampaignsView() {
 
   return (
     <div className="flex h-full w-full flex-col bg-gray-50 p-4 md:p-6 space-y-5 overflow-y-auto fancy-scroll font-sans text-gray-900">
-      {/* Studio Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-4 bg-white p-4 rounded-2xl border shadow-2xs">
-        <div>
-          <h2 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
-            Bulk Campaign Broadcast Studio <Megaphone className="h-4 w-4 text-emerald-600" />
-          </h2>
-          <p className="text-xs text-gray-500">
-            Target WhatsApp contacts, insert personalization variables, attach header media, build interactive quick replies, and view live preview.
-          </p>
+      {/* Studio Header & Marketing Exclusion Warning */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between border-b border-gray-200 pb-4 bg-white p-4 rounded-2xl border shadow-2xs">
+          <div>
+            <h2 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-2">
+              Bulk Campaign Broadcast Studio <Megaphone className="h-4 w-4 text-emerald-600" />
+            </h2>
+            <p className="text-xs text-gray-500">
+              Target WhatsApp contacts, insert personalization variables, attach header media, build interactive quick replies, and view live preview.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setImportOpen(true)}
+              className="gap-1.5 border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 font-bold text-xs h-8"
+            >
+              <Upload className="h-3.5 w-3.5 text-blue-600" /> Import CSV
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setGroupModalOpen(true)}
+              className="gap-1.5 border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100 font-bold text-xs h-8"
+            >
+              <FolderPlus className="h-3.5 w-3.5 text-purple-600" /> Create Group
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setImportOpen(true)}
-            className="gap-1.5 border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 font-bold text-xs h-8"
-          >
-            <Upload className="h-3.5 w-3.5 text-blue-600" /> Import CSV
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setGroupModalOpen(true)}
-            className="gap-1.5 border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100 font-bold text-xs h-8"
-          >
-            <FolderPlus className="h-3.5 w-3.5 text-purple-600" /> Create Group
-          </Button>
+        {/* Marketing Exclusion Warning Banner */}
+        <div className="flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-semibold text-amber-900 shadow-2xs">
+          <ShieldAlert className="h-4 w-4 text-amber-600 shrink-0" />
+          <span>
+            <strong>Marketing Exclusion Active:</strong> Emergency Services, Police, Hospitals, and Govt Leaders are automatically excluded from bulk marketing campaigns.
+          </span>
         </div>
       </div>
 

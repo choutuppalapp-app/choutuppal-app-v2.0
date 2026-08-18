@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/webhooks/whatsapp — Human-like Smart Webhook & State Machine
+ * POST /api/webhooks/whatsapp — Human-like Smart Webhook & State Machine with Intent Logic
  */
 export async function POST(request: NextRequest) {
   try {
@@ -176,67 +176,112 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ ok: true }, { status: 200 })
         }
 
-        // ----------------------------------------------------------------------
-        // STEP 5: DOB Capture (chatState === "awaiting_dob")
-        // ----------------------------------------------------------------------
-        if (dbContact.chatState === 'awaiting_dob') {
-          if (lowerText.includes('skip') || rawText.includes('స్కిప్')) {
-            await prisma.whatsAppContact.update({
-              where: { phone: cleanPhone },
-              data: {
-                chatState: 'none',
-                messageCount: (dbContact.messageCount || 0) + 1,
-              },
-            })
-            await sendWhatsAppMessage(
-              senderPhone,
-              'సరే అండి! ✅ ఇప్పుడు మీకు ఎలా సహాయం చేయగలను?',
-            )
-          } else {
-            await prisma.whatsAppContact.update({
-              where: { phone: cleanPhone },
-              data: {
-                dateOfBirth: rawText.trim(),
-                chatState: 'none',
-                messageCount: (dbContact.messageCount || 0) + 1,
-              },
-            })
-            await sendWhatsAppMessage(
-              senderPhone,
-              'మీ డేటా సేవ్ అయింది. ✅ ఇప్పుడు మీకు ఎలా సహాయం చేయగలను?',
-            )
-          }
-          return NextResponse.json({ ok: true }, { status: 200 })
-        }
-
-        // ----------------------------------------------------------------------
-        // STEP 1 & DELAYED DOB LOGIC: Existing User & Interaction Count
-        // ----------------------------------------------------------------------
-        const newCount = (dbContact.messageCount || 0) + 1
-
-        // Trigger Delayed DOB request on 3rd interaction if DOB is missing
-        if (newCount === 3 && !dbContact.dateOfBirth) {
-          await prisma.whatsAppContact.update({
-            where: { phone: cleanPhone },
-            data: {
-              chatState: 'awaiting_dob',
-              messageCount: newCount,
-            },
-          })
-
-          const displayName = dbContact.name || 'మిత్రమా'
-          await sendWhatsAppMessage(
-            senderPhone,
-            `${displayName} గారు, మీ పుట్టినరోజు తేదీ (DD-MM) ఇవ్వగలరా? మీకు ప్రత్యేక ఆఫర్స్ పంపుతాము! 🎁 (లేదంటే 'Skip' అనండి)`,
-          )
-          return NextResponse.json({ ok: true }, { status: 200 })
-        }
-
         // Increment message count for general interaction
+        const newCount = (dbContact.messageCount || 0) + 1
         await prisma.whatsAppContact.update({
           where: { phone: cleanPhone },
           data: { messageCount: newCount },
         })
+
+        // ----------------------------------------------------------------------
+        // INTENT A: Emergency & Government Officials Fetch (No AI Cost)
+        // ----------------------------------------------------------------------
+        const isEmergencyQuery =
+          lowerText.includes('police') ||
+          lowerText.includes('emergency') ||
+          lowerText.includes('collector') ||
+          lowerText.includes('mla') ||
+          lowerText.includes('hospital number') ||
+          lowerText.includes('fire') ||
+          lowerText.includes('tahsildar') ||
+          lowerText.includes('mpdo') ||
+          lowerText.includes('rdo') ||
+          lowerText.includes('sarpanch') ||
+          lowerText.includes('పోలీస్') ||
+          lowerText.includes('అత్యవసర') ||
+          lowerText.includes('కలెక్టర్') ||
+          lowerText.includes('ఎమ్మెల్యే')
+
+        if (isEmergencyQuery) {
+          // Extract search token keyword
+          const searchKey = lowerText
+            .replace(/police|emergency|collector|mla|hospital number|hospital|fire|tahsildar|mpdo|rdo|sarpanch|నంబర్|నెంబర్|ఫోన్/gi, '')
+            .trim()
+
+          const emergencyContacts = await prisma.whatsAppContact.findMany({
+            where: {
+              userType: 'emergency_govt_leader',
+              ...(searchKey
+                ? {
+                    OR: [
+                      { name: { contains: searchKey, mode: 'insensitive' } },
+                      { tag: { contains: searchKey, mode: 'insensitive' } },
+                    ],
+                  }
+                : {}),
+            },
+            take: 10,
+          })
+
+          if (emergencyContacts.length > 0) {
+            let emergencyReply = '🚨 *చౌటుప్పల్ అత్యవసర & ప్రభుత్వ ఫోన్ నంబర్లు:*\n\n'
+            emergencyContacts.forEach((item, idx) => {
+              emergencyReply += `${idx + 1}. *${item.name}*\n📱 Phone: +${item.phone}\n\n`
+            })
+            emergencyReply += 'మరిన్ని అత్యవసర నంబర్ల కోసం చౌటుప్పల్ యాప్ ని విజిట్ చేయండి: https://choutuppal.in'
+            await sendWhatsAppMessage(senderPhone, emergencyReply)
+            return NextResponse.json({ ok: true }, { status: 200 })
+          }
+        }
+
+        // ----------------------------------------------------------------------
+        // INTENT B: Business Info & Shop Details Fetch (No AI Cost)
+        // ----------------------------------------------------------------------
+        const isBusinessQuery =
+          lowerText.includes('phone number of') ||
+          lowerText.includes('address of') ||
+          lowerText.includes('mobile number of') ||
+          lowerText.includes('shop name') ||
+          lowerText.includes('contact of') ||
+          lowerText.includes('number of') ||
+          lowerText.includes('details of') ||
+          lowerText.includes('షాప్ నంబర్') ||
+          lowerText.includes('ఫోన్ నంబర్')
+
+        if (isBusinessQuery) {
+          // Extract business keyword from query
+          const bizKeyword = rawText
+            .replace(/phone number of|address of|mobile number of|shop name|contact of|number of|details of|షాప్ నంబర్|ఫోన్ నంబర్|నంబర్|నెంబర్/gi, '')
+            .trim()
+
+          if (bizKeyword) {
+            const listings = await prisma.listing.findMany({
+              where: {
+                title: { contains: bizKeyword, mode: 'insensitive' },
+              },
+              select: {
+                title: true,
+                phone: true,
+                address: true,
+                category: { select: { name: true } },
+              },
+              take: 5,
+            })
+
+            if (listings.length > 0) {
+              let bizReply = `🏪 *చౌటుప్పల్ బిజినెస్ వివరాలు ("${bizKeyword}"):*\n\n`
+              listings.forEach((item, idx) => {
+                bizReply += `${idx + 1}. *${item.title}* (${item.category?.name || 'Local Business'})\n`
+                if (item.phone) bizReply += `📱 Phone: ${item.phone}\n`
+                if (item.address) bizReply += `📍 Address: ${item.address}\n`
+                bizReply += '\n'
+              })
+              bizReply += 'మరిన్ని వ్యాపారాల కోసం చూడండి: https://choutuppal.in/listings'
+              await sendWhatsAppMessage(senderPhone, bizReply)
+              return NextResponse.json({ ok: true }, { status: 200 })
+            }
+          }
+        }
 
         // ----------------------------------------------------------------------
         // STEP 5.5: Exact-Match Trigger Rules & Saved Templates (No AI Cost)
@@ -314,16 +359,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ ok: true }, { status: 200 })
         }
 
-        if (lowerText.includes('emergency') || rawText.includes('ఎమర్జెన్సీ') || rawText.includes('అత్యవసర')) {
-          await sendWhatsAppMessage(
-            senderPhone,
-            '🚨 చౌటుప్పల్ అత్యవసర ఫోన్ నంబర్లు:\n\n• పోలీస్ స్టేషన్: 100 / 08694-222033\n• అంబులెన్స్ (Emergency): 108\n• ప్రభుత్వ ఆసుపత్రి: 08694-273200\n• ఫైర్ స్టేషన్: 101\n• విద్యుత్ శాఖ (TSECL): 1912 / 9491065911',
-          )
-          return NextResponse.json({ ok: true }, { status: 200 })
-        }
-
         // ----------------------------------------------------------------------
-        // STEP 7: Complex Queries (Gemini AI Agent with Personalization)
+        // INTENT C: General Queries (Gemini AI Agent with Personalization)
         // ----------------------------------------------------------------------
         const aiReply = await getAIResponse(senderPhone, rawText, dbContact.name || undefined)
         await sendWhatsAppMessage(senderPhone, aiReply)

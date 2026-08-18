@@ -25,7 +25,10 @@ export async function POST(request: NextRequest) {
     if (Array.isArray(customPhones) && customPhones.length > 0) {
       const cleanList = customPhones.map((p: string) => p.replace(/\D/g, '')).filter(Boolean)
       const dbContacts = await prisma.whatsAppContact.findMany({
-        where: { phone: { in: cleanList } },
+        where: {
+          phone: { in: cleanList },
+          userType: { not: 'emergency_govt_leader' },
+        },
         select: { phone: true, name: true, userType: true },
       })
 
@@ -37,22 +40,28 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      const whereClause =
-        audience === 'business_owner'
-          ? { userType: 'business_owner' }
-          : audience === 'customer'
-          ? { userType: 'customer' }
-          : {}
+      const whereClause: any = {
+        userType: { not: 'emergency_govt_leader' },
+      }
+
+      if (audience === 'business_owner') {
+        whereClause.userType = 'business_owner'
+      } else if (audience === 'customer') {
+        whereClause.userType = 'customer'
+      }
 
       contacts = await prisma.whatsAppContact.findMany({
         where: whereClause,
         select: { phone: true, name: true, userType: true },
-        take: 300,
+        take: 500,
       })
     }
 
+    // STRICT MARKETING EXCLUSION GUARANTEE: Never send marketing campaigns to Emergency Services, Police, or Govt Officials
+    contacts = contacts.filter((c) => c.userType !== 'emergency_govt_leader')
+
     if (contacts.length === 0) {
-      return NextResponse.json({ error: 'No contacts selected for campaign' }, { status: 404 })
+      return NextResponse.json({ error: 'No eligible marketing contacts selected for campaign' }, { status: 404 })
     }
 
     // Extract footer text from payload/options for Smart Footer trick
