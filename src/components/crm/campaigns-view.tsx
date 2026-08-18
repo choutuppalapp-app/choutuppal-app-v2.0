@@ -11,6 +11,7 @@ import {
   FileText,
   Smartphone,
   Plus,
+  Trash2,
   CheckCheck,
   ListFilter,
   RefreshCw,
@@ -19,6 +20,7 @@ import {
   Calendar,
   Sparkles,
   Zap,
+  Layers,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,6 +28,23 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+
+interface ButtonItem {
+  id: string
+  title: string
+}
+
+interface ListItem {
+  id: string
+  title: string
+  description?: string
+}
+
+interface FlowStep {
+  id: string
+  delayMs: number
+  message: string
+}
 
 export function CampaignsView() {
   const [contacts, setContacts] = useState<any[]>([])
@@ -55,20 +74,12 @@ export function CampaignsView() {
     '🎉 నమస్కారం {name} గారు! మీ {shop_name} బిజినెస్ ని చౌటుప్పల్ యాప్ లో ప్రమోట్ చేయండి.',
   )
 
-  // Interactive Builders State
-  const [showButtons, setShowButtons] = useState(false)
-  const [b1, setB1] = useState('Book Ad Now')
-  const [b2, setB2] = useState('Call Support')
-  const [b3, setB3] = useState('')
-
-  const [showList, setShowList] = useState(false)
-  const [l1, setL1] = useState('Top Banner Ad (₹99)')
-  const [l2, setL2] = useState('Reels Video (₹299)')
-  const [l3, setL3] = useState('Franchise Partner (₹10k)')
-  const [l4, setL4] = useState('')
-
-  const [showFooter, setShowFooter] = useState(false)
-  const [footerText, setFooterText] = useState('Powered by Choutuppal App • https://choutuppal.in')
+  // Interactive Builders Array States
+  const [buttons, setButtons] = useState<ButtonItem[]>([])
+  const [listItems, setListItems] = useState<ListItem[]>([])
+  const [flowSteps, setFlowSteps] = useState<FlowStep[]>([])
+  const [footerText, setFooterText] = useState<string>('')
+  const [showFooter, setShowFooter] = useState<boolean>(false)
 
   const [showSchedule, setShowSchedule] = useState(false)
   const [scheduleTime, setScheduleTime] = useState('')
@@ -145,7 +156,7 @@ export function CampaignsView() {
     }
   }
 
-  // Insert Personalization Variable Chip into Textarea
+  // Insert Personalization Variable Chip
   function insertVariable(variable: string) {
     if (!textareaRef.current) {
       setMessageText((prev) => prev + ` ${variable}`)
@@ -176,22 +187,82 @@ export function CampaignsView() {
       const text = typeof payload === 'object' && payload?.text ? payload.text : String(payload)
       setMessageText(text)
 
-      if (payload?.buttons) {
-        setShowButtons(true)
-        setB1(payload.buttons[0]?.title || '')
-        setB2(payload.buttons[1]?.title || '')
-        setB3(payload.buttons[2]?.title || '')
+      if (payload?.buttons && Array.isArray(payload.buttons)) {
+        setButtons(
+          payload.buttons.slice(0, 3).map((b: any, idx: number) => ({
+            id: String(idx + 1),
+            title: typeof b === 'string' ? b : b.title || 'Button',
+          })),
+        )
+      } else {
+        setButtons([])
       }
-      if (payload?.listOptions) {
-        setShowList(true)
-        setL1(payload.listOptions[0]?.title || '')
-        setL2(payload.listOptions[1]?.title || '')
-        setL3(payload.listOptions[2]?.title || '')
-        setL4(payload.listOptions[3]?.title || '')
+
+      if (payload?.listOptions && Array.isArray(payload.listOptions)) {
+        setListItems(
+          payload.listOptions.slice(0, 4).map((l: any, idx: number) => ({
+            id: String(idx + 1),
+            title: typeof l === 'string' ? l : l.title || 'Option',
+            description: l.description || '',
+          })),
+        )
+      } else {
+        setListItems([])
+      }
+
+      if (payload?.footer) {
+        setShowFooter(true)
+        setFooterText(payload.footer)
+      } else {
+        setShowFooter(false)
+        setFooterText('')
       }
 
       toast.success(`Loaded template "${found.name}"`)
     }
+  }
+
+  // Button Add/Remove Handlers
+  function handleAddButton() {
+    if (buttons.length >= 3) return
+    setButtons((prev) => [...prev, { id: String(Date.now()), title: `Button ${prev.length + 1}` }])
+  }
+
+  function handleUpdateButton(id: string, title: string) {
+    setButtons((prev) => prev.map((b) => (b.id === id ? { ...b, title } : b)))
+  }
+
+  function handleRemoveButton(id: string) {
+    setButtons((prev) => prev.filter((b) => b.id !== id))
+  }
+
+  // List Item Add/Remove Handlers
+  function handleAddListItem() {
+    if (listItems.length >= 4) return
+    setListItems((prev) => [
+      ...prev,
+      { id: String(Date.now()), title: `Option ${prev.length + 1}`, description: '' },
+    ])
+  }
+
+  function handleUpdateListItem(id: string, key: 'title' | 'description', value: string) {
+    setListItems((prev) => prev.map((l) => (l.id === id ? { ...l, [key]: value } : l)))
+  }
+
+  function handleRemoveListItem(id: string) {
+    setListItems((prev) => prev.filter((l) => l.id !== id))
+  }
+
+  // Flow Step Add/Remove Handlers
+  function handleAddFlowStep() {
+    setFlowSteps((prev) => [
+      ...prev,
+      { id: String(Date.now()), delayMs: 2000, message: 'Followup message text' },
+    ])
+  }
+
+  function handleRemoveFlowStep(id: string) {
+    setFlowSteps((prev) => prev.filter((f) => f.id !== id))
   }
 
   async function handleImportCSV() {
@@ -270,18 +341,48 @@ export function CampaignsView() {
       return
     }
 
-    const payload: any = {}
+    // Build Meta WhatsApp interactive structure
+    const payload: any = {
+      body: messageText,
+    }
 
-    if (showButtons) {
-      const buttons = [b1, b2, b3].filter((b) => b.trim()).map((title) => ({ title: title.trim() }))
-      if (buttons.length > 0) payload.buttons = buttons
-    }
-    if (showList) {
-      const listOptions = [l1, l2, l3, l4].filter((l) => l.trim()).map((title) => ({ title: title.trim() }))
-      if (listOptions.length > 0) payload.listOptions = listOptions
-    }
     if (showFooter && footerText.trim()) {
       payload.footer = footerText.trim()
+    }
+
+    if (buttons.length > 0) {
+      payload.action = {
+        buttons: buttons
+          .filter((b) => b.title.trim())
+          .map((b, idx) => ({
+            type: 'reply',
+            reply: { id: `btn_${idx + 1}`, title: b.title.trim() },
+          })),
+      }
+      payload.buttons = buttons.map((b) => ({ title: b.title.trim() }))
+    }
+
+    if (listItems.length > 0) {
+      payload.action = {
+        ...(payload.action || {}),
+        sections: [
+          {
+            title: 'Options Menu',
+            rows: listItems
+              .filter((l) => l.title.trim())
+              .map((l, idx) => ({
+                id: `list_${idx + 1}`,
+                title: l.title.trim(),
+                description: l.description?.trim() || undefined,
+              })),
+          },
+        ],
+      }
+      payload.listOptions = listItems.map((l) => ({ title: l.title.trim(), description: l.description }))
+    }
+
+    if (flowSteps.length > 0) {
+      payload.sequence = flowSteps.map((f) => ({ delayMs: f.delayMs, message: f.message }))
     }
 
     setSending(true)
@@ -318,9 +419,6 @@ export function CampaignsView() {
     .replace(/\{name\}/gi, 'వెంకటేష్')
     .replace(/\[Name\]/gi, 'వెంకటేష్')
     .replace(/\{shop_name\}/gi, 'Sri Lakshmi Tiffins')
-
-  const activeButtons = showButtons ? [b1, b2, b3].filter((b) => b.trim()) : []
-  const activeListOpts = showList ? [l1, l2, l3, l4].filter((l) => l.trim()) : []
 
   return (
     <div className="flex h-full w-full flex-col bg-gray-50 p-4 md:p-6 space-y-5 overflow-y-auto fancy-scroll font-sans text-gray-900">
@@ -359,7 +457,7 @@ export function CampaignsView() {
       {/* 3-Column Layout */}
       <div className="grid gap-6 lg:grid-cols-12">
         {/* LEFT COLUMN: Target Contacts & Groups (4 Cols) */}
-        <div className="lg:col-span-4 rounded-2xl border border-gray-200 bg-white p-4 space-y-3 shadow-2xs flex flex-col h-[600px]">
+        <div className="lg:col-span-4 rounded-2xl border border-gray-200 bg-white p-4 space-y-3 shadow-2xs flex flex-col h-[640px]">
           <div className="flex items-center justify-between border-b border-gray-100 pb-2">
             <h3 className="font-bold text-xs text-gray-900 flex items-center gap-1.5">
               <Users className="h-4 w-4 text-emerald-600" /> Target Contacts ({selectedPhones.size})
@@ -455,7 +553,7 @@ export function CampaignsView() {
         </div>
 
         {/* MIDDLE COLUMN: Compose Broadcast Content (5 Cols) */}
-        <div className="lg:col-span-5 rounded-2xl border border-gray-200 bg-white p-4 space-y-3.5 shadow-2xs flex flex-col justify-between h-[600px] overflow-y-auto fancy-scroll">
+        <div className="lg:col-span-5 rounded-2xl border border-gray-200 bg-white p-4 space-y-3.5 shadow-2xs flex flex-col justify-between h-[640px] overflow-y-auto fancy-scroll">
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-gray-100 pb-2">
               <h3 className="font-bold text-xs text-gray-900 flex items-center gap-1.5">
@@ -480,18 +578,18 @@ export function CampaignsView() {
 
             {/* Message Textarea */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Message Content Text *</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Message Body Text *</label>
               <Textarea
                 ref={textareaRef}
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 placeholder="Type broadcast text... Use variable chips below to insert name or shop."
-                rows={6}
+                rows={5}
                 className="border-gray-200 bg-white text-xs text-gray-900 font-sans p-3 rounded-xl focus:border-emerald-500"
               />
             </div>
 
-            {/* CRITICAL PERSONALIZATION CHIPS */}
+            {/* PERSONALIZATION CHIPS */}
             <div>
               <span className="block text-[11px] font-bold text-gray-600 mb-1.5">
                 Personalization Variable Chips (Click to insert):
@@ -519,99 +617,191 @@ export function CampaignsView() {
               </div>
             </div>
 
-            {/* Interactive UI Builders Toggle Row */}
-            <div className="pt-2 border-t border-gray-100 space-y-2">
+            {/* INTERACTIVE BUILDERS WITH ADD/REMOVE LOGIC */}
+            <div className="pt-2 border-t border-gray-100 space-y-3">
               <span className="block text-[11px] font-bold text-gray-700">Interactive Element Builders:</span>
-              <div className="flex flex-wrap gap-1.5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowButtons(!showButtons)}
-                  className={`h-7 text-[10px] font-bold ${
-                    showButtons ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-gray-50 text-gray-700'
-                  }`}
-                >
-                  <Zap className="h-3 w-3 mr-1" /> Quick Buttons
-                </Button>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowList(!showList)}
-                  className={`h-7 text-[10px] font-bold ${
-                    showList ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-gray-50 text-gray-700'
-                  }`}
-                >
-                  <ListFilter className="h-3 w-3 mr-1" /> List Menu
-                </Button>
+              {/* 1. Quick Reply Buttons Builder (Up to 3) */}
+              <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                    <Zap className="h-3.5 w-3.5 text-emerald-600" /> Quick Reply Buttons ({buttons.length}/3)
+                  </span>
+                  {buttons.length < 3 ? (
+                    <button
+                      onClick={handleAddButton}
+                      className="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" /> Add Button
+                    </button>
+                  ) : null}
+                </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowFooter(!showFooter)}
-                  className={`h-7 text-[10px] font-bold ${
-                    showFooter ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-gray-50 text-gray-700'
-                  }`}
-                >
-                  Footer Text
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowSchedule(!showSchedule)}
-                  className={`h-7 text-[10px] font-bold ${
-                    showSchedule ? 'bg-purple-600 text-white border-purple-600' : 'bg-gray-50 text-gray-700'
-                  }`}
-                >
-                  <Calendar className="h-3 w-3 mr-1" /> Schedule
-                </Button>
+                {buttons.length === 0 ? (
+                  <p className="text-[11px] text-gray-400 italic">No buttons added. Click "Add Button" to add quick reply pills.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {buttons.map((btn, idx) => (
+                      <div key={btn.id} className="flex items-center gap-2">
+                        <Input
+                          value={btn.title}
+                          onChange={(e) => handleUpdateButton(btn.id, e.target.value)}
+                          placeholder={`Button ${idx + 1} Title`}
+                          className="h-7 text-xs bg-white border-gray-200"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveButton(btn.id)}
+                          className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-700 shrink-0"
+                          title="Remove Button"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Builders Inputs */}
-              {showButtons && (
-                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-600 block">Quick Reply Button Titles (Up to 3)</label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <Input value={b1} onChange={(e) => setB1(e.target.value)} placeholder="Btn 1" className="h-7 text-xs bg-white" />
-                    <Input value={b2} onChange={(e) => setB2(e.target.value)} placeholder="Btn 2" className="h-7 text-xs bg-white" />
-                    <Input value={b3} onChange={(e) => setB3(e.target.value)} placeholder="Btn 3" className="h-7 text-xs bg-white" />
+              {/* 2. List Menu Items Builder (Up to 4) */}
+              <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                    <ListFilter className="h-3.5 w-3.5 text-blue-600" /> List Options ({listItems.length}/4)
+                  </span>
+                  {listItems.length < 4 ? (
+                    <button
+                      onClick={handleAddListItem}
+                      className="text-[11px] font-bold text-blue-700 hover:underline flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" /> Add List Item
+                    </button>
+                  ) : null}
+                </div>
+
+                {listItems.length === 0 ? (
+                  <p className="text-[11px] text-gray-400 italic">No list items added. Click "Add List Item" to add dropdown menu choices.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {listItems.map((item, idx) => (
+                      <div key={item.id} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200">
+                        <div className="flex-1 grid grid-cols-2 gap-1.5">
+                          <Input
+                            value={item.title}
+                            onChange={(e) => handleUpdateListItem(item.id, 'title', e.target.value)}
+                            placeholder={`Option ${idx + 1} Title`}
+                            className="h-7 text-xs bg-white border-gray-200"
+                          />
+                          <Input
+                            value={item.description || ''}
+                            onChange={(e) => handleUpdateListItem(item.id, 'description', e.target.value)}
+                            placeholder="Subtitle/Price (Optional)"
+                            className="h-7 text-xs bg-white border-gray-200"
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveListItem(item.id)}
+                          className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-700 shrink-0"
+                          title="Remove List Option"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
-              {showList && (
-                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1.5">
-                  <label className="text-[10px] font-bold text-gray-600 block">List Menu Options (Up to 4)</label>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <Input value={l1} onChange={(e) => setL1(e.target.value)} placeholder="Option 1" className="h-7 text-xs bg-white" />
-                    <Input value={l2} onChange={(e) => setL2(e.target.value)} placeholder="Option 2" className="h-7 text-xs bg-white" />
-                    <Input value={l3} onChange={(e) => setL3(e.target.value)} placeholder="Option 3" className="h-7 text-xs bg-white" />
-                    <Input value={l4} onChange={(e) => setL4(e.target.value)} placeholder="Option 4" className="h-7 text-xs bg-white" />
+              {/* 3. Footer Text Builder */}
+              <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-800">Footer Text</span>
+                  {!showFooter ? (
+                    <button
+                      onClick={() => {
+                        setShowFooter(true)
+                        if (!footerText) setFooterText('Powered by Choutuppal App')
+                      }}
+                      className="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" /> Add Footer
+                    </button>
+                  ) : null}
+                </div>
+
+                {showFooter ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={footerText}
+                      onChange={(e) => setFooterText(e.target.value)}
+                      placeholder="Footer text..."
+                      className="h-7 text-xs bg-white border-gray-200"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setFooterText('')
+                        setShowFooter(false)
+                      }}
+                      className="h-7 w-7 text-red-500 hover:bg-red-50 hover:text-red-700 shrink-0"
+                      title="Delete Footer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <p className="text-[11px] text-gray-400 italic">No footer configured.</p>
+                )}
+              </div>
 
-              {showFooter && (
-                <div className="p-2 rounded-xl bg-gray-50 border border-gray-200">
-                  <Input value={footerText} onChange={(e) => setFooterText(e.target.value)} placeholder="Footer text..." className="h-7 text-xs bg-white" />
+              {/* 4. Flow Steps & Schedule Row */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-purple-900 flex items-center gap-1">
+                      <Layers className="h-3 w-3" /> Flow Auto-Followup
+                    </span>
+                    <button
+                      onClick={handleAddFlowStep}
+                      className="text-[10px] font-bold text-purple-700 hover:underline"
+                    >
+                      + Step
+                    </button>
+                  </div>
+                  {flowSteps.map((f, idx) => (
+                    <div key={f.id} className="flex items-center gap-1 mt-1">
+                      <Input
+                        value={f.message}
+                        onChange={(e) => {
+                          const val = e.target.value
+                          setFlowSteps((prev) => prev.map((item) => (item.id === f.id ? { ...item, message: val } : item)))
+                        }}
+                        placeholder={`Followup step ${idx + 1}...`}
+                        className="h-6 text-[10px] bg-white border-purple-200"
+                      />
+                      <button onClick={() => handleRemoveFlowStep(f.id)} className="text-red-500 hover:text-red-700">
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              )}
 
-              {showSchedule && (
-                <div className="p-2 rounded-xl bg-purple-50 border border-purple-200">
+                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-200 space-y-1">
+                  <span className="text-[11px] font-bold text-gray-800 flex items-center gap-1">
+                    <Calendar className="h-3 w-3 text-purple-600" /> Schedule Campaign
+                  </span>
                   <Input
                     type="datetime-local"
                     value={scheduleTime}
                     onChange={(e) => setScheduleTime(e.target.value)}
-                    className="h-7 text-xs bg-white border-purple-300"
+                    className="h-6 text-[10px] bg-white border-gray-200"
                   />
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
@@ -624,10 +814,10 @@ export function CampaignsView() {
           </Button>
         </div>
 
-        {/* RIGHT COLUMN: Realistic Smartphone WhatsApp Live Preview (3 Cols) */}
-        <div className="lg:col-span-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs flex flex-col items-center justify-center h-[600px]">
+        {/* RIGHT COLUMN: Realistic Smartphone WhatsApp Live Preview (Strict Body -> Footer -> Buttons in Single Bubble) */}
+        <div className="lg:col-span-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs flex flex-col items-center justify-center h-[640px]">
           <span className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5">
-            <Smartphone className="h-4 w-4 text-emerald-600" /> Realistic Smartphone Live Preview
+            <Smartphone className="h-4 w-4 text-emerald-600" /> Strict WhatsApp API Bubble Format
           </span>
 
           {/* Smartphone Frame Mockup */}
@@ -638,7 +828,7 @@ export function CampaignsView() {
             </div>
 
             {/* Smartphone Inner Screen */}
-            <div className="min-h-[440px] max-h-[480px] rounded-[24px] bg-[#efeae2] flex flex-col justify-between overflow-hidden text-gray-900">
+            <div className="min-h-[480px] max-h-[520px] rounded-[24px] bg-[#efeae2] flex flex-col justify-between overflow-hidden text-gray-900">
               {/* WhatsApp App Header MUST display Choutuppal App */}
               <div className="flex h-11 items-center gap-2 bg-[#075e54] px-3 text-white shadow-xs shrink-0">
                 <div className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500 font-black text-xs border border-emerald-300 text-white">
@@ -652,43 +842,48 @@ export function CampaignsView() {
 
               {/* Chat Chat Bubble View */}
               <div className="flex-1 p-2.5 flex flex-col justify-end overflow-y-auto space-y-2 fancy-scroll">
-                <div className="self-end max-w-[96%] rounded-xl bg-[#d9fdd3] p-2.5 text-[10px] text-gray-900 border border-[#c1e8b8] shadow-2xs space-y-1.5">
-                  <p className="whitespace-pre-wrap leading-relaxed font-sans">{parsedSampleText}</p>
-
-                  {/* Render Footer Text */}
-                  {showFooter && footerText.trim() ? (
-                    <p className="text-[8px] text-gray-500 pt-1 border-t border-[#b7e3ae] italic">
-                      {footerText}
+                {/* STRICT WHATSAPP API FORMAT: SINGLE OUTBOUND BUBBLE (Body -> Footer -> Buttons/List) */}
+                <div className="self-end max-w-[98%] rounded-2xl bg-[#d9fdd3] text-gray-900 border border-[#c1e8b8] shadow-2xs overflow-hidden">
+                  {/* 1. Body Text */}
+                  <div className="p-2.5 space-y-1">
+                    <p className="whitespace-pre-wrap leading-relaxed font-sans text-[10px]">
+                      {parsedSampleText}
                     </p>
-                  ) : null}
 
-                  {/* Render Buttons */}
-                  {activeButtons.length > 0 ? (
-                    <div className="pt-1.5 space-y-1 border-t border-[#b7e3ae]">
-                      {activeButtons.map((b, i) => (
+                    {/* 2. Footer Text inside same bubble */}
+                    {showFooter && footerText.trim() ? (
+                      <p className="text-[8.5px] text-gray-500 pt-1 border-t border-[#b7e3ae] italic">
+                        {footerText}
+                      </p>
+                    ) : null}
+
+                    {/* Timestamp & Ticks inside bubble */}
+                    <div className="mt-1 flex items-center justify-end gap-1 text-[8px] text-emerald-700 font-bold">
+                      <span>12:00 PM</span>
+                      <CheckCheck className="h-2.5 w-2.5 text-emerald-600" />
+                    </div>
+                  </div>
+
+                  {/* 3. Tappable Quick Reply Buttons Attached to Single Bubble */}
+                  {buttons.length > 0 ? (
+                    <div className="border-t border-[#b7e3ae] divide-y divide-[#b7e3ae] bg-white/90">
+                      {buttons.map((b) => (
                         <div
-                          key={i}
-                          className="rounded bg-white p-1 text-center font-bold text-[9px] text-emerald-700 border border-emerald-200 shadow-2xs cursor-pointer hover:bg-emerald-50"
+                          key={b.id}
+                          className="p-1.5 text-center font-bold text-[9.5px] text-emerald-700 cursor-pointer hover:bg-emerald-50 transition"
                         >
-                          {b}
+                          {b.title || 'Button'}
                         </div>
                       ))}
                     </div>
                   ) : null}
 
-                  {/* Render List Menu */}
-                  {activeListOpts.length > 0 ? (
-                    <div className="pt-1.5 border-t border-[#b7e3ae]">
-                      <div className="rounded bg-white p-1 text-center font-bold text-[9px] text-emerald-700 border border-emerald-200 flex items-center justify-center gap-1 shadow-2xs cursor-pointer">
-                        <ListFilter className="h-2.5 w-2.5" /> Choose Options ({activeListOpts.length})
-                      </div>
+                  {/* 4. Tappable List Menu Attached to Single Bubble */}
+                  {listItems.length > 0 ? (
+                    <div className="border-t border-[#b7e3ae] bg-white/90 p-1.5 text-center font-bold text-[9.5px] text-emerald-700 flex items-center justify-center gap-1 cursor-pointer hover:bg-emerald-50 transition">
+                      <ListFilter className="h-2.5 w-2.5" /> Choose Options ({listItems.length})
                     </div>
                   ) : null}
-
-                  <div className="mt-1 flex items-center justify-end gap-1 text-[8px] text-emerald-700 font-bold">
-                    <span>12:00 PM</span>
-                    <CheckCheck className="h-2.5 w-2.5 text-emerald-600" />
-                  </div>
                 </div>
               </div>
             </div>
