@@ -23,6 +23,9 @@ import {
   Layers,
   ArrowUp,
   ArrowDown,
+  History,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -48,11 +51,24 @@ interface FlowStep {
   message: string
 }
 
+interface CampaignRecord {
+  id: string
+  name: string
+  messageText: string
+  audienceCount: number
+  successCount: number
+  failedCount: number
+  status: string
+  createdAt: string
+}
+
 export function CampaignsView() {
   const [contacts, setContacts] = useState<any[]>([])
   const [groups, setGroups] = useState<any[]>([])
   const [templates, setTemplates] = useState<any[]>([])
+  const [campaignHistory, setCampaignHistory] = useState<CampaignRecord[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   // Contacts Selection State
   const [search, setSearch] = useState('')
@@ -72,6 +88,7 @@ export function CampaignsView() {
 
   // Compose State
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('custom')
+  const [campaignName, setCampaignName] = useState('')
   const [messageText, setMessageText] = useState(
     '🎉 నమస్కారం {name} గారు! మీ {shop_name} బిజినెస్ ని చౌటుప్పల్ యాప్ లో ప్రమోట్ చేయండి.',
   )
@@ -121,8 +138,24 @@ export function CampaignsView() {
     }
   }
 
+  async function loadCampaignHistory() {
+    setLoadingHistory(true)
+    try {
+      const res = await fetch('/api/crm/campaigns/history')
+      const json = await res.json()
+      if (res.ok) {
+        setCampaignHistory(json.campaigns || [])
+      }
+    } catch {
+      console.warn('Failed to load campaign history')
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
+
   useEffect(() => {
     loadStudioData()
+    loadCampaignHistory()
   }, [])
 
   function togglePhone(phone: string) {
@@ -437,6 +470,7 @@ export function CampaignsView() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          campaignName: campaignName.trim() || `Broadcast ${new Date().toLocaleDateString()}`,
           templateText: messageText,
           customPhones: allTargetPhones,
           payload,
@@ -447,6 +481,7 @@ export function CampaignsView() {
       if (!res.ok) throw new Error(json.error || 'Campaign launch failed')
 
       toast.success(json.message || `Campaign sent to ${allTargetPhones.length} contacts!`)
+      loadCampaignHistory()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Campaign send failed')
     } finally {
@@ -622,6 +657,17 @@ export function CampaignsView() {
               </Select>
             </div>
 
+            {/* Campaign Name Input */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Campaign Title / Tag</label>
+              <Input
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                placeholder="e.g. Ugadi Special Offer Broadcast"
+                className="h-8 text-xs border-gray-200 bg-white"
+              />
+            </div>
+
             {/* Message Textarea */}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">Message Body Text *</label>
@@ -630,7 +676,7 @@ export function CampaignsView() {
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 placeholder="Type broadcast text... Use variable chips below to insert name or shop."
-                rows={5}
+                rows={4}
                 className="border-gray-200 bg-white text-xs text-gray-900 font-sans p-3 rounded-xl focus:border-emerald-500"
               />
             </div>
@@ -908,7 +954,7 @@ export function CampaignsView() {
           </Button>
         </div>
 
-        {/* RIGHT COLUMN: Realistic Smartphone WhatsApp Live Preview (Strict Body -> Footer -> Buttons in Single Bubble with Reordered Items) */}
+        {/* RIGHT COLUMN: Realistic Smartphone WhatsApp Live Preview (Strict Body -> Buttons -> Footer Order) */}
         <div className="lg:col-span-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs flex flex-col items-center justify-center h-[640px]">
           <span className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5">
             <Smartphone className="h-4 w-4 text-emerald-600" /> Strict WhatsApp API Bubble Format
@@ -934,31 +980,24 @@ export function CampaignsView() {
                 </div>
               </div>
 
-              {/* Chat Chat Bubble View */}
+              {/* Chat Bubble View */}
               <div className="flex-1 p-2.5 flex flex-col justify-end overflow-y-auto space-y-2 fancy-scroll">
-                {/* STRICT WHATSAPP API FORMAT: SINGLE OUTBOUND BUBBLE (Body -> Footer -> Buttons/List) */}
-                <div className="self-end max-w-[98%] rounded-2xl bg-[#d9fdd3] text-gray-900 border border-[#c1e8b8] shadow-2xs overflow-hidden">
+                {/* STRICT WHATSAPP API FORMAT: SINGLE OUTBOUND BUBBLE (1. Body -> 2. Buttons/List -> 3. Footer) */}
+                <div className="self-end max-w-[98%] rounded-2xl bg-[#d9fdd3] text-gray-900 border border-[#c1e8b8] shadow-2xs overflow-hidden flex flex-col">
                   {/* 1. Body Text */}
                   <div className="p-2.5 space-y-1">
                     <p className="whitespace-pre-wrap leading-relaxed font-sans text-[10px]">
                       {parsedSampleText}
                     </p>
 
-                    {/* 2. Footer Text inside same bubble */}
-                    {showFooter && footerText.trim() ? (
-                      <p className="text-[8.5px] text-gray-500 pt-1 border-t border-[#b7e3ae] italic">
-                        {footerText}
-                      </p>
-                    ) : null}
-
-                    {/* Timestamp & Ticks inside bubble */}
+                    {/* Timestamp & Ticks inside body */}
                     <div className="mt-1 flex items-center justify-end gap-1 text-[8px] text-emerald-700 font-bold">
                       <span>12:00 PM</span>
                       <CheckCheck className="h-2.5 w-2.5 text-emerald-600" />
                     </div>
                   </div>
 
-                  {/* 3. Tappable Quick Reply Buttons Attached to Single Bubble (Renders in EXACT Reordered Array Order) */}
+                  {/* 2. Buttons / List attached to single bubble */}
                   {buttons.length > 0 ? (
                     <div className="border-t border-[#b7e3ae] divide-y divide-[#b7e3ae] bg-white/90">
                       {buttons.map((b) => (
@@ -972,16 +1011,99 @@ export function CampaignsView() {
                     </div>
                   ) : null}
 
-                  {/* 4. Tappable List Menu Attached to Single Bubble */}
                   {listItems.length > 0 ? (
                     <div className="border-t border-[#b7e3ae] bg-white/90 p-1.5 text-center font-bold text-[9.5px] text-emerald-700 flex items-center justify-center gap-1 cursor-pointer hover:bg-emerald-50 transition">
                       <ListFilter className="h-2.5 w-2.5" /> Choose Options ({listItems.length})
+                    </div>
+                  ) : null}
+
+                  {/* 3. Footer Text at the VERY BOTTOM of the bubble */}
+                  {showFooter && footerText.trim() ? (
+                    <div className="bg-white/80 p-1.5 text-center border-t border-[#b7e3ae]">
+                      <p className="text-[8.5px] text-gray-500 italic font-sans">
+                        {footerText}
+                      </p>
                     </div>
                   ) : null}
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* SECTION 4: Campaign History & Analytics Table */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-3.5 shadow-2xs">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+          <h3 className="font-extrabold text-xs text-gray-900 flex items-center gap-2 uppercase tracking-wider">
+            <History className="h-4 w-4 text-purple-600" /> Past Campaign Broadcast History & Delivery Logs
+          </h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={loadCampaignHistory}
+            disabled={loadingHistory}
+            className="h-7 text-xs text-gray-500 hover:text-gray-900 gap-1 font-bold"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loadingHistory ? 'animate-spin' : ''}`} /> Refresh History
+          </Button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-gray-700 font-sans">
+            <thead className="bg-gray-50/80 text-[10px] uppercase font-bold text-gray-500 border-b border-gray-200">
+              <tr>
+                <th className="p-3">Campaign Name / Tag</th>
+                <th className="p-3">Date & Time Sent</th>
+                <th className="p-3">Audience Count</th>
+                <th className="p-3">Status</th>
+                <th className="p-3 text-right">Delivery Rate</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {loadingHistory && campaignHistory.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-6 text-center text-xs text-gray-400">
+                    <Loader2 className="h-4 w-4 animate-spin mx-auto mb-1 text-purple-600" /> Loading past campaigns...
+                  </td>
+                </tr>
+              ) : campaignHistory.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-6 text-center text-xs text-gray-400">
+                    No past campaigns launched yet. Launch your first bulk broadcast above!
+                  </td>
+                </tr>
+              ) : (
+                campaignHistory.map((camp) => {
+                  const rate = camp.audienceCount > 0 ? ((camp.successCount / camp.audienceCount) * 100).toFixed(0) : '0'
+                  return (
+                    <tr key={camp.id} className="hover:bg-gray-50 transition">
+                      <td className="p-3 font-bold text-gray-900">{camp.name}</td>
+                      <td className="p-3 text-[11px] text-gray-500">
+                        {new Date(camp.createdAt).toLocaleString([], {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </td>
+                      <td className="p-3 font-mono text-[11px] font-semibold text-gray-800">
+                        {camp.audienceCount} contacts
+                      </td>
+                      <td className="p-3">
+                        <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          <CheckCircle2 className="h-3 w-3" /> {camp.status}
+                        </span>
+                      </td>
+                      <td className="p-3 text-right font-extrabold text-emerald-700">
+                        {rate}% ({camp.successCount}/{camp.audienceCount})
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

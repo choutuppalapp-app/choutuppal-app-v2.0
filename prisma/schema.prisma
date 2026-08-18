@@ -714,6 +714,18 @@ model SystemPrompt {
   updatedAt DateTime @updatedAt
 }
 
+model WhatsAppCampaign {
+  id            String   @id @default(cuid())
+  name          String
+  messageText   String
+  audienceCount Int      @default(0)
+  successCount  Int      @default(0)
+  failedCount   Int      @default(0)
+  status        String   @default("COMPLETED")
+  createdAt     DateTime @default(now())
+}
+
+
 
 
 

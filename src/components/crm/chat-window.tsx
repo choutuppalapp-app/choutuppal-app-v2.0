@@ -59,9 +59,10 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
   const [templates, setTemplates] = useState<any[]>([])
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('default')
 
-  // Self-Analysis State
+  // Analyze & Learn Modal State
   const [analyzing, setAnalyzing] = useState(false)
   const [suggestion, setSuggestion] = useState<string | null>(null)
+  const [analyzeModalOpen, setAnalyzeModalOpen] = useState(false)
   const [addingToBrain, setAddingToBrain] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -210,7 +211,10 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Failed to analyze')
-      setSuggestion(json.suggestion || 'No specific improvement suggested.')
+      
+      const resultSuggestion = json.suggestion || 'No specific improvement suggested.'
+      setSuggestion(resultSuggestion)
+      setAnalyzeModalOpen(true)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Analysis failed')
     } finally {
@@ -233,7 +237,8 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
         body: JSON.stringify({ content: updatedContent }),
       })
       if (!postRes.ok) throw new Error('Failed to update AI Brain')
-      toast.success('Added to AI Brain! Bot will now use this rule live.')
+      toast.success('Added to AI Brain Live! Bot will use this instruction immediately.')
+      setAnalyzeModalOpen(false)
       setSuggestion(null)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error adding to AI Brain')
@@ -298,7 +303,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
             className="gap-1 border-purple-200 bg-purple-50 text-[11px] font-semibold text-purple-700 hover:bg-purple-100 h-7"
           >
             {analyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3 text-purple-600" />}
-            Analyze
+            Analyze & Learn
           </Button>
 
           <Button
@@ -310,34 +315,6 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
           </Button>
         </div>
       </div>
-
-      {/* AI Suggestion Banner */}
-      {suggestion ? (
-        <div className="m-3 p-3 rounded-xl border border-purple-200 bg-purple-50 space-y-2 text-xs text-purple-900 shadow-xs">
-          <div className="flex items-center justify-between font-bold text-purple-950">
-            <span className="flex items-center gap-1.5">
-              <Brain className="h-4 w-4 text-purple-600" /> AI Learning Suggestion:
-            </span>
-            <button onClick={() => setSuggestion(null)} className="text-gray-400 hover:text-gray-700 text-xs">
-              ✕
-            </button>
-          </div>
-          <p className="text-[11px] text-purple-900 italic bg-white p-2 rounded border border-purple-200">
-            "{suggestion}"
-          </p>
-          <div className="flex justify-end">
-            <Button
-              size="sm"
-              onClick={handleAddToBrain}
-              disabled={addingToBrain}
-              className="gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs h-7"
-            >
-              {addingToBrain ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-              Add to AI Brain Live
-            </Button>
-          </div>
-        </div>
-      ) : null}
 
       {/* WhatsApp Chat Bubbles */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 fancy-scroll">
@@ -469,6 +446,35 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
           </Button>
         </div>
       </div>
+
+      {/* Analyze & Learn AI Brain Suggestion Modal */}
+      <Dialog open={analyzeModalOpen} onOpenChange={setAnalyzeModalOpen}>
+        <DialogContent className="max-w-md bg-white border-purple-200 text-gray-900 font-sans">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-purple-950">
+              <Brain className="h-5 w-5 text-purple-600" /> Analyze & Learn — AI Brain Suggestion
+            </DialogTitle>
+            <DialogDescription className="text-xs text-gray-500">
+              Gemini AI analyzed this conversation and generated an instruction to save directly to the AI Brain.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3.5 py-2">
+            <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 font-sans leading-relaxed">
+              "{suggestion}"
+            </div>
+
+            <Button
+              onClick={handleAddToBrain}
+              disabled={addingToBrain}
+              className="w-full gap-2 bg-purple-600 hover:bg-purple-700 font-bold text-xs text-white h-9"
+            >
+              {addingToBrain ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              Add to AI Brain Live
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Send Category Listings Modal */}
       <Dialog open={catModalOpen} onOpenChange={setCatModalOpen}>

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { templateText, options, audience, customPhones, payload } = body
+    const { templateText, options, audience, customPhones, payload, campaignName } = body
 
     if (!templateText) {
       return NextResponse.json({ error: 'Template text is required' }, { status: 400 })
@@ -23,14 +23,12 @@ export async function POST(request: NextRequest) {
     let contacts: Array<{ phone: string; name?: string | null; userType?: string | null }> = []
 
     if (Array.isArray(customPhones) && customPhones.length > 0) {
-      // Fetch details for specified custom phone selection
       const cleanList = customPhones.map((p: string) => p.replace(/\D/g, '')).filter(Boolean)
       const dbContacts = await prisma.whatsAppContact.findMany({
         where: { phone: { in: cleanList } },
         select: { phone: true, name: true, userType: true },
       })
 
-      // Include any manual phones that might not be in DB yet
       const foundSet = new Set(dbContacts.map((c) => c.phone))
       contacts = [...dbContacts]
       for (const p of cleanList) {
@@ -57,14 +55,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No contacts selected for campaign' }, { status: 404 })
     }
 
-    // Process bulk send sequentially with 2s delay
+    // Extract footer text from payload/options for Smart Footer trick
+    const rawFooter = payload?.footer || options?.footerText || ''
+    const cleanFooter = typeof rawFooter === 'string' ? rawFooter.trim() : ''
+
+    // Prepare options without separate footerText so WhatsApp API renders bodyText + footerText -> buttons
+    const sanitizedOptions = { ...(options || {}), ...(payload || {}) }
+    delete sanitizedOptions.footer
+    delete sanitizedOptions.footerText
+
     let successCount = 0
+    let failedCount = 0
 
     for (const c of contacts) {
       const cleanPhone = c.phone.replace(/\D/g, '')
       if (!cleanPhone) continue
 
-      // Look up associated business listing for {shop_name}
       let shopName = 'మీ షాప్'
       try {
         const listing = await prisma.listing.findFirst({
@@ -86,23 +92,43 @@ export async function POST(request: NextRequest) {
         .replace(/\[Name\]/gi, c.name || 'మిత్రమా')
         .replace(/\{shop_name\}/gi, shopName)
 
-      // Merge options & payload for interactive buttons/lists/footer
-      const sendOptions = {
-        ...(options || {}),
-        ...(payload || {}),
+      // SMART FOOTER TRICK: Append footer to body text if present
+      if (cleanFooter) {
+        personalizedText = `${personalizedText}\n\n${cleanFooter}`
       }
 
-      const res = await sendWhatsAppMessage(cleanPhone, personalizedText, sendOptions)
-      if (res.ok) successCount++
+      const res = await sendWhatsAppMessage(cleanPhone, personalizedText, sanitizedOptions)
+      if (res.ok) {
+        successCount++
+      } else {
+        failedCount++
+      }
 
-      // 2-second delay between calls to respect rate limits
+      // 2-second rate limit delay
       await new Promise((r) => setTimeout(r, 2000))
+    }
+
+    // Record campaign run in WhatsAppCampaign table
+    try {
+      await prisma.whatsAppCampaign.create({
+        data: {
+          name: campaignName || `Broadcast ${new Date().toLocaleDateString()}`,
+          messageText: templateText,
+          audienceCount: contacts.length,
+          successCount,
+          failedCount,
+          status: 'COMPLETED',
+        },
+      })
+    } catch (campErr) {
+      console.warn('[CRM Bulk Send] Failed to record WhatsAppCampaign:', campErr)
     }
 
     return NextResponse.json({
       ok: true,
       total: contacts.length,
       successCount,
+      failedCount,
       message: `Campaign broadcast sent successfully to ${successCount} out of ${contacts.length} recipients!`,
     })
   } catch (err) {
