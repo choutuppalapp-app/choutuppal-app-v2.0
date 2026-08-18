@@ -26,6 +26,9 @@ import {
   History,
   CheckCircle2,
   XCircle,
+  Paperclip,
+  X,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -92,6 +95,11 @@ export function CampaignsView() {
   const [messageText, setMessageText] = useState(
     '🎉 నమస్కారం {name} గారు! మీ {shop_name} బిజినెస్ ని చౌటుప్పల్ యాప్ లో ప్రమోట్ చేయండి.',
   )
+
+  // Header Image Upload State
+  const [headerImageUrl, setHeaderImageUrl] = useState<string | null>(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const campaignFileInputRef = useRef<HTMLInputElement>(null)
 
   // Interactive Builders Array States
   const [buttons, setButtons] = useState<ButtonItem[]>([])
@@ -222,6 +230,10 @@ export function CampaignsView() {
       const text = typeof payload === 'object' && payload?.text ? payload.text : String(payload)
       setMessageText(text)
 
+      if (payload?.mediaUrl || payload?.imageUrl) {
+        setHeaderImageUrl(payload.mediaUrl || payload.imageUrl)
+      }
+
       if (payload?.buttons && Array.isArray(payload.buttons)) {
         setButtons(
           payload.buttons.slice(0, 3).map((b: any, idx: number) => ({
@@ -254,6 +266,32 @@ export function CampaignsView() {
       }
 
       toast.success(`Loaded template "${found.name}"`)
+    }
+  }
+
+  async function handleCampaignFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', 'crm-campaign-media')
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      const json = await res.json()
+      if (!res.ok || !json.url) throw new Error(json.error || 'Failed to upload image')
+
+      setHeaderImageUrl(json.url)
+      toast.success('Header image attached to broadcast!')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploadingImage(false)
+      if (campaignFileInputRef.current) campaignFileInputRef.current.value = ''
     }
   }
 
@@ -425,6 +463,12 @@ export function CampaignsView() {
       body: messageText,
     }
 
+    if (headerImageUrl) {
+      payload.imageUrl = headerImageUrl
+      payload.mediaUrl = headerImageUrl
+      payload.messageType = 'image'
+    }
+
     if (showFooter && footerText.trim()) {
       payload.footer = footerText.trim()
     }
@@ -510,7 +554,7 @@ export function CampaignsView() {
             Bulk Campaign Broadcast Studio <Megaphone className="h-4 w-4 text-emerald-600" />
           </h2>
           <p className="text-xs text-gray-500">
-            Target WhatsApp contacts, insert personalization variables, build interactive quick replies, reorder buttons/list, and view live smartphone preview.
+            Target WhatsApp contacts, insert personalization variables, attach header media, build interactive quick replies, and view live preview.
           </p>
         </div>
 
@@ -666,6 +710,55 @@ export function CampaignsView() {
                 placeholder="e.g. Ugadi Special Offer Broadcast"
                 className="h-8 text-xs border-gray-200 bg-white"
               />
+            </div>
+
+            {/* Header Image Media Upload */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Header Media Attachment (Optional)</label>
+              <input
+                type="file"
+                ref={campaignFileInputRef}
+                onChange={handleCampaignFileUpload}
+                accept="image/*,application/pdf"
+                className="hidden"
+              />
+              {headerImageUrl ? (
+                <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-xl border border-emerald-200">
+                  <div className="h-10 w-10 shrink-0 rounded-lg overflow-hidden border border-emerald-300 bg-white">
+                    <img src={headerImageUrl} alt="Campaign header" className="h-full w-full object-cover" />
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="text-xs font-bold text-emerald-950 truncate">Header Image Attached</p>
+                    <p className="text-[10px] text-emerald-700 truncate">{headerImageUrl}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setHeaderImageUrl(null)}
+                    className="h-6 w-6 text-red-500 hover:bg-red-50 rounded-full"
+                    title="Remove Image"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => campaignFileInputRef.current?.click()}
+                  disabled={uploadingImage}
+                  className="w-full h-8 text-xs border-dashed border-gray-300 bg-gray-50 hover:bg-emerald-50 text-gray-700 font-bold gap-1.5 rounded-xl"
+                >
+                  {uploadingImage ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600" />
+                  ) : (
+                    <Paperclip className="h-3.5 w-3.5 text-emerald-600" />
+                  )}
+                  Attach Image / Banner Header
+                </Button>
+              )}
             </div>
 
             {/* Message Textarea */}
@@ -954,7 +1047,7 @@ export function CampaignsView() {
           </Button>
         </div>
 
-        {/* RIGHT COLUMN: Realistic Smartphone WhatsApp Live Preview (Strict Body -> Buttons -> Footer Order) */}
+        {/* RIGHT COLUMN: Realistic Smartphone WhatsApp Live Preview (Strict Body -> Buttons -> Footer Order + Header Attachment) */}
         <div className="lg:col-span-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs flex flex-col items-center justify-center h-[640px]">
           <span className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5">
             <Smartphone className="h-4 w-4 text-emerald-600" /> Strict WhatsApp API Bubble Format
@@ -982,8 +1075,15 @@ export function CampaignsView() {
 
               {/* Chat Bubble View */}
               <div className="flex-1 p-2.5 flex flex-col justify-end overflow-y-auto space-y-2 fancy-scroll">
-                {/* STRICT WHATSAPP API FORMAT: SINGLE OUTBOUND BUBBLE (1. Body -> 2. Buttons/List -> 3. Footer) */}
+                {/* STRICT WHATSAPP API FORMAT: SINGLE OUTBOUND BUBBLE (Image Header -> 1. Body -> 2. Buttons/List -> 3. Footer) */}
                 <div className="self-end max-w-[98%] rounded-2xl bg-[#d9fdd3] text-gray-900 border border-[#c1e8b8] shadow-2xs overflow-hidden flex flex-col">
+                  {/* Attached Header Image Preview */}
+                  {headerImageUrl ? (
+                    <div className="relative max-h-36 overflow-hidden border-b border-[#b7e3ae]">
+                      <img src={headerImageUrl} alt="Header media preview" className="w-full object-cover max-h-36" />
+                    </div>
+                  ) : null}
+
                   {/* 1. Body Text */}
                   <div className="p-2.5 space-y-1">
                     <p className="whitespace-pre-wrap leading-relaxed font-sans text-[10px]">

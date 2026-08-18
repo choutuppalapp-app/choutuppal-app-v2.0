@@ -1,11 +1,13 @@
 import { prisma } from '@/lib/prisma'
 
 export interface WhatsAppMessagePayloadOptions {
-  messageType?: 'text' | 'template' | 'interactive_button' | 'interactive_list'
+  messageType?: 'text' | 'image' | 'template' | 'interactive_button' | 'interactive_list'
   // Text & General
   text?: string
   headerText?: string
   footerText?: string
+  imageUrl?: string
+  mediaUrl?: string
 
   // Template options
   templateName?: string
@@ -64,7 +66,7 @@ export async function getWhatsAppCredentials(): Promise<{
 }
 
 /**
- * Send Meta WhatsApp Cloud API Message (Text, Template, Interactive Buttons, or List)
+ * Send Meta WhatsApp Cloud API Message (Text, Image, Template, Interactive Buttons, or List)
  */
 export async function sendWhatsAppMessage(
   toPhoneNumber: string,
@@ -92,8 +94,15 @@ export async function sendWhatsAppMessage(
     }
 
     const type = options.messageType || 'text'
+    const imageUrl = options.imageUrl || options.mediaUrl
 
-    if (type === 'template' && options.templateName) {
+    if (type === 'image' || imageUrl) {
+      payload.type = 'image'
+      payload.image = {
+        url: imageUrl,
+        caption: messageText || undefined,
+      }
+    } else if (type === 'template' && options.templateName) {
       payload.type = 'template'
       payload.template = {
         name: options.templateName,
@@ -190,7 +199,9 @@ export async function sendWhatsAppMessage(
         data: {
           phone: cleanPhone,
           direction: 'outbound',
-          message: messageText,
+          message: messageText || (imageUrl ? '[Image Attachment]' : ''),
+          imageUrl: imageUrl || null,
+          mediaUrl: imageUrl || null,
           status: 'sent',
         },
       })

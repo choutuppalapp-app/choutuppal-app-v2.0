@@ -14,6 +14,9 @@ import {
   Plus,
   Store,
   FileText,
+  Paperclip,
+  X,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,6 +48,11 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
   const [loading, setLoading] = useState(false)
   const [inputMessage, setInputMessage] = useState('')
   const [sending, setSending] = useState(false)
+
+  // Media Attachment Upload State
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null)
+  const [uploadingMedia, setUploadingMedia] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // AI Assistant Modal State
   const [aiModalOpen, setAiModalOpen] = useState(false)
@@ -134,17 +142,46 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
     }
   }
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingMedia(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('folder', 'crm-chat-media')
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      const json = await res.json()
+      if (!res.ok || !json.url) throw new Error(json.error || 'Failed to upload media file')
+
+      setMediaUrl(json.url)
+      toast.success('Media file attached successfully!')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Media upload failed')
+    } finally {
+      setUploadingMedia(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
   async function handleSendMessage(customOptions?: any) {
-    if (!phone || (!inputMessage.trim() && !customOptions)) return
+    if (!phone || (!inputMessage.trim() && !mediaUrl && !customOptions)) return
     const textToSend = inputMessage.trim()
+    const activeMedia = mediaUrl
     setSending(true)
     try {
+      const payloadOptions = customOptions || (activeMedia ? { messageType: 'image', imageUrl: activeMedia } : { messageType: 'text' })
+
       const res = await fetch(`/api/crm/messages/${phone}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: textToSend,
-          options: customOptions || { messageType: 'text' },
+          options: payloadOptions,
         }),
       })
       const json = await res.json()
@@ -157,13 +194,16 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
           id: String(Date.now()),
           phone,
           direction: 'outbound',
-          message: textToSend || 'Sent Interactive Card',
+          message: textToSend || (activeMedia ? '[Image Attachment]' : ''),
+          imageUrl: activeMedia,
+          mediaUrl: activeMedia,
           status: 'sent',
           createdAt: new Date().toISOString(),
         },
       ])
 
       setInputMessage('')
+      setMediaUrl(null)
       setSelectedTemplateId('default')
       toast.success('Message sent via Meta WhatsApp!')
       if (onContactUpdated) onContactUpdated()
@@ -380,8 +420,30 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Sticky Bottom Bar with Quick Replies Dropdown */}
+      {/* Sticky Bottom Bar with Quick Replies & Media Attachment */}
       <div className="sticky bottom-0 border-t border-gray-200 bg-white p-3 space-y-2.5">
+        {/* Thumbnail Preview Box when media is selected */}
+        {mediaUrl ? (
+          <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-xl border border-emerald-200">
+            <div className="h-10 w-10 shrink-0 rounded-lg overflow-hidden border border-emerald-300 bg-white">
+              <img src={mediaUrl} alt="Attached preview" className="h-full w-full object-cover" />
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <p className="text-xs font-bold text-emerald-950 truncate">Image Attached</p>
+              <p className="text-[10px] text-emerald-700 truncate">{mediaUrl}</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMediaUrl(null)}
+              className="h-6 w-6 text-red-500 hover:bg-red-50 rounded-full"
+              title="Remove attachment"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        ) : null}
+
         {/* Quick Replies / Saved Templates Row */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
@@ -427,8 +489,34 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
           </button>
         </div>
 
-        {/* Input Bar */}
+        {/* Input Bar with Paperclip Button */}
         <div className="flex items-center gap-2">
+          {/* Hidden File Input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*,application/pdf"
+            className="hidden"
+          />
+
+          {/* Visible Paperclip Media Attachment Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingMedia}
+            className="h-10 w-10 shrink-0 rounded-xl border-gray-200 bg-white hover:bg-emerald-50 text-gray-600 hover:border-emerald-300"
+            title="Attach Image or Document"
+          >
+            {uploadingMedia ? (
+              <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
+            ) : (
+              <Paperclip className="h-4 w-4 text-emerald-600" />
+            )}
+          </Button>
+
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
@@ -439,7 +527,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
 
           <Button
             onClick={() => handleSendMessage()}
-            disabled={sending || !inputMessage.trim()}
+            disabled={sending || (!inputMessage.trim() && !mediaUrl)}
             className="h-10 w-10 shrink-0 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs grid place-items-center"
           >
             {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
