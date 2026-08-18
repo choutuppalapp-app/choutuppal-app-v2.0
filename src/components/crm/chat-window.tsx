@@ -9,9 +9,11 @@ import {
   Brain,
   MessageSquare,
   Zap,
+  Check,
   CheckCheck,
   Plus,
   Store,
+  FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,8 +55,9 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
   const [selectedCatId, setSelectedCatId] = useState('')
   const [sendingCat, setSendingCat] = useState(false)
 
-  // Quick Replies / Templates State
+  // Quick Replies / Saved Templates Dropdown State
   const [templates, setTemplates] = useState<any[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('default')
 
   // Self-Analysis State
   const [analyzing, setAnalyzing] = useState(false)
@@ -118,6 +121,18 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
     }
   }
 
+  function handleSelectQuickReply(tplId: string) {
+    setSelectedTemplateId(tplId)
+    if (tplId === 'default') return
+
+    const tpl = templates.find((t) => t.id === tplId)
+    if (tpl) {
+      const text = typeof tpl.payload === 'object' && tpl.payload?.text ? tpl.payload.text : String(tpl.payload)
+      setInputMessage(text)
+      toast.success(`Loaded template "${tpl.name}"`)
+    }
+  }
+
   async function handleSendMessage(customOptions?: any) {
     if (!phone || (!inputMessage.trim() && !customOptions)) return
     const textToSend = inputMessage.trim()
@@ -142,12 +157,14 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
           phone,
           direction: 'outbound',
           message: textToSend || 'Sent Interactive Card',
+          status: 'sent',
           createdAt: new Date().toISOString(),
         },
       ])
 
       setInputMessage('')
-      toast.success('Message sent!')
+      setSelectedTemplateId('default')
+      toast.success('Message sent via Meta WhatsApp!')
       if (onContactUpdated) onContactUpdated()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Send failed')
@@ -181,7 +198,6 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
     }
   }
 
-  // Self-Analysis & Auto-Upgrade Logic
   async function handleAnalyzeConversation() {
     if (!logs.length) return
     setAnalyzing(true)
@@ -263,13 +279,13 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
           </div>
         </div>
 
-        {/* Action Controls */}
+        {/* Action Controls Toolbar */}
         <div className="flex items-center gap-2">
           <Button
             size="sm"
             variant="outline"
             onClick={() => setCatModalOpen(true)}
-            className="gap-1 border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-[11px] font-semibold h-7"
+            className="gap-1 border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-[11px] font-bold h-7"
           >
             <Store className="h-3 w-3 text-emerald-600" /> Send Category
           </Button>
@@ -279,7 +295,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
             variant="outline"
             onClick={handleAnalyzeConversation}
             disabled={analyzing || logs.length === 0}
-            className="gap-1.5 border-purple-200 bg-purple-50 text-[11px] font-semibold text-purple-700 hover:bg-purple-100 h-7"
+            className="gap-1 border-purple-200 bg-purple-50 text-[11px] font-semibold text-purple-700 hover:bg-purple-100 h-7"
           >
             {analyzing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3 text-purple-600" />}
             Analyze
@@ -362,14 +378,22 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
                       />
                     </div>
                   ) : null}
-                  <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed font-sans">{m.message}</p>
                   <div
                     className={`mt-1 flex items-center justify-end gap-1 text-[9px] ${
-                      isInbound ? 'text-gray-400' : 'text-emerald-700 font-semibold'
+                      isInbound ? 'text-gray-400' : 'text-emerald-700 font-bold'
                     }`}
                   >
                     <span>{timeStr}</span>
-                    {!isInbound ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : null}
+                    {!isInbound ? (
+                      m.status === 'read' ? (
+                        <span title="Read"><CheckCheck className="h-3 w-3 text-blue-600 font-black" /></span>
+                      ) : m.status === 'delivered' ? (
+                        <span title="Delivered"><CheckCheck className="h-3 w-3 text-emerald-600 font-bold" /></span>
+                      ) : (
+                        <span title="Sent"><Check className="h-3 w-3 text-emerald-600" /></span>
+                      )
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -379,14 +403,30 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Sticky Bottom Bar */}
-      <div className="sticky bottom-0 border-t border-gray-200 bg-white p-3 space-y-2">
-        {/* Pre-built Templates & Revenue Pitches Row */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
-            <Zap className="h-3 w-3 text-amber-500" /> Pre-built Pitches:
+      {/* Sticky Bottom Bar with Quick Replies Dropdown */}
+      <div className="sticky bottom-0 border-t border-gray-200 bg-white p-3 space-y-2.5">
+        {/* Quick Replies / Saved Templates Row */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
+            <FileText className="h-3 w-3 text-emerald-600" /> Quick Replies:
           </span>
 
+          {/* Quick Replies Dropdown */}
+          <Select value={selectedTemplateId} onValueChange={handleSelectQuickReply}>
+            <SelectTrigger className="h-7 border-gray-200 bg-gray-50 text-[11px] text-gray-900 rounded-lg shrink-0 w-44">
+              <SelectValue placeholder="Select Saved Template..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white border-gray-200 text-xs">
+              <SelectItem value="default">-- Select Template --</SelectItem>
+              {templates.map((tpl) => (
+                <SelectItem key={tpl.id} value={tpl.id}>
+                  [{tpl.type}] {tpl.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Pre-built Pitch Chips */}
           <button
             onClick={() =>
               setInputMessage(
@@ -408,28 +448,6 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
           >
             ₹299 Reels Promo Pitch
           </button>
-
-          <button
-            onClick={() =>
-              setInputMessage(
-                '🚀 చౌటుప్పల్ ప్రజలందరికీ మీ బిజినెస్ ఆఫర్ మెసేజ్ ఒకేసారి పంపండి (₹499). బుకింగ్ కోసం రిప్లై చేయండి.',
-              )
-            }
-            className="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 transition"
-          >
-            ₹499 Bulk Promo Pitch
-          </button>
-
-          <button
-            onClick={() =>
-              setInputMessage(
-                '💼 మీ సొంత పట్టణానికి చౌటుప్పల్ టైప్ వైట్-లేబుల్ యాప్ ని ₹10,000 కే ప్రారంభించండి! సబ్‌స్క్రిప్షన్ ₹1,000/నెల.',
-              )
-            }
-            className="shrink-0 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-800 hover:bg-slate-200 transition"
-          >
-            Franchise Pitch
-          </button>
         </div>
 
         {/* Input Bar */}
@@ -437,7 +455,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
           <Input
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            placeholder="Type a response or click a pitch template..."
+            placeholder="Type a response or select a template..."
             className="border-gray-200 bg-white text-xs text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 h-10 rounded-xl"
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
           />

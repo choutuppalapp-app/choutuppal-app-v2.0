@@ -16,6 +16,7 @@ export interface ChatItem {
   lastMessageAt: string
   lastDirection: 'inbound' | 'outbound'
   chatState: string
+  unreadCount?: number
 }
 
 interface InboxListProps {
@@ -48,7 +49,7 @@ export function InboxList({
   })
 
   return (
-    <div className="flex h-full flex-col border-r border-gray-200 bg-white">
+    <div className="flex h-full flex-col border-r border-gray-200 bg-white font-sans text-gray-900">
       {/* Search Header */}
       <div className="p-3 border-b border-gray-200 space-y-2 bg-gray-50/50">
         <div className="flex items-center justify-between">
@@ -65,13 +66,14 @@ export function InboxList({
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
+
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, phone, or tags..."
-            className="h-8 border-gray-200 bg-white pl-8 text-xs text-gray-900 placeholder:text-gray-400 focus:border-blue-500 rounded-lg"
+            className="h-8 border-gray-200 bg-white pl-8 text-xs text-gray-900 placeholder:text-gray-400 focus:border-emerald-500 rounded-lg"
           />
         </div>
       </div>
@@ -80,7 +82,7 @@ export function InboxList({
       <div className="flex-1 overflow-y-auto divide-y divide-gray-100 fancy-scroll">
         {filtered.length === 0 ? (
           <div className="p-6 text-center space-y-3">
-            <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+            <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
               <MessageSquare className="h-5 w-5" />
             </div>
             <div>
@@ -108,6 +110,7 @@ export function InboxList({
               hour: '2-digit',
               minute: '2-digit',
             })
+            const unread = chat.unreadCount && chat.unreadCount > 0
 
             return (
               <button
@@ -115,11 +118,11 @@ export function InboxList({
                 onClick={() => onSelectChat(chat.phone)}
                 className={`flex w-full text-left p-3 gap-3 transition-colors ${
                   isSelected
-                    ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-900 font-medium'
+                    ? 'bg-emerald-50 border-l-4 border-emerald-600 text-emerald-950 font-medium'
                     : 'hover:bg-gray-50 text-gray-700'
                 }`}
               >
-                <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gray-100 text-gray-700 font-bold text-xs border border-gray-200">
+                <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200">
                   {chat.name.slice(0, 2).toUpperCase()}
                   {chat.userType === 'business_owner' ? (
                     <span className="absolute -bottom-0.5 -right-0.5 grid h-4 w-4 place-items-center rounded-full bg-amber-500 text-[9px] text-white font-extrabold shadow-xs">
@@ -130,13 +133,20 @@ export function InboxList({
 
                 <div className="flex-1 overflow-hidden">
                   <div className="flex items-center justify-between">
-                    <span className="truncate font-semibold text-xs text-gray-900">
+                    <span className="truncate font-bold text-xs text-gray-900">
                       {chat.name}
                     </span>
-                    <span className="text-[10px] text-gray-400 shrink-0">{timeStr}</span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-[10px] text-gray-400">{timeStr}</span>
+                      {unread ? (
+                        <span className="grid h-4 min-w-[16px] place-items-center rounded-full bg-emerald-600 px-1 text-[9px] font-extrabold text-white">
+                          {chat.unreadCount}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
 
-                  <p className="truncate text-[11px] text-gray-500 mt-0.5">
+                  <p className="truncate text-[11px] text-gray-600 mt-0.5">
                     {chat.lastDirection === 'outbound' ? 'You: ' : ''}
                     {chat.lastMessage}
                   </p>
@@ -145,7 +155,7 @@ export function InboxList({
                     <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-medium text-gray-600 border border-gray-200">
                       {chat.phone}
                     </span>
-                    <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-blue-600 border border-blue-100">
+                    <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 border border-emerald-200">
                       {chat.tag}
                     </span>
                   </div>
