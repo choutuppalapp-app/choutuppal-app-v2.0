@@ -51,3 +51,37 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to save trigger rule' }, { status: 500 })
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getCurrentUser()
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'AGENT')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    let id = searchParams.get('id')
+
+    if (!id) {
+      try {
+        const body = await request.json()
+        id = body.id
+      } catch {
+        // ignore body parse error
+      }
+    }
+
+    if (!id) {
+      return NextResponse.json({ error: 'Trigger rule ID is required' }, { status: 400 })
+    }
+
+    await prisma.triggerRule.delete({
+      where: { id },
+    })
+
+    return NextResponse.json({ ok: true, message: 'Trigger rule deleted' })
+  } catch (err) {
+    console.error('[CRM Triggers DELETE API] Error:', err)
+    return NextResponse.json({ error: 'Failed to delete trigger rule' }, { status: 500 })
+  }
+}
