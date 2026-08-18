@@ -4,18 +4,18 @@ import { getCurrentUser } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
-/**
- * GET /api/admin/whatsapp/groups — Fetch all contact groups with member counts
- */
 export async function GET() {
   try {
     const user = await getCurrentUser()
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'AGENT')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const groups = await prisma.contactGroup.findMany({
       include: {
+        contacts: {
+          select: { phone: true, name: true, userType: true },
+        },
         _count: {
           select: { contacts: true },
         },
@@ -30,31 +30,40 @@ export async function GET() {
   }
 }
 
-/**
- * POST /api/admin/whatsapp/groups — Create a new contact group
- */
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser()
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'AGENT')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
-    const { name } = body
+    const { name, phoneNumbers } = body
 
     if (!name || !name.trim()) {
       return NextResponse.json({ error: 'Group name is required.' }, { status: 400 })
     }
 
+    const cleanPhones = Array.isArray(phoneNumbers)
+      ? phoneNumbers.map((p: string) => p.replace(/\D/g, '')).filter(Boolean)
+      : []
+
     const group = await prisma.contactGroup.upsert({
       where: { name: name.trim() },
-      update: {},
-      create: { name: name.trim() },
-      include: {
-        _count: {
-          select: { contacts: true },
+      update: {
+        contacts: {
+          connect: cleanPhones.map((phone) => ({ phone })),
         },
+      },
+      create: {
+        name: name.trim(),
+        contacts: {
+          connect: cleanPhones.map((phone) => ({ phone })),
+        },
+      },
+      include: {
+        contacts: { select: { phone: true } },
+        _count: { select: { contacts: true } },
       },
     })
 
@@ -65,13 +74,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * DELETE /api/admin/whatsapp/groups — Delete a contact group
- */
 export async function DELETE(request: NextRequest) {
   try {
     const user = await getCurrentUser()
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'AGENT')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

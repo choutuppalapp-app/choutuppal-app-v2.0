@@ -14,50 +14,99 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { templateText, options, audience } = body // audience: 'all' | 'business_owner' | 'customer'
+    const { templateText, options, audience, customPhones, payload } = body
 
     if (!templateText) {
       return NextResponse.json({ error: 'Template text is required' }, { status: 400 })
     }
 
-    const whereClause =
-      audience === 'business_owner'
-        ? { userType: 'business_owner' }
-        : audience === 'customer'
-        ? { userType: 'customer' }
-        : {}
+    let contacts: Array<{ phone: string; name?: string | null; userType?: string | null }> = []
 
-    const contacts = await prisma.whatsAppContact.findMany({
-      where: whereClause,
-      select: { phone: true, name: true },
-      take: 200,
-    })
+    if (Array.isArray(customPhones) && customPhones.length > 0) {
+      // Fetch details for specified custom phone selection
+      const cleanList = customPhones.map((p: string) => p.replace(/\D/g, '')).filter(Boolean)
+      const dbContacts = await prisma.whatsAppContact.findMany({
+        where: { phone: { in: cleanList } },
+        select: { phone: true, name: true, userType: true },
+      })
 
-    if (contacts.length === 0) {
-      return NextResponse.json({ error: 'No contacts found for selected audience' }, { status: 404 })
+      // Include any manual phones that might not be in DB yet
+      const foundSet = new Set(dbContacts.map((c) => c.phone))
+      contacts = [...dbContacts]
+      for (const p of cleanList) {
+        if (!foundSet.has(p)) {
+          contacts.push({ phone: p, name: 'WhatsApp Contact', userType: 'customer' })
+        }
+      }
+    } else {
+      const whereClause =
+        audience === 'business_owner'
+          ? { userType: 'business_owner' }
+          : audience === 'customer'
+          ? { userType: 'customer' }
+          : {}
+
+      contacts = await prisma.whatsAppContact.findMany({
+        where: whereClause,
+        select: { phone: true, name: true, userType: true },
+        take: 300,
+      })
     }
 
-    // Process bulk send asynchronously in sequence with 2s delay
+    if (contacts.length === 0) {
+      return NextResponse.json({ error: 'No contacts selected for campaign' }, { status: 404 })
+    }
+
+    // Process bulk send sequentially with 2s delay
     let successCount = 0
+
     for (const c of contacts) {
       const cleanPhone = c.phone.replace(/\D/g, '')
-      if (cleanPhone) {
-        const personalizedText = templateText.replace(/\[Name\]/g, c.name || 'మిత్రమా')
-        const res = await sendWhatsAppMessage(cleanPhone, personalizedText, options || {})
-        if (res.ok) successCount++
-        // 2 second delay between calls to respect WhatsApp API rate limits
-        await new Promise((r) => setTimeout(r, 2000))
+      if (!cleanPhone) continue
+
+      // Look up associated business listing for {shop_name}
+      let shopName = 'మీ షాప్'
+      try {
+        const listing = await prisma.listing.findFirst({
+          where: {
+            OR: [{ phone: cleanPhone }, { whatsapp: cleanPhone }],
+          },
+          select: { title: true },
+        })
+        if (listing?.title) {
+          shopName = listing.title
+        }
+      } catch (err) {
+        console.warn('[CRM Bulk Send] Listing lookup error:', err)
       }
+
+      // Replace variables {name}, [Name], {shop_name}
+      let personalizedText = templateText
+        .replace(/\{name\}/gi, c.name || 'మిత్రమా')
+        .replace(/\[Name\]/gi, c.name || 'మిత్రమా')
+        .replace(/\{shop_name\}/gi, shopName)
+
+      // Merge options & payload for interactive buttons/lists/footer
+      const sendOptions = {
+        ...(options || {}),
+        ...(payload || {}),
+      }
+
+      const res = await sendWhatsAppMessage(cleanPhone, personalizedText, sendOptions)
+      if (res.ok) successCount++
+
+      // 2-second delay between calls to respect rate limits
+      await new Promise((r) => setTimeout(r, 2000))
     }
 
     return NextResponse.json({
       ok: true,
       total: contacts.length,
       successCount,
-      message: `Bulk promotion sent to ${successCount} out of ${contacts.length} contacts!`,
+      message: `Campaign broadcast sent successfully to ${successCount} out of ${contacts.length} recipients!`,
     })
   } catch (err) {
     console.error('[CRM Bulk Send API] Error:', err)
-    return NextResponse.json({ error: 'Failed to process bulk send' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to process bulk campaign send' }, { status: 500 })
   }
 }
