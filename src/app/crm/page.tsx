@@ -5,6 +5,7 @@ import { MessageSquare, Brain, RefreshCw, FlaskConical, Loader2, Send, Download 
 import { CrmSidebar, CrmView } from '@/components/crm/sidebar'
 import { DashboardView } from '@/components/crm/dashboard-view'
 import { ConversationsView } from '@/components/crm/conversations-view'
+import { ContactsView } from '@/components/crm/contacts-view'
 import { TemplatesView } from '@/components/crm/templates-view'
 import { CampaignsView } from '@/components/crm/campaigns-view'
 import { AiTrainingPanel } from '@/components/crm/ai-training-panel'
@@ -121,6 +122,14 @@ export default function CrmPage() {
               Chats
             </button>
             <button
+              onClick={() => setCurrentView('contacts')}
+              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
+                currentView === 'contacts' ? 'bg-emerald-600 text-white' : 'text-gray-600'
+              }`}
+            >
+              Contacts
+            </button>
+            <button
               onClick={() => setCurrentView('templates')}
               className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
                 currentView === 'templates' ? 'bg-emerald-600 text-white' : 'text-gray-600'
@@ -155,16 +164,16 @@ export default function CrmPage() {
           <div className="flex items-center gap-2">
             {/* Download Meta Custom Audience CSV */}
             <a
-              href="/api/admin/whatsapp/contacts/export-meta"
-              download="Choutuppal_Meta_Audience.csv"
+              href="/api/crm/contacts/export"
+              download="Choutuppal_CRM_Contacts.csv"
             >
               <Button
                 variant="outline"
                 size="sm"
                 className="h-7 text-[11px] border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 gap-1 font-bold"
-                title="Download Meta Custom Audience CSV for Ads"
+                title="Download CSV for Meta Ads"
               >
-                <Download className="h-3 w-3 text-blue-600" /> Meta CSV
+                <Download className="h-3 w-3 text-blue-600" /> Export CSV
               </Button>
             </a>
 
@@ -194,7 +203,7 @@ export default function CrmPage() {
         <div className="flex-1 overflow-hidden">
           {currentView === 'dashboard' && <DashboardView />}
 
-          {(currentView === 'conversations' || currentView === 'contacts') && (
+          {currentView === 'conversations' && (
             <ConversationsView
               chats={chats}
               selectedPhone={selectedPhone}
@@ -204,6 +213,8 @@ export default function CrmPage() {
               onSeedTest={handleSeedTest}
             />
           )}
+
+          {currentView === 'contacts' && <ContactsView />}
 
           {currentView === 'templates' && <TemplatesView />}
 
