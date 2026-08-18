@@ -21,6 +21,8 @@ import {
   Sparkles,
   Zap,
   Layers,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -222,7 +224,7 @@ export function CampaignsView() {
     }
   }
 
-  // Button Add/Remove Handlers
+  // Button Add/Remove/Reorder Handlers
   function handleAddButton() {
     if (buttons.length >= 3) return
     setButtons((prev) => [...prev, { id: String(Date.now()), title: `Button ${prev.length + 1}` }])
@@ -236,7 +238,29 @@ export function CampaignsView() {
     setButtons((prev) => prev.filter((b) => b.id !== id))
   }
 
-  // List Item Add/Remove Handlers
+  function handleMoveButtonUp(index: number) {
+    if (index <= 0) return
+    setButtons((prev) => {
+      const next = [...prev]
+      const temp = next[index]
+      next[index] = next[index - 1]
+      next[index - 1] = temp
+      return next
+    })
+  }
+
+  function handleMoveButtonDown(index: number) {
+    if (index >= buttons.length - 1) return
+    setButtons((prev) => {
+      const next = [...prev]
+      const temp = next[index]
+      next[index] = next[index + 1]
+      next[index + 1] = temp
+      return next
+    })
+  }
+
+  // List Item Add/Remove/Reorder Handlers
   function handleAddListItem() {
     if (listItems.length >= 4) return
     setListItems((prev) => [
@@ -251,6 +275,28 @@ export function CampaignsView() {
 
   function handleRemoveListItem(id: string) {
     setListItems((prev) => prev.filter((l) => l.id !== id))
+  }
+
+  function handleMoveListItemUp(index: number) {
+    if (index <= 0) return
+    setListItems((prev) => {
+      const next = [...prev]
+      const temp = next[index]
+      next[index] = next[index - 1]
+      next[index - 1] = temp
+      return next
+    })
+  }
+
+  function handleMoveListItemDown(index: number) {
+    if (index >= listItems.length - 1) return
+    setListItems((prev) => {
+      const next = [...prev]
+      const temp = next[index]
+      next[index] = next[index + 1]
+      next[index + 1] = temp
+      return next
+    })
   }
 
   // Flow Step Add/Remove Handlers
@@ -429,7 +475,7 @@ export function CampaignsView() {
             Bulk Campaign Broadcast Studio <Megaphone className="h-4 w-4 text-emerald-600" />
           </h2>
           <p className="text-xs text-gray-500">
-            Target WhatsApp contacts, insert personalization variables, build interactive quick replies, and view live smartphone preview.
+            Target WhatsApp contacts, insert personalization variables, build interactive quick replies, reorder buttons/list, and view live smartphone preview.
           </p>
         </div>
 
@@ -617,11 +663,11 @@ export function CampaignsView() {
               </div>
             </div>
 
-            {/* INTERACTIVE BUILDERS WITH ADD/REMOVE LOGIC */}
+            {/* INTERACTIVE BUILDERS WITH REORDER & ADD/REMOVE LOGIC */}
             <div className="pt-2 border-t border-gray-100 space-y-3">
               <span className="block text-[11px] font-bold text-gray-700">Interactive Element Builders:</span>
 
-              {/* 1. Quick Reply Buttons Builder (Up to 3) */}
+              {/* 1. Quick Reply Buttons Builder (Up to 3 with Reorder) */}
               <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
@@ -642,13 +688,37 @@ export function CampaignsView() {
                 ) : (
                   <div className="space-y-1.5">
                     {buttons.map((btn, idx) => (
-                      <div key={btn.id} className="flex items-center gap-2">
+                      <div key={btn.id} className="flex items-center gap-1.5">
                         <Input
                           value={btn.title}
                           onChange={(e) => handleUpdateButton(btn.id, e.target.value)}
                           placeholder={`Button ${idx + 1} Title`}
-                          className="h-7 text-xs bg-white border-gray-200"
+                          className="h-7 text-xs bg-white border-gray-200 flex-1"
                         />
+
+                        {/* Reorder Buttons */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={idx === 0}
+                          onClick={() => handleMoveButtonUp(idx)}
+                          className="h-7 w-7 text-gray-500 hover:bg-gray-200 disabled:opacity-30 shrink-0"
+                          title="Move Up"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={idx === buttons.length - 1}
+                          onClick={() => handleMoveButtonDown(idx)}
+                          className="h-7 w-7 text-gray-500 hover:bg-gray-200 disabled:opacity-30 shrink-0"
+                          title="Move Down"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </Button>
+
+                        {/* Delete Button */}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -664,7 +734,7 @@ export function CampaignsView() {
                 )}
               </div>
 
-              {/* 2. List Menu Items Builder (Up to 4) */}
+              {/* 2. List Menu Items Builder (Up to 4 with Reorder) */}
               <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
@@ -685,7 +755,7 @@ export function CampaignsView() {
                 ) : (
                   <div className="space-y-2">
                     {listItems.map((item, idx) => (
-                      <div key={item.id} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200">
+                      <div key={item.id} className="flex items-center gap-1.5 bg-white p-2 rounded-lg border border-gray-200">
                         <div className="flex-1 grid grid-cols-2 gap-1.5">
                           <Input
                             value={item.title}
@@ -700,6 +770,30 @@ export function CampaignsView() {
                             className="h-7 text-xs bg-white border-gray-200"
                           />
                         </div>
+
+                        {/* Reorder List Items */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={idx === 0}
+                          onClick={() => handleMoveListItemUp(idx)}
+                          className="h-7 w-7 text-gray-500 hover:bg-gray-100 disabled:opacity-30 shrink-0"
+                          title="Move Up"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={idx === listItems.length - 1}
+                          onClick={() => handleMoveListItemDown(idx)}
+                          className="h-7 w-7 text-gray-500 hover:bg-gray-100 disabled:opacity-30 shrink-0"
+                          title="Move Down"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </Button>
+
+                        {/* Delete List Item */}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -814,7 +908,7 @@ export function CampaignsView() {
           </Button>
         </div>
 
-        {/* RIGHT COLUMN: Realistic Smartphone WhatsApp Live Preview (Strict Body -> Footer -> Buttons in Single Bubble) */}
+        {/* RIGHT COLUMN: Realistic Smartphone WhatsApp Live Preview (Strict Body -> Footer -> Buttons in Single Bubble with Reordered Items) */}
         <div className="lg:col-span-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs flex flex-col items-center justify-center h-[640px]">
           <span className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1.5">
             <Smartphone className="h-4 w-4 text-emerald-600" /> Strict WhatsApp API Bubble Format
@@ -864,7 +958,7 @@ export function CampaignsView() {
                     </div>
                   </div>
 
-                  {/* 3. Tappable Quick Reply Buttons Attached to Single Bubble */}
+                  {/* 3. Tappable Quick Reply Buttons Attached to Single Bubble (Renders in EXACT Reordered Array Order) */}
                   {buttons.length > 0 ? (
                     <div className="border-t border-[#b7e3ae] divide-y divide-[#b7e3ae] bg-white/90">
                       {buttons.map((b) => (
