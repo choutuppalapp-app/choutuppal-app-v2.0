@@ -9,6 +9,7 @@ import { ContactsView } from '@/components/crm/contacts-view'
 import { TemplatesView } from '@/components/crm/templates-view'
 import { CampaignsView } from '@/components/crm/campaigns-view'
 import { AiTrainingPanel } from '@/components/crm/ai-training-panel'
+import { SettingsView } from '@/components/crm/settings-view'
 import { ChatItem } from '@/components/crm/inbox-list'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -153,6 +154,14 @@ export default function CrmPage() {
             >
               AI Brain
             </button>
+            <button
+              onClick={() => setCurrentView('settings')}
+              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
+                currentView === 'settings' ? 'bg-emerald-600 text-white' : 'text-gray-600'
+              }`}
+            >
+              Settings
+            </button>
           </div>
 
           <div className="hidden md:flex items-center gap-2">
@@ -220,9 +229,9 @@ export default function CrmPage() {
 
           {currentView === 'campaigns' && <CampaignsView />}
 
-          {(currentView === 'ai_brain' || currentView === 'settings') && (
-            <AiTrainingPanel />
-          )}
+          {currentView === 'ai_brain' && <AiTrainingPanel />}
+
+          {currentView === 'settings' && <SettingsView />}
         </div>
       </div>
 
