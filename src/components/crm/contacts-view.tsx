@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Users,
   Search,
@@ -16,6 +16,8 @@ import {
   Calendar,
   Tag,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,8 +31,12 @@ export function ContactsView() {
   const [groups, setGroups] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Filters State
+  // Pagination & Filtering State
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'all' | 'customer' | 'business_owner'>('all')
   const [groupFilter, setGroupFilter] = useState<string>('all')
 
@@ -46,28 +52,49 @@ export function ContactsView() {
   const [groupName, setGroupName] = useState('')
   const [creatingGroup, setCreatingGroup] = useState(false)
 
-  async function fetchContactsData() {
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const fetchContactsData = useCallback(async () => {
     setLoading(true)
     try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: '50',
+        ...(debouncedSearch ? { search: debouncedSearch } : {}),
+        ...(typeFilter !== 'all' ? { userType: typeFilter } : {}),
+        ...(groupFilter !== 'all' ? { groupId: groupFilter } : {}),
+      })
+
       const [resC, resG] = await Promise.all([
-        fetch('/api/admin/whatsapp/contacts'),
+        fetch(`/api/admin/whatsapp/contacts?${params.toString()}`),
         fetch('/api/admin/whatsapp/groups'),
       ])
       const jsonC = await resC.json()
       const jsonG = await resG.json()
 
-      if (resC.ok) setContacts(jsonC.contacts || jsonC.data || [])
+      if (resC.ok) {
+        setContacts(jsonC.contacts || [])
+        setTotalCount(jsonC.totalCount || 0)
+        setTotalPages(jsonC.totalPages || 1)
+      }
       if (resG.ok) setGroups(jsonG.groups || [])
     } catch {
       toast.error('Failed to load contacts')
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, debouncedSearch, typeFilter, groupFilter])
 
   useEffect(() => {
     fetchContactsData()
-  }, [])
+  }, [fetchContactsData])
 
   function togglePhone(phone: string) {
     const next = new Set(selectedPhones)
@@ -80,10 +107,10 @@ export function ContactsView() {
   }
 
   function toggleSelectAll() {
-    if (selectedPhones.size === filteredContacts.length) {
+    if (selectedPhones.size === contacts.length && contacts.length > 0) {
       setSelectedPhones(new Set())
     } else {
-      setSelectedPhones(new Set(filteredContacts.map((c) => c.phone)))
+      setSelectedPhones(new Set(contacts.map((c) => c.phone)))
     }
   }
 
@@ -160,33 +187,6 @@ export function ContactsView() {
     reader.readAsText(file)
   }
 
-  // Filter contacts logic
-  const filteredContacts = contacts.filter((c) => {
-    const q = search.toLowerCase()
-    const matchesSearch =
-      c.name?.toLowerCase().includes(q) ||
-      c.phone.includes(q) ||
-      c.tag?.toLowerCase().includes(q)
-
-    const matchesType =
-      typeFilter === 'all'
-        ? true
-        : typeFilter === 'business_owner'
-        ? c.userType === 'business_owner'
-        : c.userType !== 'business_owner'
-
-    let matchesGroup = true
-    if (groupFilter !== 'all') {
-      const grp = groups.find((g) => g.id === groupFilter)
-      if (grp && grp.contacts) {
-        const gPhones = new Set(grp.contacts.map((c: any) => c.phone))
-        matchesGroup = gPhones.has(c.phone)
-      }
-    }
-
-    return matchesSearch && matchesType && matchesGroup
-  })
-
   return (
     <div className="flex h-full w-full flex-col bg-gray-50 p-4 md:p-6 space-y-5 overflow-y-auto fancy-scroll font-sans text-gray-900">
       {/* Top Header Bar */}
@@ -205,7 +205,7 @@ export function ContactsView() {
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchContactsData}
+            onClick={() => fetchContactsData()}
             disabled={loading}
             className="gap-1.5 border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-100 h-8"
           >
@@ -264,7 +264,13 @@ export function ContactsView() {
           </div>
 
           {/* User Type Filter */}
-          <Select value={typeFilter} onValueChange={(val) => setTypeFilter(val as any)}>
+          <Select
+            value={typeFilter}
+            onValueChange={(val) => {
+              setTypeFilter(val as any)
+              setPage(1)
+            }}
+          >
             <SelectTrigger className="h-8 border-gray-200 bg-white text-xs text-gray-900 rounded-lg w-44">
               <SelectValue placeholder="User Type" />
             </SelectTrigger>
@@ -272,11 +278,18 @@ export function ContactsView() {
               <SelectItem value="all">All User Types</SelectItem>
               <SelectItem value="customer">Customers Only</SelectItem>
               <SelectItem value="business_owner">Business Owners Only</SelectItem>
+              <SelectItem value="emergency_govt_leader">Emergency & Govt Leaders</SelectItem>
             </SelectContent>
           </Select>
 
           {/* Group Filter */}
-          <Select value={groupFilter} onValueChange={setGroupFilter}>
+          <Select
+            value={groupFilter}
+            onValueChange={(val) => {
+              setGroupFilter(val)
+              setPage(1)
+            }}
+          >
             <SelectTrigger className="h-8 border-gray-200 bg-white text-xs text-gray-900 rounded-lg w-44">
               <SelectValue placeholder="Group Filter" />
             </SelectTrigger>
@@ -292,7 +305,7 @@ export function ContactsView() {
         </div>
 
         <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wider">
-          Showing {filteredContacts.length} of {contacts.length} Contacts
+          Showing {contacts.length} of {totalCount} Contacts (Page {page} of {totalPages})
         </span>
       </div>
 
@@ -305,10 +318,7 @@ export function ContactsView() {
                 <th className="p-3 w-10 text-center">
                   <input
                     type="checkbox"
-                    checked={
-                      filteredContacts.length > 0 &&
-                      selectedPhones.size === filteredContacts.length
-                    }
+                    checked={contacts.length > 0 && selectedPhones.size === contacts.length}
                     onChange={toggleSelectAll}
                     className="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                   />
@@ -323,20 +333,20 @@ export function ContactsView() {
             </thead>
 
             <tbody className="divide-y divide-gray-100">
-              {loading && contacts.length === 0 ? (
+              {loading ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-xs text-gray-500">
                     <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-emerald-600" /> Loading contacts database...
                   </td>
                 </tr>
-              ) : filteredContacts.length === 0 ? (
+              ) : contacts.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-xs text-gray-400">
                     No contacts match the selected search or group filter.
                   </td>
                 </tr>
               ) : (
-                filteredContacts.map((c) => {
+                contacts.map((c) => {
                   const isSelected = selectedPhones.has(c.phone)
                   return (
                     <tr
@@ -356,7 +366,7 @@ export function ContactsView() {
                         <div className="grid h-7 w-7 place-items-center rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px]">
                           {(c.name || c.phone).slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="truncate max-w-[140px]">{c.name || 'WhatsApp Contact'}</span>
+                        <span className="truncate max-w-[160px]">{c.name || 'WhatsApp Contact'}</span>
                       </td>
 
                       <td className="p-3 font-mono text-[11px] text-gray-600">{c.phone}</td>
@@ -366,12 +376,18 @@ export function ContactsView() {
                           className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold ${
                             c.userType === 'business_owner'
                               ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                              : c.userType === 'emergency_govt_leader'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-200'
                               : 'bg-blue-100 text-blue-800 border border-blue-200'
                           }`}
                         >
                           {c.userType === 'business_owner' ? (
                             <>
                               <Building2 className="h-3 w-3" /> Business
+                            </>
+                          ) : c.userType === 'emergency_govt_leader' ? (
+                            <>
+                              <Sparkles className="h-3 w-3 text-amber-600" /> Leader/Govt
                             </>
                           ) : (
                             <>
@@ -410,6 +426,35 @@ export function ContactsView() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Bottom Pagination Controls Bar */}
+        <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50/80 px-4 py-3">
+          <span className="text-xs text-gray-500 font-medium">
+            Page <strong className="text-gray-900">{page}</strong> of <strong className="text-gray-900">{totalPages}</strong> ({totalCount} total contacts)
+          </span>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1 || loading}
+              className="gap-1 border-gray-200 text-xs font-bold text-gray-700 bg-white hover:bg-gray-100 h-8"
+            >
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages || loading}
+              className="gap-1 border-gray-200 text-xs font-bold text-gray-700 bg-white hover:bg-gray-100 h-8"
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
