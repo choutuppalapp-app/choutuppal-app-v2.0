@@ -234,7 +234,7 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
               <Input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="9441348175"
+                placeholder="9494348175"
                 className="border-gray-200 bg-white text-xs text-gray-900 placeholder:text-gray-400"
               />
             </div>

@@ -15,7 +15,7 @@ export const DEFAULT_TENANT: TenantConfig = {
   domain: 'choutuppal.in',
   logoUrl: '/logo.png',
   primaryColor: '#1d4ed8',
-  adminPhone: '9441348175',
+  adminPhone: '9494348175',
   subscriptionStatus: 'ACTIVE',
   subscriptionExpiresAt: null,
 }

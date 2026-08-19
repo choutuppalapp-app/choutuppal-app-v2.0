@@ -13,7 +13,7 @@ function cleanPhoneNumber(numStr: string | null | undefined): string | null {
   } else if (digits.length === 12 && digits.startsWith('91')) {
     return `+${digits}`
   } else if (digits.length > 10) {
-    // If country code is attached without +, e.g. 919441348175
+    // If country code is attached without +, e.g. 919494348175
     return `+${digits}`
   }
   return null

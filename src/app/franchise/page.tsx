@@ -389,8 +389,8 @@ export default function FranchisePage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-amber-400 shrink-0" />
-                  <a href="tel:9441348175" className="hover:text-amber-300 transition-colors">
-                    +91 9441348175
+                  <a href="tel:9494348175" className="hover:text-amber-300 transition-colors">
+                    +91 9494348175
                   </a>
                 </li>
               </ul>

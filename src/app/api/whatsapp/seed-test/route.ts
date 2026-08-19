@@ -12,7 +12,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const testPhone1 = '919441348175'
+    const testPhone1 = '919494348175'
     const testPhone2 = '919876543210'
 
     // 1. Create Test Contact 1 (Business Owner)

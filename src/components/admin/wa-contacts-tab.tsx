@@ -384,7 +384,7 @@ export function WAContactsTab() {
               <Input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="919441348175"
+                placeholder="919494348175"
                 className="text-xs font-mono"
               />
             </div>

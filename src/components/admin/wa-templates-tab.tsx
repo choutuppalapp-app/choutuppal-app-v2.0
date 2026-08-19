@@ -73,7 +73,7 @@ const PREBUILT_TEMPLATES = [
       buttonType: 'quick_reply',
       headerText: 'Listing Status Alert',
       messageText: 'నమస్కారం {name}! మీ బిజినెస్ లిస్టింగ్ గడువు ముగిసింది. దయచేసి వివరాలను అప్డేట్ చేయండి.',
-      footerText: 'Support Hotline: 9441348175',
+      footerText: 'Support Hotline: 9494348175',
       buttons: [
         { id: 'btn_1', title: 'Update Now' },
         { id: 'btn_2', title: 'Talk to Agent' },

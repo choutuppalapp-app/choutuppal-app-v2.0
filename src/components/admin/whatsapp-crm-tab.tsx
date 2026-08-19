@@ -327,7 +327,7 @@ export function WhatsAppCrmTab() {
                     <Textarea
                       value={customPhones}
                       onChange={(e) => setCustomPhones(e.target.value)}
-                      placeholder="919441348175, 919876543210..."
+                      placeholder="919494348175, 919876543210..."
                       rows={3}
                       className="font-mono text-xs"
                     />

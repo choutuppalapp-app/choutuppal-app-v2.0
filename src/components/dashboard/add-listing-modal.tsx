@@ -363,10 +363,10 @@ export function AddListingModal({
                   </Select>
                 </Field>
                 <Field label="Contact Phone *">
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9441348175" />
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9494348175" />
                 </Field>
                 <Field label="WhatsApp">
-                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919441348175" />
+                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919494348175" />
                 </Field>
               </div>
 
@@ -409,14 +409,14 @@ export function AddListingModal({
                         setWhatsapp(val.length === 10 ? `91${val}` : val)
                       }
                     }}
-                    placeholder="9441348175"
+                    placeholder="9494348175"
                   />
                 </Field>
                 <Field label="Secondary Phone (Optional)">
                   <Input value={secondaryPhone} onChange={(e) => setSecondaryPhone(e.target.value)} placeholder="9876543210" />
                 </Field>
                 <Field label="WhatsApp">
-                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919441348175" />
+                  <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919494348175" />
                 </Field>
                 <Field label="Business Hours">
                   <div className="flex items-center gap-2">

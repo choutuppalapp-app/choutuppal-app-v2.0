@@ -48,7 +48,7 @@ export default function TermsPage() {
             </section>
             <section>
               <h2 className="font-bold text-slate-900">7. Contact</h2>
-              <p className="mt-1">For questions about these terms, contact: Choutuppal, Yadadri, Telangana - 508252. Phone: 9441348175.</p>
+              <p className="mt-1">For questions about these terms, contact: Choutuppal, Yadadri, Telangana - 508252. Phone: 9494348175.</p>
             </section>
           </div>
 

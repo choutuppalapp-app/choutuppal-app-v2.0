@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { Sparkles, Crown, Rocket, Megaphone, Video, Send, HeartHandshake, ShieldCheck } from 'lucide-react'
+import { Megaphone, Video, Send, Building2, Briefcase, Globe, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { SectionHeading } from './section-heading'
+import { Youtube, Instagram, Facebook } from 'lucide-react'
 
 const REVENUE_PLANS = [
   {
@@ -11,7 +12,7 @@ const REVENUE_PLANS = [
     icon: Megaphone,
     price: '₹99',
     unit: '/ day',
-    note: 'Top Homepage Banner Visibility',
+    note: 'Top Homepage Visibility',
     features: [
       'Top homepage banner placement',
       '24-hour guaranteed visibility',
@@ -25,7 +26,7 @@ const REVENUE_PLANS = [
     grad: 'from-blue-600 to-indigo-600',
   },
   {
-    name: 'Reels Promotion',
+    name: 'Reels Promo',
     icon: Video,
     price: '₹299',
     unit: '/ 3 days',
@@ -43,7 +44,7 @@ const REVENUE_PLANS = [
     grad: 'from-pink-600 to-purple-600',
   },
   {
-    name: 'Bulk Promo Message',
+    name: 'Bulk Msg Promo',
     icon: Send,
     price: '₹499',
     unit: '/ campaign',
@@ -61,55 +62,37 @@ const REVENUE_PLANS = [
     grad: 'from-emerald-600 to-teal-600',
   },
   {
-    name: 'Festival Greetings',
-    icon: HeartHandshake,
+    name: 'Listings Promo',
+    icon: Building2,
     price: '₹199',
-    unit: '/ greeting',
-    note: 'Custom Branded Greeting Card',
+    unit: '/ week',
+    note: 'Top Position in Category',
     features: [
-      'Branded festival greeting design',
-      'Your shop logo & phone number',
-      'Shared across local WhatsApp groups',
-      'Customer goodwill booster',
+      'Featured at top of search results',
+      'Verified trust badge',
+      'Direct call/WhatsApp buttons',
+      'Enhanced business profile',
     ],
-    cta: 'Order Greeting Card',
-    whatsappText: 'Hello! I want to order a ₹199 Branded Festival Greeting for my shop.',
+    cta: 'Promote Listing',
+    whatsappText: 'Hello! I want to promote my Listing for ₹199/week.',
     highlight: false,
-    badge: 'Seasonal',
+    badge: 'Visibility',
     grad: 'from-amber-500 to-orange-500',
-  },
-  {
-    name: 'City Franchise',
-    icon: ShieldCheck,
-    price: '₹10,000',
-    unit: '+ ₹1,000/mo',
-    note: 'White-Label Super App for Your Town',
-    features: [
-      'Custom domain & app branding',
-      'Full Admin & Agent CRM Panel',
-      '100% ad revenue retains with you',
-      'Complete launch setup support',
-    ],
-    cta: 'Launch Franchise',
-    whatsappText: 'Hello! I want to inquire about starting a City Franchise (₹10,000 + ₹1,000/mo).',
-    highlight: false,
-    badge: 'White-Label',
-    grad: 'from-slate-800 to-slate-900',
   },
 ]
 
 export function PricingPlans() {
-  const waNumber = '919441348175'
+  const waNumber = '919494348175'
 
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
         eyebrow="Advertising & Monetization"
-        title="Promote Your Business locally"
+        title="Promote Your Business Locally"
         subtitle="Transparent, high-impact marketing plans to reach thousands of Choutuppal residents."
       />
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {REVENUE_PLANS.map((p) => {
           const Icon = p.icon
           const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(p.whatsappText)}`
@@ -175,6 +158,68 @@ export function PricingPlans() {
             </div>
           )
         })}
+      </div>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {/* Agent Glass Card */}
+        <div className="relative overflow-hidden rounded-3xl border border-white/50 bg-white/40 p-6 backdrop-blur-xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md">
+                    <Briefcase className="h-6 w-6" />
+                </div>
+                <div>
+                    <h3 className="font-telugu text-lg font-bold text-slate-900">చౌటుప్పల్ యాప్ ఏజెంట్ గా పనిచేయండి!</h3>
+                    <p className="text-sm font-medium text-slate-600">నెల నెలా మంచి ఆదాయం పొందండి.</p>
+                </div>
+            </div>
+            <a
+                href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to join as an Agent for Choutuppal App.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-slate-800 transition"
+            >
+                <MessageCircle size={16} className="text-[#25D366]" /> Join Now
+            </a>
+        </div>
+
+        {/* Franchise Glass Card */}
+        <div className="relative overflow-hidden rounded-3xl border border-white/50 bg-white/40 p-6 backdrop-blur-xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md">
+                    <Globe className="h-6 w-6" />
+                </div>
+                <div>
+                    <h3 className="font-telugu text-lg font-bold text-slate-900">మీ ఊరికి ఈ యాప్ కావాలా?</h3>
+                    <p className="text-sm font-medium text-slate-600">ఫ్రాంచైజీ తీసుకుని సొంత బిజినెస్ ప్రారంభించండి.</p>
+                </div>
+            </div>
+            <a
+                href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to get info about starting a City Franchise.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-slate-800 transition"
+            >
+                <MessageCircle size={16} className="text-[#25D366]" /> Get Info
+            </a>
+        </div>
+      </div>
+
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <a href="https://chat.whatsapp.com/choutuppal" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
+            <MessageCircle size={16} className="text-[#25D366]" /> Join Community
+        </a>
+        <a href="https://whatsapp.com/channel/choutuppal" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
+            <MessageCircle size={16} className="text-[#25D366]" /> WhatsApp Channel
+        </a>
+        <a href="https://youtube.com/@choutuppalapp" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
+            <Youtube size={16} className="text-[#FF0000]" /> YouTube
+        </a>
+        <a href="https://instagram.com/choutuppalapp" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
+            <Instagram size={16} className="text-[#E1306C]" /> Instagram
+        </a>
+        <a href="https://facebook.com/choutuppalapp" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
+            <Facebook size={16} className="text-[#1877F2]" /> Facebook
+        </a>
       </div>
     </section>
   )

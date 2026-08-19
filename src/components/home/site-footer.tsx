@@ -15,7 +15,7 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
   const pathname = usePathname()
   const isBusinessPage = pathname.startsWith('/business')
   const isDefault = tenant.id === DEFAULT_TENANT.id
-  const rawCall = tenant.adminPhone || '9441348175'
+  const rawCall = tenant.adminPhone || '9494348175'
   const displayPhone = formatPhoneNumber(rawCall)
 
   const isFranchiseSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('franchise.choutuppal.in')
