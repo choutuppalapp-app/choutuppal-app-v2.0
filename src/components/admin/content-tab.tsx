@@ -117,7 +117,7 @@ export function ContentTab() {
             onDelete={(id) => del('blogs', id, load)}
             render={(b) => ({
               title: b.title,
-              subtitle: `by ${b.author.name ?? 'Unknown'} · /${b.slug}`,
+              subtitle: `by Admin · /${b.slug}`,
               badge: b.isPublished ? 'Live' : 'Pending',
               badgeClass: b.isPublished ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700',
             })}

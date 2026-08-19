@@ -104,7 +104,7 @@ export default async function BlogDetailPage({
         </h1>
         <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
           <span className="flex items-center gap-1">
-            <User className="h-3.5 w-3.5 text-blue-600" /> {post.author.name ?? 'Choutuppal'}
+            <User className="h-3.5 w-3.5 text-blue-600" /> Admin
           </span>
           <span className="flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5 text-amber-600" />
@@ -112,11 +112,21 @@ export default async function BlogDetailPage({
           </span>
         </div>
 
+        {/* AdSense Slot 1: Below Blog Post Title */}
+        <div className="ad-slot w-full h-[250px] bg-gray-100 my-4 flex items-center justify-center text-gray-400 font-medium text-xs rounded-2xl border border-slate-200/60">
+          Google Ad (Responsive)
+        </div>
+
         {/* Content with Auto Links */}
         <div
           className="prose prose-sm mt-5 max-w-none [&_h1]:text-2xl [&_h1]:font-black [&_h2]:text-xl [&_h2]:font-bold [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-blue-300 [&_blockquote]:bg-blue-50/50 [&_blockquote]:py-2 [&_blockquote]:pl-4 [&_blockquote]:italic [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-xl"
           dangerouslySetInnerHTML={{ __html: processedContent }}
         />
+
+        {/* AdSense Slot 2: End of Blog Content */}
+        <div className="ad-slot w-full h-[250px] bg-gray-100 my-4 flex items-center justify-center text-gray-400 font-medium text-xs rounded-2xl border border-slate-200/60">
+          Google Ad (Responsive)
+        </div>
 
         {post.excerpt ? (
           <p className="mt-4 text-sm italic text-slate-500">{post.excerpt}</p>
@@ -130,6 +140,29 @@ export default async function BlogDetailPage({
           relatedPosts={relatedBlogs}
           type="blog"
         />
+
+        {/* White-Label CTA Banner */}
+        <div className="mt-8 overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white shadow-xl">
+          <div className="flex flex-col items-center justify-between gap-4 text-center sm:flex-row sm:text-left">
+            <div className="space-y-1">
+              <h3 className="text-base sm:text-lg font-black tracking-tight">
+                మీ ఊరికి ఈ యాప్ కావాలా?
+              </h3>
+              <p className="text-xs sm:text-sm text-emerald-100 font-medium">
+                వైట్-లేబుల్ ఫ్రాంచైజీ కోసం ఇప్పుడే వాట్సాప్ లో మాట్లాడండి!
+              </p>
+            </div>
+            <a
+              href={`https://wa.me/919494348175?text=${encodeURIComponent("నమస్కారం, నా ఊరి కోసం ఒక వైట్-లేబుల్ సూపర్ యాప్ సెటప్ చేయాలనుకుంటున్నాను. సమాచారం కావాలి.")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex shrink-0 items-center gap-2 rounded-2xl bg-white px-5 py-3 text-xs font-extrabold text-emerald-700 shadow-md transition hover:bg-emerald-50 hover:scale-105 active:scale-95"
+            >
+              <MessageCircle className="h-4 w-4 fill-emerald-600 text-emerald-600" />
+              <span>WhatsApp లో సంప్రదించండి</span>
+            </a>
+          </div>
+        </div>
       </article>
     </div>
   )

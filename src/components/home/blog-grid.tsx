@@ -27,7 +27,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
         title="Recent Blogs"
         subtitle="Informative articles, guides, and stories."
         action={
-          <Link href="/news">
+          <Link href="/blog">
             <Button
               variant="ghost"
               size="sm"

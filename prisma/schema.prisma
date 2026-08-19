@@ -440,6 +440,7 @@ model Blog {
   excerpt     String?
   content     String
   coverImage  String?
+  category    String    @default("General")
   tags        Json?
   isPublished Boolean   @default(false)
   publishedAt DateTime?

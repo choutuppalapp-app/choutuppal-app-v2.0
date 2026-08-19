@@ -26,11 +26,12 @@ export function AdminContentModal({ open, onOpenChange, type, onCreated }: Admin
   const [content, setContent] = useState('')
   const [image, setImage] = useState<string | null>(null)
   const [metaDesc, setMetaDesc] = useState('')
+  const [category, setCategory] = useState('ప్రభుత్వ పథకాలు')
   const [tags, setTags] = useState('')
   const [saving, setSaving] = useState(false)
 
   function reset() {
-    setTitle(''); setSlug(''); setContent(''); setImage(null); setMetaDesc(''); setTags('')
+    setTitle(''); setSlug(''); setContent(''); setImage(null); setMetaDesc(''); setTags(''); setCategory('ప్రభుత్వ పథకాలు')
   }
 
   async function submit() {
@@ -44,7 +45,7 @@ export function AdminContentModal({ open, onOpenChange, type, onCreated }: Admin
       const endpoint = type === 'news' ? '/api/admin/news' : '/api/admin/blogs'
       const body = type === 'news'
         ? { title, slug: slug || undefined, content, image, summary: metaDesc, metaDescription: metaDesc, tags: tagArr.length ? tagArr : undefined }
-        : { title, slug: slug || undefined, content, coverImage: image, excerpt: metaDesc, tags: tagArr.length ? tagArr : undefined }
+        : { title, slug: slug || undefined, content, coverImage: image, category, excerpt: metaDesc, tags: tagArr.length ? tagArr : undefined, isPublished: true }
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -79,6 +80,23 @@ export function AdminContentModal({ open, onOpenChange, type, onCreated }: Admin
             <Label className="mb-1 block text-xs font-semibold text-slate-600">Title *</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter title…" />
           </div>
+          {type === 'blog' && (
+            <div>
+              <Label className="mb-1 block text-xs font-semibold text-slate-600">Blog Category *</Label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-blue-500 focus:outline-none"
+              >
+                <option value="ప్రభుత్వ పథకాలు">ప్రభుత్వ పథకాలు</option>
+                <option value="తెలంగాణ వార్తలు">తెలంగాణ వార్తలు</option>
+                <option value="ఉద్యోగ సమాచారం">ఉద్యోగ సమాచారం</option>
+                <option value="విద్యా సమాచారం">విద్యా సమాచారం</option>
+                <option value="వ్యాపార చిట్కాలు">వ్యాపార చిట్కాలు</option>
+                <option value="పట్టణ సమాచారం">పట్టణ సమాచారం</option>
+              </select>
+            </div>
+          )}
           <div>
             <Label className="mb-1 block text-xs font-semibold text-slate-600">Slug (auto-gen if empty)</Label>
             <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="auto-from-title" className="font-mono text-xs" />

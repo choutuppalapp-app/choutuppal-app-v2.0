@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiAdmin } from '@/lib/session'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,8 +16,10 @@ const Schema = z.object({
   slug: z.string().optional(),
   content: z.string().min(2),
   coverImage: z.string().nullable().optional(),
+  category: z.string().optional(),
   excerpt: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  isPublished: z.boolean().optional(),
 })
 
 /** POST /api/admin/blogs — admin creates + auto-publishes blog. */
@@ -32,6 +35,8 @@ export async function POST(request: NextRequest) {
   const d = parsed.data
   const slug = d.slug ? slugify(d.slug) : slugify(d.title) + '-' + Date.now().toString(36)
 
+  const isPublished = d.isPublished ?? true
+
   const blog = await prisma.blog.create({
     data: {
       slug,
@@ -39,11 +44,18 @@ export async function POST(request: NextRequest) {
       excerpt: d.excerpt ?? null,
       content: d.content,
       coverImage: d.coverImage ?? null,
+      category: d.category ?? 'General',
       tags: d.tags ?? undefined,
-      isPublished: true,
-      publishedAt: new Date(),
+      isPublished,
+      publishedAt: isPublished ? new Date() : null,
       authorId: auth.user.id,
     },
   })
+
+  // Trigger ISR cache revalidation
+  revalidatePath('/blog')
+  revalidatePath(`/blog/${slug}`)
+  revalidatePath('/')
+
   return NextResponse.json({ ok: true, blog }, { status: 201 })
 }

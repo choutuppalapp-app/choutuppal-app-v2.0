@@ -3,7 +3,6 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { BlogList } from '@/components/content/blog-list'
 
 export const revalidate = 3600
-export const dynamic = 'force-static'
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
@@ -20,7 +19,7 @@ export default async function BlogPage() {
         where: { isPublished: true },
         orderBy: { createdAt: 'desc' },
         select: {
-          id: true, slug: true, title: true, excerpt: true, coverImage: true,
+          id: true, slug: true, title: true, excerpt: true, coverImage: true, category: true,
           createdAt: true,
         },
       }),

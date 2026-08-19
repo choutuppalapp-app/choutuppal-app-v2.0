@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireApiAdmin } from '@/lib/session'
 import { deleteFromR2, keyFromUrl } from '@/lib/r2-storage'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -21,5 +22,11 @@ export async function DELETE(
     if (k) await deleteFromR2(k).catch(() => {})
   }
   await prisma.blog.delete({ where: { id } })
+
+  // Trigger ISR cache revalidation
+  revalidatePath('/blog')
+  revalidatePath(`/blog/${item.slug}`)
+  revalidatePath('/')
+
   return NextResponse.json({ ok: true })
 }

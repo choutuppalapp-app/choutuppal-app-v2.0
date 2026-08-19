@@ -32,6 +32,8 @@ export default function AddBlogPage() {
   const [image, setImage] = useState<string | null>(null)
   const [metaDesc, setMetaDesc] = useState('')
   const [tags, setTags] = useState('')
+  const [category, setCategory] = useState('ప్రభుత్వ పథకాలు')
+  const [isPublished, setIsPublished] = useState(true)
   const [saving, setSaving] = useState(false)
 
   // Auth Guard
@@ -90,8 +92,10 @@ export default function AddBlogPage() {
           slug: slug || undefined,
           content,
           coverImage: image,
+          category,
           excerpt: metaDesc,
           tags: tagArr.length ? tagArr : undefined,
+          isPublished,
         }),
       })
 
@@ -160,6 +164,25 @@ export default function AddBlogPage() {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="category" className="text-xs font-semibold text-slate-600">
+              Blog Category *
+            </Label>
+            <select
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-blue-500 focus:outline-none"
+            >
+              <option value="ప్రభుత్వ పథకాలు">ప్రభుత్వ పథకాలు</option>
+              <option value="తెలంగాణ వార్తలు">తెలంగాణ వార్తలు</option>
+              <option value="ఉద్యోగ సమాచారం">ఉద్యోగ సమాచారం</option>
+              <option value="విద్యా సమాచారం">విద్యా సమాచారం</option>
+              <option value="వ్యాపార చిట్కాలు">వ్యాపార చిట్కాలు</option>
+              <option value="పట్టణ సమాచారం">పట్టణ సమాచారం</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="slug" className="text-xs font-semibold text-slate-600">
               Slug (auto-generated)
             </Label>
@@ -211,6 +234,19 @@ export default function AddBlogPage() {
               onChange={(e) => setTags(e.target.value)}
               placeholder="blog, choutuppal, updates"
             />
+          </div>
+
+          <div className="flex items-center gap-2 pt-2">
+            <input
+              type="checkbox"
+              id="isPublished"
+              checked={isPublished}
+              onChange={(e) => setIsPublished(e.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            />
+            <Label htmlFor="isPublished" className="text-xs font-semibold text-slate-700 cursor-pointer">
+              Publish immediately (Set status to PUBLISHED)
+            </Label>
           </div>
 
           <div className="flex gap-3 border-t border-slate-100 pt-6">
