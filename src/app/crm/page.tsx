@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { MessageSquare, Brain, RefreshCw, FlaskConical, Loader2, Send, Download } from 'lucide-react'
+import { MessageSquare, Brain, RefreshCw, FlaskConical, Loader2, Send, Download, Menu, X } from 'lucide-react'
 import { CrmSidebar, CrmView } from '@/components/crm/sidebar'
 import { DashboardView } from '@/components/crm/dashboard-view'
 import { ConversationsView } from '@/components/crm/conversations-view'
@@ -23,6 +23,7 @@ export default function CrmPage() {
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [seeding, setSeeding] = useState(false)
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
 
   // Bulk Sender State
   const [bulkOpen, setBulkOpen] = useState(false)
@@ -94,74 +95,115 @@ export default function CrmPage() {
   }
 
   return (
-    <div className="flex h-full w-full bg-gray-50 text-gray-900 overflow-hidden font-sans">
-      {/* Permanent Left Sidebar (Width 250px) */}
+    <div className="flex h-full w-full bg-gray-50 text-gray-900 overflow-hidden font-sans relative">
+      {/* Slide-in Navigation Drawer for Mobile (< md) */}
+      {mobileDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileDrawerOpen(false)}
+          />
+          <div className="relative z-50 w-64 h-full bg-white shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
+              <span className="font-extrabold text-xs text-gray-900">CRM Menu</span>
+              <button
+                onClick={() => setMobileDrawerOpen(false)}
+                className="p-1 rounded-lg text-gray-500 hover:bg-gray-200"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <CrmSidebar
+                currentView={currentView}
+                onSelectView={(view) => {
+                  setCurrentView(view)
+                  setMobileDrawerOpen(false)
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permanent Left Sidebar (Width 250px) for Desktop */}
       <div className="hidden md:block h-full shrink-0">
         <CrmSidebar currentView={currentView} onSelectView={setCurrentView} />
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden h-full">
+      <div className="flex flex-1 flex-col overflow-hidden h-full w-full">
         {/* Top Control Bar */}
-        <div className="flex h-11 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
-          {/* Mobile view switcher pills */}
-          <div className="flex items-center gap-1 md:hidden overflow-x-auto py-1">
+        <div className="flex h-11 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-3 sm:px-4">
+          <div className="flex items-center gap-2">
+            {/* Hamburger Button on Mobile */}
             <button
-              onClick={() => setCurrentView('dashboard')}
-              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
-                currentView === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-600'
-              }`}
+              onClick={() => setMobileDrawerOpen(true)}
+              className="grid h-8 w-8 place-items-center rounded-lg border border-gray-200 bg-white text-gray-700 md:hidden hover:bg-gray-100 shadow-2xs"
+              title="Open Navigation Menu"
             >
-              Dashboard
+              <Menu className="h-4 w-4" />
             </button>
-            <button
-              onClick={() => setCurrentView('conversations')}
-              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
-                currentView === 'conversations' ? 'bg-emerald-600 text-white' : 'text-gray-600'
-              }`}
-            >
-              Chats
-            </button>
-            <button
-              onClick={() => setCurrentView('contacts')}
-              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
-                currentView === 'contacts' ? 'bg-emerald-600 text-white' : 'text-gray-600'
-              }`}
-            >
-              Contacts
-            </button>
-            <button
-              onClick={() => setCurrentView('templates')}
-              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
-                currentView === 'templates' ? 'bg-emerald-600 text-white' : 'text-gray-600'
-              }`}
-            >
-              Templates
-            </button>
-            <button
-              onClick={() => setCurrentView('campaigns')}
-              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
-                currentView === 'campaigns' ? 'bg-emerald-600 text-white' : 'text-gray-600'
-              }`}
-            >
-              Campaigns
-            </button>
-            <button
-              onClick={() => setCurrentView('ai_brain')}
-              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
-                currentView === 'ai_brain' ? 'bg-emerald-600 text-white' : 'text-gray-600'
-              }`}
-            >
-              AI Brain
-            </button>
-            <button
-              onClick={() => setCurrentView('settings')}
-              className={`rounded-lg px-2 py-1 text-[10px] font-bold ${
-                currentView === 'settings' ? 'bg-emerald-600 text-white' : 'text-gray-600'
-              }`}
-            >
-              Settings
-            </button>
+
+            {/* Mobile view switcher pills */}
+            <div className="flex items-center gap-1 overflow-x-auto py-1 max-w-[220px] sm:max-w-none fancy-scroll">
+              <button
+                onClick={() => setCurrentView('dashboard')}
+                className={`rounded-lg px-2 py-1 text-[10px] font-bold shrink-0 ${
+                  currentView === 'dashboard' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => setCurrentView('conversations')}
+                className={`rounded-lg px-2 py-1 text-[10px] font-bold shrink-0 ${
+                  currentView === 'conversations' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Chats
+              </button>
+              <button
+                onClick={() => setCurrentView('contacts')}
+                className={`rounded-lg px-2 py-1 text-[10px] font-bold shrink-0 ${
+                  currentView === 'contacts' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Contacts
+              </button>
+              <button
+                onClick={() => setCurrentView('templates')}
+                className={`rounded-lg px-2 py-1 text-[10px] font-bold shrink-0 ${
+                  currentView === 'templates' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Templates
+              </button>
+              <button
+                onClick={() => setCurrentView('campaigns')}
+                className={`rounded-lg px-2 py-1 text-[10px] font-bold shrink-0 ${
+                  currentView === 'campaigns' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Campaigns
+              </button>
+              <button
+                onClick={() => setCurrentView('ai_brain')}
+                className={`rounded-lg px-2 py-1 text-[10px] font-bold shrink-0 ${
+                  currentView === 'ai_brain' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                AI Brain
+              </button>
+              <button
+                onClick={() => setCurrentView('settings')}
+                className={`rounded-lg px-2 py-1 text-[10px] font-bold shrink-0 ${
+                  currentView === 'settings' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Settings
+              </button>
+            </div>
           </div>
 
           <div className="hidden md:flex items-center gap-2">

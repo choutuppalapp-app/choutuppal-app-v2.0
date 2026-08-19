@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { getCurrentUser, isAgentRole } from '@/lib/session'
 import { MessageSquare, ArrowLeft, User as UserIcon } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata = {
   title: 'WhatsApp Smart CRM | Choutuppal App',
   description: 'Interakt & AiSensy style WhatsApp CRM with AI Brain',
