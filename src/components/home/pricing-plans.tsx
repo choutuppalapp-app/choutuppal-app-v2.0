@@ -1,14 +1,12 @@
-import Link from 'next/link'
-import { Megaphone, Video, Send, Building2, Briefcase, Globe, MessageCircle } from 'lucide-react'
+import { Megaphone, Video, Send, Building2, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { SectionHeading } from './section-heading'
-import { Youtube, Instagram, Facebook } from 'lucide-react'
 
 const REVENUE_PLANS = [
   {
-    name: 'Story / Banner Ad',
+    name: 'Story Ad',
     icon: Megaphone,
     price: '₹99',
     unit: '/ day',
@@ -20,7 +18,7 @@ const REVENUE_PLANS = [
       'Automated daily stats report',
     ],
     cta: 'Book ₹99/day Ad',
-    whatsappText: 'Hello! I want to book a ₹99/day Story/Banner Ad on Choutuppal App.',
+    whatsappText: 'Hello! I want to book a ₹99/day Story Ad on Choutuppal App.',
     highlight: false,
     badge: 'Popular',
     grad: 'from-blue-600 to-indigo-600',
@@ -44,7 +42,7 @@ const REVENUE_PLANS = [
     grad: 'from-pink-600 to-purple-600',
   },
   {
-    name: 'Bulk Msg Promo',
+    name: 'Bulk Msg',
     icon: Send,
     price: '₹499',
     unit: '/ campaign',
@@ -79,6 +77,24 @@ const REVENUE_PLANS = [
     badge: 'Visibility',
     grad: 'from-amber-500 to-orange-500',
   },
+  {
+    name: 'Festival Greetings',
+    icon: ImageIcon,
+    price: '₹149',
+    unit: '/ post',
+    note: 'Custom Festival Designs',
+    features: [
+      'Customized poster with your logo',
+      'Homepage community feed post',
+      'Shareable across social media',
+      'High-quality resolution',
+    ],
+    cta: 'Book Greeting',
+    whatsappText: 'Hello! I want to book a Festival Greeting for ₹149.',
+    highlight: false,
+    badge: 'New',
+    grad: 'from-red-500 to-rose-600',
+  },
 ]
 
 export function PricingPlans() {
@@ -87,12 +103,12 @@ export function PricingPlans() {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
-        eyebrow="Advertising & Monetization"
+        eyebrow="ADVERTISING"
         title="Promote Your Business Locally"
         subtitle="Transparent, high-impact marketing plans to reach thousands of Choutuppal residents."
       />
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {REVENUE_PLANS.map((p) => {
           const Icon = p.icon
           const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(p.whatsappText)}`
@@ -101,7 +117,7 @@ export function PricingPlans() {
             <div
               key={p.name}
               className={cn(
-                'relative flex flex-col overflow-hidden rounded-3xl p-5 transition-all duration-300',
+                'relative flex flex-col overflow-hidden rounded-3xl p-6 transition-all duration-300',
                 p.highlight
                   ? 'glass-strong ring-2 ring-purple-500 shadow-xl scale-[1.02]'
                   : 'glass hover-lift hover:border-blue-300',
@@ -125,7 +141,7 @@ export function PricingPlans() {
               <h3 className="text-base font-extrabold text-slate-900">{p.name}</h3>
 
               <div className="mt-1 flex items-baseline gap-1">
-                <span className="text-3xl font-black tracking-tight text-slate-900">
+                <span className="text-2xl font-black tracking-tight text-slate-900">
                   {p.price}
                 </span>
                 <span className="text-xs font-semibold text-slate-500">{p.unit}</span>
@@ -158,68 +174,6 @@ export function PricingPlans() {
             </div>
           )
         })}
-      </div>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {/* Agent Glass Card */}
-        <div className="relative overflow-hidden rounded-3xl border border-white/50 bg-white/40 p-6 backdrop-blur-xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md">
-                    <Briefcase className="h-6 w-6" />
-                </div>
-                <div>
-                    <h3 className="font-telugu text-lg font-bold text-slate-900">చౌటుప్పల్ యాప్ ఏజెంట్ గా పనిచేయండి!</h3>
-                    <p className="text-sm font-medium text-slate-600">నెల నెలా మంచి ఆదాయం పొందండి.</p>
-                </div>
-            </div>
-            <a
-                href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to join as an Agent for Choutuppal App.')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-slate-800 transition"
-            >
-                <MessageCircle size={16} className="text-[#25D366]" /> Join Now
-            </a>
-        </div>
-
-        {/* Franchise Glass Card */}
-        <div className="relative overflow-hidden rounded-3xl border border-white/50 bg-white/40 p-6 backdrop-blur-xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md">
-                    <Globe className="h-6 w-6" />
-                </div>
-                <div>
-                    <h3 className="font-telugu text-lg font-bold text-slate-900">మీ ఊరికి ఈ యాప్ కావాలా?</h3>
-                    <p className="text-sm font-medium text-slate-600">ఫ్రాంచైజీ తీసుకుని సొంత బిజినెస్ ప్రారంభించండి.</p>
-                </div>
-            </div>
-            <a
-                href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to get info about starting a City Franchise.')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-slate-800 transition"
-            >
-                <MessageCircle size={16} className="text-[#25D366]" /> Get Info
-            </a>
-        </div>
-      </div>
-
-      <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <a href="https://chat.whatsapp.com/choutuppal" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
-            <MessageCircle size={16} className="text-[#25D366]" /> Join Community
-        </a>
-        <a href="https://whatsapp.com/channel/choutuppal" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
-            <MessageCircle size={16} className="text-[#25D366]" /> WhatsApp Channel
-        </a>
-        <a href="https://youtube.com/@choutuppalapp" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
-            <Youtube size={16} className="text-[#FF0000]" /> YouTube
-        </a>
-        <a href="https://instagram.com/choutuppalapp" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
-            <Instagram size={16} className="text-[#E1306C]" /> Instagram
-        </a>
-        <a href="https://facebook.com/choutuppalapp" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition">
-            <Facebook size={16} className="text-[#1877F2]" /> Facebook
-        </a>
       </div>
     </section>
   )

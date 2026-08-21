@@ -1,79 +1,50 @@
-'use client'
-
-import { useState } from 'react'
-import { Gift, Sparkles, RotateCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Gift, Sparkles, ChevronRight } from 'lucide-react'
 import { SectionHeading } from './section-heading'
-
-const SEGMENTS = [
-  { label: '₹50', color: '#1d4ed8' },
-  { label: '10% Off', color: '#f59e0b' },
-  { label: '₹100', color: '#3b82f6' },
-  { label: 'Try Again', color: '#fbbf24' },
-  { label: 'Free Ad', color: '#1d4ed8' },
-  { label: '₹20', color: '#f59e0b' },
-  { label: '5% Off', color: '#3b82f6' },
-  { label: 'Spin Again', color: '#fbbf24' },
-]
+import Link from 'next/link'
 
 export function SpinWin() {
-  const [rotation, setRotation] = useState(0)
-  const [spinning, setSpinning] = useState(false)
-
-  const spin = () => {
-    if (spinning) return
-    setSpinning(true)
-    const winner = Math.floor(Math.random() * SEGMENTS.length)
-    const segAngle = 360 / SEGMENTS.length
-    const target = 360 * 5 + (360 - winner * segAngle - segAngle / 2)
-    setRotation((prev) => prev + target)
-    window.setTimeout(() => setSpinning(false), 4200)
-  }
-
   return (
     <section id="spin" className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
-      <div className="overflow-hidden rounded-3xl glass-strong">
-        <div className="grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-2">
+      <Link href="/spin-win" className="block relative overflow-hidden rounded-[2rem] glass-strong hover:scale-[1.01] transition-all duration-300 shadow-xl group border border-white/50">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-2 relative z-10">
           <div>
             <SectionHeading
               eyebrow="Daily Reward"
               title="Spin & Win"
               subtitle="One free spin every day for early-bird users."
             />
-            <ul className="mt-4 space-y-2 text-sm text-slate-600">
+            <ul className="mt-4 space-y-3 text-sm font-medium text-slate-700">
               <li className="flex items-center gap-2">
-                <Gift className="h-4 w-4 text-amber-500" /> Win cashback,
-                discounts & free banner ads.
+                <Gift className="h-5 w-5 text-amber-500" /> Win cashback, discounts & free ads.
               </li>
               <li className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-blue-500" /> 1 free spin daily
-                — Early Bird Offer, all FREE.
+                <Sparkles className="h-5 w-5 text-blue-500" /> 1 free spin daily — Early Bird Offer.
               </li>
             </ul>
-            <Button
-              onClick={spin}
-              disabled={spinning}
-              className="mt-5 gap-2 gradient-brand text-white shadow-lg shadow-blue-500/30"
-            >
-              <RotateCw className={spinning ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
-              {spinning ? 'Spinning…' : 'Spin Now (Free)'}
-            </Button>
+            <div className="mt-6 inline-flex items-center gap-2 rounded-2xl gradient-brand px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
+              Play Now <ChevronRight className="h-4 w-4" />
+            </div>
           </div>
 
-          {/* Wheel */}
-          <div className="flex justify-center">
-            <div className="relative h-56 w-56 sm:h-64 sm:w-64">
-              {/* pointer */}
-              <div className="absolute left-1/2 top-[-6px] z-20 h-0 w-0 -translate-x-1/2 border-x-[12px] border-t-[20px] border-x-transparent border-t-amber-500 drop-shadow" />
+          {/* Wheel Graphic */}
+          <div className="flex justify-center lg:justify-end pr-4">
+            <div className="relative h-48 w-48 sm:h-56 sm:w-56 pointer-events-none transform group-hover:rotate-12 transition-transform duration-700">
               {/* ring */}
               <div className="absolute inset-0 rounded-full gradient-ring p-1.5 shadow-2xl">
-                <div
-                  className="relative h-full w-full rounded-full overflow-hidden transition-transform duration-[4000ms] ease-out"
-                  style={{ transform: `rotate(${rotation}deg)` }}
-                >
-                  <svg viewBox="0 0 100 100" className="h-full w-full">
-                    {SEGMENTS.map((s, i) => {
-                      const segAngle = 360 / SEGMENTS.length
+                <div className="relative h-full w-full rounded-full overflow-hidden bg-white/20">
+                  <svg viewBox="0 0 100 100" className="h-full w-full opacity-90">
+                    {[
+                      { color: '#1d4ed8' },
+                      { color: '#f59e0b' },
+                      { color: '#3b82f6' },
+                      { color: '#fbbf24' },
+                      { color: '#1d4ed8' },
+                      { color: '#f59e0b' },
+                      { color: '#3b82f6' },
+                      { color: '#fbbf24' },
+                    ].map((s, i, arr) => {
+                      const segAngle = 360 / arr.length
                       const startAngle = i * segAngle - 90
                       const endAngle = startAngle + segAngle
                       const r = 50
@@ -84,38 +55,21 @@ export function SpinWin() {
                       const x2 = cx + r * Math.cos((endAngle * Math.PI) / 180)
                       const y2 = cy + r * Math.sin((endAngle * Math.PI) / 180)
                       const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`
-                      const mid = startAngle + segAngle / 2
-                      const tx = cx + (r * 0.6) * Math.cos((mid * Math.PI) / 180)
-                      const ty = cy + (r * 0.6) * Math.sin((mid * Math.PI) / 180)
                       return (
-                        <g key={i}>
-                          <path d={path} fill={s.color} />
-                          <text
-                            x={tx}
-                            y={ty}
-                            fill="#ffffff"
-                            fontSize="5"
-                            fontWeight="700"
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                            transform={`rotate(${mid + 90} ${tx} ${ty})`}
-                          >
-                            {s.label}
-                          </text>
-                        </g>
+                        <path key={i} d={path} fill={s.color} />
                       )
                     })}
                   </svg>
                 </div>
               </div>
               {/* hub */}
-              <div className="absolute left-1/2 top-1/2 z-10 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-blue-700 shadow-lg">
-                <RotateCw className="h-5 w-5" />
+              <div className="absolute left-1/2 top-1/2 z-10 grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-blue-700 shadow-xl">
+                <Gift className="h-5 w-5" />
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </Link>
     </section>
   )
 }

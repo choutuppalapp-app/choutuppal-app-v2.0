@@ -1,10 +1,10 @@
-// Force Update
 import { getHomePageData } from '@/lib/home-data'
 import { getCurrentUser } from '@/lib/session'
 import { Ticker } from '@/components/home/ticker'
 import { prisma } from '@/lib/prisma'
 import { StickySocials } from '@/components/home/sticky-socials'
 import nextDynamic from 'next/dynamic'
+import Link from 'next/link'
 
 // Heavy client components — lazy-loaded to reduce initial JS bundle
 const StoriesRail = nextDynamic(() => import('@/components/home/stories-rail').then(m => ({ default: m.StoriesRail })))
@@ -13,12 +13,11 @@ const CategoriesGrid = nextDynamic(() => import('@/components/home/categories-gr
 const FeaturedRail = nextDynamic(() => import('@/components/home/featured-rail').then(m => ({ default: m.FeaturedRail })))
 const RealEstateRail = nextDynamic(() => import('@/components/home/real-estate-rail').then(m => ({ default: m.RealEstateRail })))
 const SendNewsCTA = nextDynamic(() => import('@/components/home/send-news-cta').then(m => ({ default: m.SendNewsCTA })))
-const NewsGrid = nextDynamic(() => import('@/components/home/news-grid').then(m => ({ default: m.NewsGrid })))
 const BlogGrid = nextDynamic(() => import('@/components/home/blog-grid').then(m => ({ default: m.BlogGrid })))
 const SpinWin = nextDynamic(() => import('@/components/home/spin-win').then(m => ({ default: m.SpinWin })))
 const Testimonials = nextDynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials })))
 const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans').then(m => ({ default: m.PricingPlans })))
-const AgentCityCTA = nextDynamic(() => import('@/components/home/agent-city-cta').then(m => ({ default: m.AgentCityCTA })))
+const CommunityHub = nextDynamic(() => import('@/components/home/community-hub').then(m => ({ default: m.CommunityHub })))
 
 // Home page using ISR 1-hour revalidation & force-static for instant Edge caching
 export const revalidate = 3600
@@ -63,39 +62,64 @@ export default async function Home() {
       <StickySocials />
 
       <main className="flex-1">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:gap-7 px-3 py-4 sm:px-4 sm:py-6 lg:px-6">
+        {/* 1. Hero Section */}
+        <section className="relative w-full overflow-hidden gradient-brand pt-12 pb-8 sm:pt-20 sm:pb-12 px-4 text-center text-white">
+          <div className="relative z-10 mx-auto max-w-3xl">
+            <h1 className="text-4xl font-black tracking-tight sm:text-6xl md:text-7xl mb-4 text-white drop-shadow-md">
+              Choutuppal App
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl font-medium text-white/90 drop-shadow-sm mb-6 max-w-2xl mx-auto">
+              Your digital gateway to everything happening in and around Choutuppal. Discover local businesses, news, properties, and community updates all in one place.
+            </p>
+          </div>
+          {/* Decorative Background Elements */}
+          <div className="absolute left-1/2 top-0 h-64 w-[900px] -translate-x-1/2 rounded-full bg-white/10 blur-[80px]" />
+        </section>
+
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:gap-7 px-3 py-4 sm:px-4 sm:py-6 lg:px-6 mt-[-2rem] relative z-20">
           
-          {/* 2. Categories Grid */}
+          {/* 2. Stories & Banners */}
+          <div className="relative w-full overflow-hidden bg-white/40 backdrop-blur-md rounded-[2rem] p-4 shadow-sm border border-white/50">
+            <StoriesRail stories={data.stories} viewer={viewerInfo} />
+            <div className="mt-4">
+              <BannerCarousel banners={data.banners} />
+            </div>
+          </div>
+
+          {/* 3. Browse Categories */}
           <CategoriesGrid categories={data.categories} />
 
-          {/* 3. Top Local Businesses Grid */}
+          {/* 4. Top Local Businesses Grid */}
           <FeaturedRail listings={data.featured} />
-
-          {/* 4. Stories & Banners */}
-          <div className="relative w-full overflow-hidden">
-            <StoriesRail stories={data.stories} viewer={viewerInfo} />
-          </div>
-          <BannerCarousel banners={data.banners} />
 
           {/* 5. Premium Properties Grid */}
           <RealEstateRail properties={data.realEstate} />
 
           {/* 6. Recent Blogs & News Section */}
-          <SendNewsCTA />
-          <NewsGrid articles={data.latestNews} />
-          <BlogGrid blogs={data.latestBlogs} />
+          <div className="mt-4 flex flex-col gap-6">
+            <BlogGrid blogs={data.latestBlogs} />
+            <SendNewsCTA />
+          </div>
 
           {/* 7. Spin & Win */}
-          {spinEnabled ? <SpinWin /> : null}
+          {spinEnabled ? (
+            <div className="mt-4">
+              <SpinWin />
+            </div>
+          ) : null}
 
           {/* 8. Advertising & Monetization Section */}
-          <div id="pricing">
+          <div id="pricing" className="mt-8">
             <PricingPlans />
           </div>
-          <AgentCityCTA />
 
-          {/* 9. Reviews (Testimonials) */}
-          <Testimonials />
+          {/* 9. Opportunities & Community */}
+          <CommunityHub />
+
+          {/* 10. Reviews (Testimonials) */}
+          <div className="mt-12">
+            <Testimonials />
+          </div>
 
           {/* Explore anchor target (mobile bottom nav) */}
           <div id="explore" className="scroll-mt-20" />
@@ -107,4 +131,3 @@ export default async function Home() {
     </div>
   )
 }
-

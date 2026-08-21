@@ -129,7 +129,7 @@ export async function getLatestNews() {
       prisma.news.findMany({
         where: { ...tenantFilter, isPublished: true },
         orderBy: { createdAt: 'desc' },
-        take: 4,
+        take: 6,
         select: {
           id: true,
           title: true,
@@ -151,7 +151,7 @@ export async function getLatestBlogs() {
       prisma.blog.findMany({
         where: { ...tenantFilter, isPublished: true },
         orderBy: { createdAt: 'desc' },
-        take: 4,
+        take: 6,
         select: {
           id: true,
           title: true,

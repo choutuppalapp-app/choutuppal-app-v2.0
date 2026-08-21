@@ -1,138 +1,86 @@
-'use client'
-
-import Link from 'next/link'
-import { Newspaper, Gift, UserCheck, Building, MessageCircle, Sparkles, ChevronRight } from 'lucide-react'
+import { Briefcase, Globe, MessageCircle, Youtube, Instagram, Facebook } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { SectionHeading } from './section-heading'
 
 export function CommunityHub() {
-  const newsWhatsAppLink = `https://wa.me/919494348175?text=${encodeURIComponent(
-    'నమస్కారం, మా ఊరిలో ఒక లోకల్ న్యూస్/ఈవెంట్ ఉంది. దయచేసి యాప్ లో పబ్లిష్ చేయండి: ',
-  )}`
-
-  const franchiseWhatsAppLink = `https://wa.me/919494348175?text=${encodeURIComponent(
-    'నమస్కారం, నా ఊరి కోసం ఒక వైట్-లేబుల్ సూపర్ యాప్ సెటప్ చేయాలనుకుంటున్నాను. సమాచారం కావాలి.',
-  )}`
+  const waNumber = '919494348175'
 
   return (
-    <section className="relative w-full py-4">
-      {/* Section Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 border border-blue-100 mb-1">
-            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-            <span>Community & Opportunities Hub</span>
-          </div>
-          <h2 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
-            కమ్యూనిటీ & <span className="bg-gradient-to-r from-blue-600 to-amber-500 bg-clip-text text-transparent">అవకాశాలు</span>
-          </h2>
-        </div>
-      </div>
+    <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6 mt-12">
+      <SectionHeading
+        eyebrow="COMMUNITY"
+        title="Join Our Network"
+        subtitle="Become a part of the fastest growing digital platform in Choutuppal."
+      />
 
-      {/* 2x2 Responsive Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
-        {/* Card 1: Local News Submission */}
-        <div className="group relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/50 to-emerald-50/30 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-2xl hover:shadow-emerald-500/10">
-          <div className="flex items-start gap-4">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 shadow-sm transition-transform duration-300 group-hover:scale-110">
-              <Newspaper className="h-6 w-6" />
-            </div>
-            <div className="flex-1 space-y-1.5">
-              <h3 className="text-lg font-bold text-slate-900 leading-snug">
-                మీకు ఏదైనా లోకల్ న్యూస్ తెలుసా?
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                మీ ఊరిలో జరుగుతున్న విశేషాలను, ఈవెంట్స్ ని మాతో షేర్ చేయండి. మేము యాప్ లో ప్రచురిస్తాము.
-              </p>
-            </div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Agent Card */}
+        <div className="glass hover-lift relative flex flex-col overflow-hidden rounded-3xl p-6 transition-all duration-300">
+          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md">
+            <Briefcase className="h-6 w-6" />
           </div>
-          <div className="mt-5 pt-3 border-t border-slate-100 flex justify-end">
+          <h3 className="text-base font-extrabold text-slate-900 font-telugu">
+            చౌటుప్పల్ యాప్ ఏజెంట్ గా పనిచేయండి!
+          </h3>
+          <p className="mt-2 flex-1 text-sm font-medium text-slate-500 font-telugu">
+            స్థానిక వ్యాపారాలను యాప్ లో చేర్చి ఆదాయం పొందండి.
+          </p>
+          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md bg-slate-900 text-white hover:bg-slate-800">
             <a
-              href={newsWhatsAppLink}
+              href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to join as an Agent for Choutuppal App.')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-md shadow-emerald-600/20 transition-all duration-200 hover:bg-emerald-500 active:scale-95"
             >
-              <MessageCircle className="h-4 w-4" />
-              <span>WhatsApp పంపండి</span>
+              <MessageCircle className="h-4 w-4 text-[#25D366]" /> Join Now
             </a>
-          </div>
+          </Button>
         </div>
 
-        {/* Card 2: Spin & Win */}
-        <div className="group relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/50 to-amber-50/30 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-2xl hover:shadow-amber-500/10">
-          <div className="flex items-start gap-4">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-500/20 shadow-sm transition-transform duration-300 group-hover:scale-110">
-              <Gift className="h-6 w-6" />
-            </div>
-            <div className="flex-1 space-y-1.5">
-              <h3 className="text-lg font-bold text-slate-900 leading-snug">
-                Spin & Win
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                చౌటుప్పల్ యాప్ లో అద్భుతమైన బహుమతులు గెలుచుకోండి!
-              </p>
-            </div>
+        {/* Franchise Card */}
+        <div className="glass hover-lift relative flex flex-col overflow-hidden rounded-3xl p-6 transition-all duration-300">
+          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md">
+            <Globe className="h-6 w-6" />
           </div>
-          <div className="mt-5 pt-3 border-t border-slate-100 flex justify-end">
-            <Link
-              href="/#spin-win"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-md shadow-amber-500/20 transition-all duration-200 hover:from-amber-400 hover:to-amber-500 active:scale-95"
-            >
-              <span>ఇప్పుడే ఆడండి</span>
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Card 3: Become an Agent */}
-        <div className="group relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/50 to-blue-50/30 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:shadow-2xl hover:shadow-blue-500/10">
-          <div className="flex items-start gap-4">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-blue-500/10 text-blue-600 border border-blue-500/20 shadow-sm transition-transform duration-300 group-hover:scale-110">
-              <UserCheck className="h-6 w-6" />
-            </div>
-            <div className="flex-1 space-y-1.5">
-              <h3 className="text-lg font-bold text-slate-900 leading-snug">
-                చౌటుప్పల్ యాప్ ఏజెంట్ గా పనిచేయండి!
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                మీ ఊరి బిజినెస్ లిస్టింగ్స్ ను అప్డేట్ చేసి ఆదాయం పొందండి.
-              </p>
-            </div>
-          </div>
-          <div className="mt-5 pt-3 border-t border-slate-100 flex justify-end">
-            <Link
-              href="/agent"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-md shadow-blue-600/20 transition-all duration-200 hover:bg-blue-500 active:scale-95"
-            >
-              <span>ఏజెంట్ గా సైన్ అప్ చేయండి</span>
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Card 4: Franchise Opportunity */}
-        <div className="group relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50/50 to-emerald-50/30 p-6 shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-2xl hover:shadow-emerald-500/10">
-          <div className="flex items-start gap-4">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 shadow-sm transition-transform duration-300 group-hover:scale-110">
-              <Building className="h-6 w-6" />
-            </div>
-            <div className="flex-1 space-y-1.5">
-              <h3 className="text-lg font-bold text-slate-900 leading-snug">
-                మీ ఊరికి ఈ యాప్ కావాలా?
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                చౌటుప్పల్ యాప్ లాగా, మీ ఊరి పేరుతో ఒక సూపర్ యాప్ ని సెటప్ చేయొచ్చు.
-              </p>
-            </div>
-          </div>
-          <div className="mt-5 pt-3 border-t border-slate-100 flex justify-end">
+          <h3 className="text-base font-extrabold text-slate-900 font-telugu">
+            మీ ఊరికి ఈ యాప్ కావాలా?
+          </h3>
+          <p className="mt-2 flex-1 text-sm font-medium text-slate-500 font-telugu">
+            మీరు ఉండే ఊరిలో చౌటుప్పల్ యాప్ లాంటి యాప్ మొదలుపెట్టండి.
+          </p>
+          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md bg-slate-900 text-white hover:bg-slate-800">
             <a
-              href={franchiseWhatsAppLink}
+              href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to get info about starting a City Franchise.')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-md shadow-emerald-600/20 transition-all duration-200 hover:bg-emerald-500 active:scale-95"
             >
-              <MessageCircle className="h-4 w-4" />
-              <span>వాట్సాప్ లో మాట్లాడండి</span>
+              <MessageCircle className="h-4 w-4 text-[#25D366]" /> Get Info
+            </a>
+          </Button>
+        </div>
+
+        {/* Social Cards (combined or 3 separate? Let's just make it a single uniform card with multiple links to match grid) */}
+        <div className="glass hover-lift relative flex flex-col overflow-hidden rounded-3xl p-6 transition-all duration-300">
+          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md">
+            <MessageCircle className="h-6 w-6" />
+          </div>
+          <h3 className="text-base font-extrabold text-slate-900">Follow Us Online</h3>
+          <p className="mt-2 mb-4 text-sm font-medium text-slate-500">
+            Stay updated with our latest news and announcements across platforms.
+          </p>
+          
+          <div className="flex flex-col gap-2 flex-1 justify-end">
+            <a href="https://chat.whatsapp.com/choutuppal" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl bg-white/50 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-white transition shadow-sm border border-slate-100">
+              <MessageCircle size={16} className="text-[#25D366]" /> WhatsApp Group
+            </a>
+            <a href="https://youtube.com/@choutuppalapp" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl bg-white/50 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-white transition shadow-sm border border-slate-100">
+              <Youtube size={16} className="text-[#FF0000]" /> YouTube
+            </a>
+            <a href="https://instagram.com/choutuppalapp" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl bg-white/50 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-white transition shadow-sm border border-slate-100">
+              <Instagram size={16} className="text-[#E1306C]" /> Instagram
+            </a>
+            <a href="https://facebook.com/choutuppalapp" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl bg-white/50 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-white transition shadow-sm border border-slate-100">
+              <Facebook size={16} className="text-[#1877F2]" /> Facebook
             </a>
           </div>
         </div>
