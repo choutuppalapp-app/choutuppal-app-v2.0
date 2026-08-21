@@ -1,3 +1,4 @@
+// Force Update
 import { getHomePageData } from '@/lib/home-data'
 import { getCurrentUser } from '@/lib/session'
 import { Ticker } from '@/components/home/ticker'
@@ -106,3 +107,4 @@ export default async function Home() {
     </div>
   )
 }
+
