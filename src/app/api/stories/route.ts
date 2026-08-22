@@ -38,17 +38,27 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const body = await request.json().catch(() => ({}))
+  let body: unknown;
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON data received' }, { status: 400 })
+  }
   const parsed = CreateSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
   }
 
   const expiresAt = new Date(Date.now() + TTL_HOURS * 60 * 60 * 1000)
-  const story = await prisma.story.create({
-    data: { ...parsed.data, expiresAt, ownerId: auth.user.id },
-  })
-  return NextResponse.json({ ok: true, story }, { status: 201 })
+  try {
+    const story = await prisma.story.create({
+      data: { ...parsed.data, expiresAt, ownerId: auth.user.id },
+    })
+    return NextResponse.json({ ok: true, story }, { status: 201 })
+  } catch (err: any) {
+    console.error('Story Creation Error:', err)
+    return NextResponse.json({ error: err.message || 'Database error occurred while saving' }, { status: 500 })
+  }
 }
 
 /** GET /api/stories — current user's stories (for dashboard). */

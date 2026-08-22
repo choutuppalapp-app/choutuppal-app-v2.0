@@ -44,7 +44,13 @@ export function BannerCreator({ open, onOpenChange, onCreated }: BannerCreatorPr
       form.append('files', file)
       form.append('folder', 'banners')
       const res = await fetch('/api/upload', { method: 'POST', body: form })
-      const j = await res.json()
+      let j;
+        try {
+          j = await res.json()
+        } catch (err) {
+          console.error("API Parse Error:", err);
+          throw new Error("Failed to submit. Please check all required fields and try again.")
+        }
       if (!res.ok || !j.ok) throw new Error(j.error || 'Upload failed')
       setImageUrl(j.files[0].url)
       toast.success('Image uploaded')
@@ -73,7 +79,13 @@ export function BannerCreator({ open, onOpenChange, onCreated }: BannerCreatorPr
           position,
         }),
       })
-      const j = await res.json()
+      let j;
+        try {
+          j = await res.json()
+        } catch (err) {
+          console.error("API Parse Error:", err);
+          throw new Error("Failed to submit. Please check all required fields and try again.")
+        }
       if (!res.ok || !j.ok) throw new Error(j.error || 'Failed to create banner')
       toast.success('Banner created! It will auto-expire in 24 hours.')
       reset()

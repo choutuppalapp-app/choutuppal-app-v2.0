@@ -21,7 +21,12 @@ export async function POST(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const body = await request.json().catch(() => ({}))
+  let body: unknown;
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON data received' }, { status: 400 })
+  }
   const parsed = CreateSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
@@ -29,10 +34,15 @@ export async function POST(request: NextRequest) {
 
   const tenant = await getCurrentTenant()
   const expiresAt = new Date(Date.now() + TTL_HOURS * 60 * 60 * 1000)
-  const banner = await prisma.banner.create({
-    data: { ...parsed.data, expiresAt, ownerId: auth.user.id, tenantId: tenant.id },
-  })
-  return NextResponse.json({ ok: true, banner }, { status: 201 })
+  try {
+    const banner = await prisma.banner.create({
+      data: { ...parsed.data, expiresAt, ownerId: auth.user.id, tenantId: tenant.id },
+    })
+    return NextResponse.json({ ok: true, banner }, { status: 201 })
+  } catch (err: any) {
+    console.error('Banner Creation Error:', err)
+    return NextResponse.json({ error: err.message || 'Database error occurred while saving' }, { status: 500 })
+  }
 }
 
 /** GET /api/banners — current user's banners. */

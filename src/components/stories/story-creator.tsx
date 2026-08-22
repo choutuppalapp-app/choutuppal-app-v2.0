@@ -46,7 +46,13 @@ export function StoryCreator({ open, onOpenChange, onCreated }: StoryCreatorProp
       form.append('files', file)
       form.append('folder', 'stories')
       const res = await fetch('/api/upload', { method: 'POST', body: form })
-      const j = await res.json()
+      let j;
+        try {
+          j = await res.json()
+        } catch (err) {
+          console.error("API Parse Error:", err);
+          throw new Error("Failed to submit. Please check all required fields and try again.")
+        }
       if (!res.ok || !j.ok) throw new Error(j.error || 'Upload failed')
       setMediaUrl(j.files[0].url)
       setMediaType(file.type.startsWith('video/') ? 'VIDEO' : 'IMAGE')
@@ -71,7 +77,13 @@ export function StoryCreator({ open, onOpenChange, onCreated }: StoryCreatorProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mediaUrl, mediaType, caption: caption.trim() || undefined }),
       })
-      const j = await res.json()
+      let j;
+        try {
+          j = await res.json()
+        } catch (err) {
+          console.error("API Parse Error:", err);
+          throw new Error("Failed to submit. Please check all required fields and try again.")
+        }
       if (!res.ok) throw new Error(j.error || j.message || 'Failed to post')
       toast.success('Story posted! It will auto-expire in 24h.')
       onCreated(j.story)
