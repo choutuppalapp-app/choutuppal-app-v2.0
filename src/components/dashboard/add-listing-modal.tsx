@@ -203,8 +203,14 @@ export function AddListingModal({
               villageId: villageId || undefined,
             }),
           })
-          const json = await res.json()
-          if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to update')
+          let json;
+            try {
+              json = await res.json()
+            } catch (err) {
+              console.error("API Parse Error:", err);
+              throw new Error("Failed to submit listing. Please check all required fields.")
+            }
+            if (!res.ok || !json?.ok) throw new Error(json?.error || 'Failed')
           toast.success('Property updated!')
         } else {
           const cleanServices = services
@@ -218,8 +224,14 @@ export function AddListingModal({
               title, description, coverImage: cover, logo, gallery, phone, secondaryPhone: secondaryPhone || undefined, whatsapp, address, mapEmbed: mapLink, servicesCatalog: cleanServices.length ? cleanServices : undefined, businessHours: finalHours, categoryId: categoryId || undefined, villageId: villageId || undefined,
             }),
           })
-          const json = await res.json()
-          if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to update')
+          let json;
+            try {
+              json = await res.json()
+            } catch (err) {
+              console.error("API Parse Error:", err);
+              throw new Error("Failed to submit listing. Please check all required fields.")
+            }
+            if (!res.ok || !json?.ok) throw new Error(json?.error || 'Failed')
           toast.success('Listing updated!')
         }
         if (onSuccess) onSuccess()
@@ -239,8 +251,14 @@ export function AddListingModal({
               title, description, type: reType, listingType, price: Number(price), negotiable, areaSqft: areaSqft ? Number(areaSqft) : undefined, bedrooms: bedrooms ? Number(bedrooms) : undefined, bathrooms: bathrooms ? Number(bathrooms) : undefined, coverImage: cover, images: gallery.length ? gallery : undefined, address, mapEmbed: mapLink, contactPhone: phone, secondaryPhone: secondaryPhone || undefined, contactWhatsapp: whatsapp, villageId: villageId || undefined,
             }),
           })
-          const json = await res.json()
-          if (!res.ok || !json.ok) throw new Error(json.error || 'Failed')
+          let json;
+            try {
+              json = await res.json()
+            } catch (err) {
+              console.error("API Parse Error:", err);
+              throw new Error("Failed to submit listing. Please check all required fields.")
+            }
+            if (!res.ok || !json?.ok) throw new Error(json?.error || 'Failed')
           toast.success('Property submitted for approval!')
           if (onSuccess) onSuccess()
           onOpenChange(false)
@@ -255,8 +273,14 @@ export function AddListingModal({
               title, description, coverImage: cover, logo, gallery: gallery.length ? gallery : undefined, phone, secondaryPhone: secondaryPhone || undefined, whatsapp, address, mapEmbed: mapLink, servicesCatalog: cleanServices.length ? cleanServices : undefined, businessHours: finalHours, categoryId: categoryId || undefined, villageId: villageId || undefined,
             }),
           })
-          const json = await res.json()
-          if (!res.ok || !json.ok) throw new Error(json.error || 'Failed')
+          let json;
+            try {
+              json = await res.json()
+            } catch (err) {
+              console.error("API Parse Error:", err);
+              throw new Error("Failed to submit listing. Please check all required fields.")
+            }
+            if (!res.ok || !json?.ok) throw new Error(json?.error || 'Failed')
           toast.success('Submitted for admin approval!')
           if (onSuccess) onSuccess()
           onOpenChange(false)

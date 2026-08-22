@@ -95,7 +95,12 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
+    let body: any;
+try {
+  body = await request.json()
+} catch {
+  return NextResponse.json({ ok: false, error: 'Invalid JSON data' }, { status: 400 })
+}
     const {
       type: itemType,
       id,

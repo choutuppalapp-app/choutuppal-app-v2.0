@@ -53,7 +53,7 @@ async function uniqueSlug(base: string): Promise<string> {
   return slug
 }
 
-/** POST /api/listings — create a new business/service listing (status PENDING). */
+/** POST /api/listings ?" create a new business/service listing (status PENDING). */
 export async function POST(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) {
@@ -64,12 +64,13 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid JSON data received' }, { status: 400 })
   }
+  
   const parsed = CreateListingSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? 'Invalid input' },
+      { error: parsed.error.issues[0]?.message ?? 'Invalid input format' },
       { status: 400 },
     )
   }
@@ -80,23 +81,31 @@ export async function POST(request: NextRequest) {
   const isPaidTier = auth.user.planTier === 'PRO' || auth.user.planTier === 'PREMIUM'
   const expiresAt = isPaidTier ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
-  const listing = await prisma.listing.create({
-    data: {
-      ...parsed.data,
-      slug,
-      gallery: parsed.data.gallery ?? undefined,
-      servicesCatalog: parsed.data.servicesCatalog ?? undefined,
-      businessHours: parsed.data.businessHours ?? undefined,
-      ownerId: auth.user.id,
-      tenantId: tenant.id,
-      expiresAt,
-      status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING',
-    },
-  })
-  return NextResponse.json({ ok: true, listing }, { status: 201 })
+  try {
+    const listing = await prisma.listing.create({
+      data: {
+        ...parsed.data,
+        slug,
+        gallery: parsed.data.gallery ? parsed.data.gallery : undefined,
+        servicesCatalog: parsed.data.servicesCatalog ? (parsed.data.servicesCatalog as any) : undefined,
+        businessHours: parsed.data.businessHours ? (parsed.data.businessHours as any) : undefined,
+        ownerId: auth.user.id,
+        tenantId: tenant.id,
+        expiresAt,
+        status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING',
+      },
+    })
+    return NextResponse.json({ ok: true, listing }, { status: 201 })
+  } catch (err: any) {
+    console.error('[API Listings POST] Error creating listing:', err)
+    return NextResponse.json(
+      { error: err.message || 'Database error occurred while saving the listing' }, 
+      { status: 500 }
+    )
+  }
 }
 
-/** GET /api/listings — list listings. Supports filtering by userId for admins. */
+/** GET /api/listings ?" list listings. Supports filtering by userId for admins. */
 export async function GET(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) {

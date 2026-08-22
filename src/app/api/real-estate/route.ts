@@ -41,12 +41,18 @@ async function uniqueSlug(base: string): Promise<string> {
   return slug
 }
 
-/** POST /api/real-estate — create a property listing. */
+/** POST /api/real-estate ?" create a property listing. */
 export async function POST(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const body = await request.json().catch(() => ({}))
+  let body: any
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON data received' }, { status: 400 })
+  }
+
   const parsed = CreateSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
@@ -54,13 +60,19 @@ export async function POST(request: NextRequest) {
 
   const tenant = await getCurrentTenant()
   const slug = await uniqueSlug(parsed.data.title)
-  const re = await prisma.realEstate.create({
-    data: { ...parsed.data, slug, ownerId: auth.user.id, tenantId: tenant.id, status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING' },
-  })
-  return NextResponse.json({ ok: true, realEstate: re }, { status: 201 })
+  
+  try {
+    const re = await prisma.realEstate.create({
+      data: { ...parsed.data, slug, ownerId: auth.user.id, tenantId: tenant.id, status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING' },
+    })
+    return NextResponse.json({ ok: true, realEstate: re }, { status: 201 })
+  } catch (err: any) {
+    console.error('[API RealEstate POST] Error:', err)
+    return NextResponse.json({ error: err.message || 'Database error occurred' }, { status: 500 })
+  }
 }
 
-/** GET /api/real-estate — list properties. Supports filtering by userId for admins. */
+/** GET /api/real-estate ?" list properties. Supports filtering by userId for admins. */
 export async function GET(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
