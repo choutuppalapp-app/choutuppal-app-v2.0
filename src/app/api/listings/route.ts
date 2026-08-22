@@ -76,6 +76,21 @@ export async function POST(request: NextRequest) {
   }
 
   const tenant = await getCurrentTenant()
+  
+  // Safely resolve tenantId to prevent foreign key constraint violations
+  let resolvedTenantId: string | undefined = tenant.id
+  if (resolvedTenantId === 'choutuppal-default') {
+    const realTenant = await prisma.tenant.findFirst({
+      where: { OR: [{ domain: 'choutuppal.in' }, { name: 'Choutuppal App' }] }
+    }) || await prisma.tenant.findFirst()
+    
+    if (realTenant) {
+      resolvedTenantId = realTenant.id
+    } else {
+      resolvedTenantId = undefined // Let it be null if no tenant exists at all
+    }
+  }
+
   const slug = await uniqueSlug(parsed.data.title)
 
   const isPaidTier = auth.user.planTier === 'PRO' || auth.user.planTier === 'PREMIUM'
@@ -90,7 +105,7 @@ export async function POST(request: NextRequest) {
         servicesCatalog: parsed.data.servicesCatalog ? (parsed.data.servicesCatalog as any) : undefined,
         businessHours: parsed.data.businessHours ? (parsed.data.businessHours as any) : undefined,
         ownerId: auth.user.id,
-        tenantId: tenant.id,
+        tenantId: resolvedTenantId,
         expiresAt,
         status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING',
       },
