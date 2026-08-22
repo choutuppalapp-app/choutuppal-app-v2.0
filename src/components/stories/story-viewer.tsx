@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { X, Send, Eye, MessageCircle, Trash2, Loader2, Heart } from 'lucide-react'
+import { X, Send, Eye, MessageCircle, Trash2, Loader2, Heart, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -175,12 +175,12 @@ export function StoryViewer({
   const ownerName = story.owner.name ?? story.owner.username ?? 'User'
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 h-screen w-screen bg-black flex items-center justify-center">
       {/* Close */}
       <button
         onClick={onClose}
         aria-label="Close"
-        className="absolute right-4 top-4 z-50 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+        className="absolute top-4 right-4 text-white text-3xl z-50 cursor-pointer"
       >
         <X className="h-5 w-5" />
       </button>
@@ -210,8 +210,7 @@ export function StoryViewer({
       </div>
 
       {/* Story media */}
-      <div
-        className="relative h-full w-full max-w-md"
+      <div className="relative h-full w-full max-w-md overflow-hidden bg-black md:relative md:inset-auto md:h-[80vh] md:rounded-2xl"
         onPointerDown={() => setPaused(true)}
         onPointerUp={() => setPaused(false)}
         onPointerLeave={() => setPaused(false)}
@@ -235,7 +234,7 @@ export function StoryViewer({
           story.mediaType === 'VIDEO' ? (
             <video
               src={story.mediaUrl}
-              className="h-full w-full object-cover aspect-[9/16]"
+              className="h-full w-full object-contain"
               autoPlay
               muted
               loop
@@ -245,7 +244,7 @@ export function StoryViewer({
             <img loading="lazy" decoding="async"
               src={story.mediaUrl}
               alt={story.caption ?? 'Story'}
-              className="h-full w-full object-cover aspect-[9/16]"
+              className="h-full w-full object-contain"
             />
           )
         ) : (
@@ -395,18 +394,16 @@ export function StoryViewer({
         <button
           onClick={() => setIndex((i) => Math.max(0, i - 1))}
           aria-label="Previous"
-          className="absolute left-2 top-1/2 z-30 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 md:grid"
-        >
-          ‹
+          className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer z-50">
+          <ChevronLeft className="h-10 w-10" />
         </button>
       ) : null}
-      {index < stories.length - 1 ? (
+      {true ? (
         <button
-          onClick={() => setIndex((i) => Math.min(stories.length - 1, i + 1))}
+          onClick={() => { if (index < stories.length - 1) setIndex(index + 1); else onClose(); }}
           aria-label="Next"
-          className="absolute right-2 top-1/2 z-30 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 md:grid"
-        >
-          ›
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer z-50">
+          <ChevronRight className="h-10 w-10" />
         </button>
       ) : null}
     </div>
