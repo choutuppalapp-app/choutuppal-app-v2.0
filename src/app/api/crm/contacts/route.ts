@@ -13,18 +13,38 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
-    const groupId = searchParams.get('groupId')
-    const categoryFilter = searchParams.get('category') // dynamic category filter
+    const group = searchParams.get('group') || 'all'
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
     const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '50', 10)))
     const skip = (page - 1) * limit
 
     const whereCondition: any = {}
-    
-    // Strict Exclusion: Unless explicitly requesting emergency/govt, exclude them.
-    if (groupId === 'emergency_govt_leader') {
+
+    // Strict Filtering Logic
+    if (group === 'emergency') {
       whereCondition.userType = 'emergency_govt_leader'
+    } else if (group === 'business') {
+      whereCondition.userType = 'business_owner'
+    } else if (group === 'customer') {
+      whereCondition.userType = 'customer'
+    } else if (group.startsWith('category:')) {
+      const categoryFilter = decodeURIComponent(group.replace('category:', ''))
+      
+      const listings = await prisma.listing.findMany({
+        where: { category: { name: categoryFilter } },
+        select: { phone: true, whatsapp: true }
+      })
+      
+      const phones = new Set<string>()
+      for (const l of listings) {
+        if (l.phone) phones.add(l.phone.replace(/[^\d+]/g, ''))
+        if (l.whatsapp) phones.add(l.whatsapp.replace(/[^\d+]/g, ''))
+      }
+      
+      whereCondition.phone = { in: Array.from(phones) }
+      whereCondition.userType = 'business_owner'
     } else {
+      // group === 'all'
       whereCondition.userType = { not: 'emergency_govt_leader' }
     }
 
@@ -35,32 +55,6 @@ export async function GET(request: NextRequest) {
         { phone: { contains: s, mode: 'insensitive' } },
         { tag: { contains: s, mode: 'insensitive' } },
       ]
-    }
-    
-    // Legacy generic groups (if any)
-    if (groupId && groupId !== 'all' && groupId !== 'emergency_govt_leader') {
-      whereCondition.groups = {
-        some: { id: groupId },
-      }
-    }
-
-    // Dynamic Category Groups (Business Owners)
-    if (categoryFilter && categoryFilter !== 'all') {
-      // Find phones for listings in this category
-      const listings = await prisma.listing.findMany({
-        where: { category: { slug: categoryFilter } },
-        select: { phone: true, whatsapp: true }
-      })
-      const phones = new Set<string>()
-      for (const l of listings) {
-        if (l.phone) phones.add(l.phone.replace(/[^\d+]/g, ''))
-        if (l.whatsapp) phones.add(l.whatsapp.replace(/[^\d+]/g, ''))
-      }
-      
-      // Override whereCondition.phone to match these business owners
-      whereCondition.phone = { in: Array.from(phones) }
-      // It must be a business owner
-      whereCondition.userType = 'business_owner'
     }
 
     const [totalCount, contacts] = await Promise.all([
