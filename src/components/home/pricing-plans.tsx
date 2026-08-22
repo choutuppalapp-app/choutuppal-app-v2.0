@@ -116,12 +116,7 @@ export function PricingPlans() {
           return (
             <div
               key={p.name}
-              className={cn(
-                'relative flex flex-col overflow-hidden rounded-3xl p-6 transition-all duration-300',
-                p.highlight
-                  ? 'glass-strong ring-2 ring-purple-500 shadow-xl scale-[1.02]'
-                  : 'glass hover-lift hover:border-blue-300',
-              )}
+              className="relative flex flex-col overflow-hidden rounded-3xl p-6 glass hover-lift transition-all duration-300"
             >
               {p.badge ? (
                 <Badge className={cn('absolute right-4 top-4 border-none text-[10px] font-bold', p.highlight ? 'bg-purple-600 text-white' : 'bg-blue-100 text-blue-800')}>
@@ -129,12 +124,7 @@ export function PricingPlans() {
                 </Badge>
               ) : null}
 
-              <div
-                className={cn(
-                  'mb-4 grid h-12 w-12 place-items-center rounded-2xl text-white shadow-md',
-                  p.grad,
-                )}
-              >
+              <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl text-white shadow-md bg-gradient-to-br from-blue-600 to-indigo-600">
                 <Icon className="h-6 w-6" />
               </div>
 
@@ -158,15 +148,7 @@ export function PricingPlans() {
                 ))}
               </ul>
 
-              <Button
-                asChild
-                className={cn(
-                  'mt-5 w-full gap-1.5 font-bold text-xs shadow-md',
-                  p.highlight
-                    ? 'gradient-brand text-white'
-                    : 'bg-blue-600 text-white hover:bg-blue-700',
-                )}
-              >
+              <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md gradient-brand text-white hover:opacity-90 border-0">
                 <a href={waUrl} target="_blank" rel="noopener noreferrer">
                   {p.cta}
                 </a>

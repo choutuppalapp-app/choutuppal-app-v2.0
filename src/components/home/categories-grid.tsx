@@ -101,7 +101,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
         subtitle="Everything in Choutuppal, one tap away."
       />
 
-      <div className="mt-4 flex overflow-x-auto no-scrollbar gap-3 md:grid md:grid-cols-5 lg:grid-cols-10 pb-3 pt-1 scroll-smooth">
+      <div className="flex overflow-x-auto no-scrollbar gap-3 md:grid md:grid-cols-5 lg:grid-cols-10 mt-4">
         {cards.map((c) => {
           const Icon = ICON_MAP[c.icon ?? ''] ?? ICON_MAP[c.slug] ?? Store
           const gradientClass =
@@ -111,7 +111,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
             <Link
               key={c.id}
               href={`/listings?category=${c.slug}`}
-              className="group flex w-[90px] md:w-auto shrink-0 flex-col items-center justify-between rounded-2xl border border-white/60 bg-white/40 p-3.5 text-center backdrop-blur-xl shadow-xs transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-blue-400 hover:bg-white/90 hover:shadow-lg"
+              className="group flex shrink-0 w-20 md:w-auto flex-col items-center justify-between rounded-2xl border border-white/60 bg-white/40 p-3.5 text-center backdrop-blur-xl shadow-xs transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-blue-400 hover:bg-white/90 hover:shadow-lg"
             >
               <div
                 className={cn(

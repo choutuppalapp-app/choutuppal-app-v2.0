@@ -16,8 +16,8 @@ export function CommunityHub() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Agent Card */}
-        <div className="glass hover-lift relative flex flex-col overflow-hidden rounded-3xl p-6 transition-all duration-300">
-          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-md">
+        <div className="relative flex flex-col overflow-hidden rounded-3xl p-6 glass hover-lift transition-all duration-300">
+          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl text-white shadow-md bg-gradient-to-br from-blue-600 to-indigo-600">
             <Briefcase className="h-6 w-6" />
           </div>
           <h3 className="text-base font-extrabold text-slate-900 font-telugu">
@@ -26,7 +26,7 @@ export function CommunityHub() {
           <p className="mt-2 flex-1 text-sm font-medium text-slate-500 font-telugu">
             స్థానిక వ్యాపారాలను యాప్ లో చేర్చి ఆదాయం పొందండి.
           </p>
-          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md bg-blue-600 text-white hover:bg-blue-700">
+          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md gradient-brand text-white hover:opacity-90 border-0">
             <a
               href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to join as an Agent for Choutuppal App.')}`}
               target="_blank"
@@ -38,8 +38,8 @@ export function CommunityHub() {
         </div>
 
         {/* Franchise Card */}
-        <div className="glass hover-lift relative flex flex-col overflow-hidden rounded-3xl p-6 transition-all duration-300">
-          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md">
+        <div className="relative flex flex-col overflow-hidden rounded-3xl p-6 glass hover-lift transition-all duration-300">
+          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl text-white shadow-md bg-gradient-to-br from-blue-600 to-indigo-600">
             <Globe className="h-6 w-6" />
           </div>
           <h3 className="text-base font-extrabold text-slate-900 font-telugu">
@@ -48,7 +48,7 @@ export function CommunityHub() {
           <p className="mt-2 flex-1 text-sm font-medium text-slate-500 font-telugu">
             మీరు ఉండే ఊరిలో చౌటుప్పల్ యాప్ లాంటి యాప్ మొదలుపెట్టండి.
           </p>
-          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md bg-blue-600 text-white hover:bg-blue-700">
+          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md gradient-brand text-white hover:opacity-90 border-0">
             <a
               href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to get info about starting a City Franchise.')}`}
               target="_blank"
@@ -60,8 +60,8 @@ export function CommunityHub() {
         </div>
 
         {/* Social Cards (combined or 3 separate? Let's just make it a single uniform card with multiple links to match grid) */}
-        <div className="glass hover-lift relative flex flex-col overflow-hidden rounded-3xl p-6 transition-all duration-300">
-          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md">
+        <div className="relative flex flex-col overflow-hidden rounded-3xl p-6 glass hover-lift transition-all duration-300">
+          <div className="mb-4 grid h-12 w-12 place-items-center rounded-2xl text-white shadow-md bg-gradient-to-br from-blue-600 to-indigo-600">
             <MessageCircle className="h-6 w-6" />
           </div>
           <h3 className="text-base font-extrabold text-slate-900">Follow Us Online</h3>
