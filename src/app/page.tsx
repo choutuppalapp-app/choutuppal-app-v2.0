@@ -20,7 +20,7 @@ const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans')
 const CommunityHub = nextDynamic(() => import('@/components/home/community-hub').then(m => ({ default: m.CommunityHub })))
 
 // Home page using ISR 1-hour revalidation & force-static for instant Edge caching
-export const revalidate = 0
+export const revalidate = 3600
 export const dynamic = 'force-static'
 
 export default async function Home() {

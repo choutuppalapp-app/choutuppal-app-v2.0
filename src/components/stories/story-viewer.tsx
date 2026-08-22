@@ -235,17 +235,17 @@ export function StoryViewer({
           story.mediaType === 'VIDEO' ? (
             <video
               src={story.mediaUrl}
-              className="h-full w-full object-contain"
+              className="h-full w-full object-cover aspect-[9/16]"
               autoPlay
               muted
               loop
               playsInline
             />
           ) : (
-            <img
+            <img loading="lazy" decoding="async"
               src={story.mediaUrl}
               alt={story.caption ?? 'Story'}
-              className="h-full w-full object-contain"
+              className="h-full w-full object-cover aspect-[9/16]"
             />
           )
         ) : (

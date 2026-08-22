@@ -150,7 +150,7 @@ export function ArticleFooter({
                 >
                   {img ? (
                     <div className="relative aspect-[16/9] w-full overflow-hidden">
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={img}
                         alt={post.title}
                         className="h-full w-full object-cover transition group-hover:scale-105"

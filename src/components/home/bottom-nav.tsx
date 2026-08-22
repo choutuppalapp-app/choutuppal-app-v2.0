@@ -64,9 +64,9 @@ export function BottomNav() {
       </Link>
 
       {/* News */}
-      <Link href="/news" className="flex flex-col items-center justify-center gap-0.5">
-        <Newspaper className={cn('h-5 w-5', isActive('/news') ? 'text-blue-600' : 'text-gray-500')} />
-        <span className={cn('text-[9px] font-medium', isActive('/news') ? 'text-blue-600' : 'text-gray-500')}>News</span>
+      <Link href="/blog" className="flex flex-col items-center justify-center gap-0.5">
+        <Newspaper className={cn('h-5 w-5', isActive('/blog') ? 'text-blue-600' : 'text-gray-500')} />
+        <span className={cn('text-[9px] font-medium', isActive('/blog') ? 'text-blue-600' : 'text-gray-500')}>News</span>
       </Link>
 
       {/* You */}

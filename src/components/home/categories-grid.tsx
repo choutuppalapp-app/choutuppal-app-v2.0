@@ -101,7 +101,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
         subtitle="Everything in Choutuppal, one tap away."
       />
 
-      <div className="flex overflow-x-auto no-scrollbar gap-3 md:grid md:grid-cols-5 lg:grid-cols-10 mt-4">
+      <div className="flex overflow-x-auto no-scrollbar gap-3 md:grid md:grid-cols-10 mt-4">
         {cards.map((c) => {
           const Icon = ICON_MAP[c.icon ?? ''] ?? ICON_MAP[c.slug] ?? Store
           const gradientClass =

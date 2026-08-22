@@ -139,7 +139,7 @@ export function ListingDetailView({
           <div className="relative">
             {/* Cover Image (16:9 aspect ratio) */}
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-              <img
+              <img loading="lazy" decoding="async"
                 src={getCoverUrl(listing)}
                 alt={`${listing.title} cover`}
                 className="h-full w-full object-cover"
@@ -318,7 +318,7 @@ export function ListingDetailView({
                       rel="noopener noreferrer"
                       className="relative h-40 w-40 shrink-0 overflow-hidden rounded-2xl border border-white/50 bg-white/30 shadow-sm sm:h-44 sm:w-44"
                     >
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={url}
                         alt={`${listing.title} gallery image ${i + 1}`}
                         className="h-full w-full object-cover transition hover:scale-105"

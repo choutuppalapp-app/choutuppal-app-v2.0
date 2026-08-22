@@ -99,7 +99,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
               <span className="rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 p-1">
                 <span className="relative grid h-16 w-16 place-items-center overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-blue-500 to-amber-400 text-lg font-bold text-white">
                   {s.owner.image ? (
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={s.owner.image}
                       alt={name}
                       className="h-full w-full object-cover"

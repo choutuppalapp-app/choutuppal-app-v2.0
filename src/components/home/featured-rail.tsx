@@ -60,11 +60,7 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
             >
               {/* cover */}
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
-                <img
-                  src={imgUrl}
-                  alt={l.title}
-                  loading={i < 4 ? 'eager' : 'lazy'}
-                  decoding="async"
+                <img decoding="async" src={imgUrl} alt={l.title} loading={i < 4 ? 'eager' : 'lazy'}
                   className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                 />
                 <span className="absolute left-2.5 top-2.5 z-10 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-amber-700 backdrop-blur shadow-xs">

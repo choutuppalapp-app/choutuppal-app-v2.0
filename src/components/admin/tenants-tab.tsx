@@ -211,7 +211,7 @@ export function TenantsTab() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {t.logoUrl ? (
-                    <img src={t.logoUrl} alt={t.name} className="h-10 w-10 rounded-xl object-contain bg-white p-1 border border-slate-200" />
+                    <img loading="lazy" decoding="async" src={t.logoUrl} alt={t.name} className="h-10 w-10 rounded-xl object-contain bg-white p-1 border border-slate-200" />
                   ) : (
                     <div
                       className="grid h-10 w-10 place-items-center rounded-xl text-white font-extrabold text-base shadow"

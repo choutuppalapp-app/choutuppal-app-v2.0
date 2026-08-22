@@ -158,7 +158,7 @@ export default async function RootLayout({
                 `}
               </Script>
               <noscript>
-                <img
+                <img loading="lazy" decoding="async"
                   height="1"
                   width="1"
                   style={{ display: 'none' }}

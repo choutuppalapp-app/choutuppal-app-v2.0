@@ -96,7 +96,7 @@ export default async function BlogDetailPage({
       <article className="mx-auto max-w-4xl px-3 py-6 sm:px-6">
         {post.coverImage ? (
           <div className="overflow-hidden rounded-[2rem] shadow-lg border border-slate-100 bg-white">
-            <img src={post.coverImage} alt={post.title} className="aspect-[2/1] w-full object-cover" />
+            <img loading="lazy" decoding="async" src={post.coverImage} alt={post.title} className="aspect-[2/1] w-full object-cover" />
           </div>
         ) : null}
 

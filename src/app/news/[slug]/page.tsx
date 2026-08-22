@@ -96,7 +96,7 @@ export default async function NewsDetailPage({
         {/* Featured Image */}
         {article.image ? (
           <div className="overflow-hidden rounded-3xl">
-            <img src={article.image} alt={article.title} className="aspect-[16/9] w-full object-cover" />
+            <img loading="lazy" decoding="async" src={article.image} alt={article.title} className="aspect-[16/9] w-full object-cover" />
           </div>
         ) : null}
 

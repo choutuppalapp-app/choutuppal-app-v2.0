@@ -458,9 +458,7 @@ export function ExploreGrid({
                     className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden">
-                      <img
-                        loading={idx < 4 ? 'eager' : 'lazy'}
-                        decoding="async"
+                      <img decoding="async" loading="lazy"
                         src={cover}
                         alt={l.title}
                         className="h-full w-full object-cover transition group-hover:scale-105"
