@@ -5,7 +5,7 @@ import {
   Users,
   Building2,
   Send,
-  FileText,
+  Shield,
   TrendingUp,
   Loader2,
   RefreshCw,
@@ -53,7 +53,7 @@ export function DashboardView() {
     totalContacts: 0,
     businessOwnersCount: 0,
     messagesSentCount: 0,
-    templatesCount: 0,
+    emergencyGovtCount: 0,
   }
 
   const recentInbound = data?.recentInbound || []
@@ -68,7 +68,7 @@ export function DashboardView() {
             Choutuppal CRM Overview <Sparkles className="h-4 w-4 text-emerald-600" />
           </h2>
           <p className="text-xs text-gray-500">
-            Real-time business leads, active subscriptions, broadcast messages & saved templates.
+            Real-time business leads, active subscriptions, broadcast messages & saved Emergency / Govt.
           </p>
         </div>
 
@@ -140,23 +140,23 @@ export function DashboardView() {
           <p className="mt-1 text-[11px] text-gray-500">Total Meta messages sent</p>
         </div>
 
-        {/* Card 4: Templates */}
+        {/* Card 4: Emergency / Govt */}
         <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-2xs transition hover:shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
-              Templates
+              Emergency / Govt
             </span>
             <div className="grid h-9 w-9 place-items-center rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
-              <FileText className="h-4 w-4" />
+              <Shield className="h-4 w-4" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-gray-900">{stats.templatesCount}</span>
+            <span className="text-2xl font-black text-gray-900">{stats.emergencyGovtCount}</span>
             <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded">
-              Library
+              Priority
             </span>
           </div>
-          <p className="mt-1 text-[11px] text-gray-500">Pre-built WhatsApp templates</p>
+          <p className="mt-1 text-[11px] text-gray-500">Pre-built WhatsApp Emergency / Govt</p>
         </div>
       </div>
 

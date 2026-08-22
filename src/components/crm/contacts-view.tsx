@@ -29,6 +29,8 @@ import { toast } from 'sonner'
 export function ContactsView() {
   const [contacts, setContacts] = useState<any[]>([])
   const [groups, setGroups] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [activeFilter, setActiveFilter] = useState('all')
   const [loading, setLoading] = useState(true)
 
   // Pagination & Filtering State
@@ -37,8 +39,7 @@ export function ContactsView() {
   const [totalCount, setTotalCount] = useState(0)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [typeFilter, setTypeFilter] = useState<'all' | 'customer' | 'business_owner'>('all')
-  const [groupFilter, setGroupFilter] = useState<string>('all')
+  
 
   // Table Checkbox Selection
   const [selectedPhones, setSelectedPhones] = useState<Set<string>>(new Set())
@@ -64,33 +65,42 @@ export function ContactsView() {
   const fetchContactsData = useCallback(async () => {
     setLoading(true)
     try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: '50',
-        ...(debouncedSearch ? { search: debouncedSearch } : {}),
-        ...(typeFilter !== 'all' ? { userType: typeFilter } : {}),
-        ...(groupFilter !== 'all' ? { groupId: groupFilter } : {}),
-      })
+      let url = `/api/crm/contacts?page=${page}&limit=50`
+      if (debouncedSearch) url += `&search=${encodeURIComponent(debouncedSearch)}`
+      
+      if (activeFilter === 'emergency_govt_leader') {
+        url += `&groupId=emergency_govt_leader`
+      } else if (activeFilter !== 'all') {
+        url += `&category=${activeFilter}`
+      }
 
-      const [resC, resG] = await Promise.all([
-        fetch(`/api/admin/whatsapp/contacts?${params.toString()}`),
+      const [resC, resG, resCat] = await Promise.all([
+        fetch(url),
         fetch('/api/admin/whatsapp/groups'),
+        fetch('/api/categories')
       ])
+      
       const jsonC = await resC.json()
-      const jsonG = await resG.json()
+      if (resG.ok) {
+        const jsonG = await resG.json()
+        setGroups(jsonG.groups || [])
+      }
+      if (resCat.ok) {
+        const jsonCat = await resCat.json()
+        setCategories(jsonCat.categories || jsonCat || [])
+      }
 
       if (resC.ok) {
         setContacts(jsonC.contacts || [])
         setTotalCount(jsonC.totalCount || 0)
         setTotalPages(jsonC.totalPages || 1)
       }
-      if (resG.ok) setGroups(jsonG.groups || [])
     } catch {
       toast.error('Failed to load contacts')
     } finally {
       setLoading(false)
     }
-  }, [page, debouncedSearch, typeFilter, groupFilter])
+  }, [page, debouncedSearch, activeFilter])
 
   useEffect(() => {
     fetchContactsData()
@@ -263,45 +273,7 @@ export function ContactsView() {
             />
           </div>
 
-          {/* User Type Filter */}
-          <Select
-            value={typeFilter}
-            onValueChange={(val) => {
-              setTypeFilter(val as any)
-              setPage(1)
-            }}
-          >
-            <SelectTrigger className="h-8 border-gray-200 bg-white text-xs text-gray-900 rounded-lg w-44">
-              <SelectValue placeholder="User Type" />
-            </SelectTrigger>
-            <SelectContent className="bg-white border-gray-200 text-xs">
-              <SelectItem value="all">All User Types</SelectItem>
-              <SelectItem value="customer">Customers Only</SelectItem>
-              <SelectItem value="business_owner">Business Owners Only</SelectItem>
-              <SelectItem value="emergency_govt_leader">Emergency & Govt Leaders</SelectItem>
-            </SelectContent>
-          </Select>
 
-          {/* Group Filter */}
-          <Select
-            value={groupFilter}
-            onValueChange={(val) => {
-              setGroupFilter(val)
-              setPage(1)
-            }}
-          >
-            <SelectTrigger className="h-8 border-gray-200 bg-white text-xs text-gray-900 rounded-lg w-44">
-              <SelectValue placeholder="Group Filter" />
-            </SelectTrigger>
-            <SelectContent className="bg-white border-gray-200 text-xs">
-              <SelectItem value="all">All Contact Groups</SelectItem>
-              {groups.map((g) => (
-                <SelectItem key={g.id} value={g.id}>
-                  📁 {g.name} ({g._count?.contacts || g.contacts?.length || 0})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wider">
