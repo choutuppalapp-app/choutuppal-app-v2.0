@@ -164,7 +164,7 @@ export function PricingPlans() {
                   'mt-5 w-full gap-1.5 font-bold text-xs shadow-md',
                   p.highlight
                     ? 'gradient-brand text-white'
-                    : 'bg-slate-900 text-white hover:bg-slate-800',
+                    : 'bg-blue-600 text-white hover:bg-blue-700',
                 )}
               >
                 <a href={waUrl} target="_blank" rel="noopener noreferrer">

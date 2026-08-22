@@ -22,7 +22,7 @@ import {
 import { SectionHeading } from './section-heading'
 import { cn } from '@/lib/utils'
 
-/** Map DB icon string or slug → Lucide component. */
+/** Map DB icon string or slug -> Lucide component. */
 const ICON_MAP: Record<string, LucideIcon> = {
   UtensilsCrossed,
   'food-dining': UtensilsCrossed,
@@ -101,8 +101,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
         subtitle="Everything in Choutuppal, one tap away."
       />
 
-      {/* Mobile: Horizontal scroll rail with rounded glass cards */}
-      <div className="mt-4 flex gap-3 overflow-x-auto pb-3 pt-1 no-scrollbar md:hidden scroll-smooth">
+      <div className="mt-4 flex overflow-x-auto no-scrollbar gap-3 md:grid md:grid-cols-5 lg:grid-cols-10 pb-3 pt-1 scroll-smooth">
         {cards.map((c) => {
           const Icon = ICON_MAP[c.icon ?? ''] ?? ICON_MAP[c.slug] ?? Store
           const gradientClass =
@@ -112,36 +111,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
             <Link
               key={c.id}
               href={`/listings?category=${c.slug}`}
-              className="group flex w-[90px] shrink-0 flex-col items-center justify-center rounded-2xl border border-white/60 bg-white/40 p-3 text-center backdrop-blur-xl shadow-xs transition-all duration-300 hover:scale-105 hover:border-blue-400 hover:bg-white/80 hover:shadow-md"
-            >
-              <div
-                className={cn(
-                  'mb-2 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br shadow-md transition-transform duration-300 group-hover:scale-110',
-                  gradientClass
-                )}
-              >
-                <Icon className="h-6 w-6 stroke-[2.2]" />
-              </div>
-              <span className="text-[11px] font-bold leading-snug text-slate-800 transition-colors group-hover:text-blue-700">
-                {c.name}
-              </span>
-            </Link>
-          )
-        })}
-      </div>
-
-      {/* Desktop: 10-column responsive grid */}
-      <div className="mt-4 hidden md:grid md:grid-cols-5 lg:grid-cols-10 gap-3.5">
-        {cards.map((c) => {
-          const Icon = ICON_MAP[c.icon ?? ''] ?? ICON_MAP[c.slug] ?? Store
-          const gradientClass =
-            CATEGORY_GRADIENTS[c.slug] ?? 'from-blue-600 to-indigo-600 text-white shadow-blue-500/20'
-
-          return (
-            <Link
-              key={c.id}
-              href={`/listings?category=${c.slug}`}
-              className="group flex flex-col items-center justify-between rounded-2xl border border-white/60 bg-white/40 p-3.5 text-center backdrop-blur-xl shadow-xs transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-blue-400 hover:bg-white/90 hover:shadow-lg"
+              className="group flex w-[90px] md:w-auto shrink-0 flex-col items-center justify-between rounded-2xl border border-white/60 bg-white/40 p-3.5 text-center backdrop-blur-xl shadow-xs transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:border-blue-400 hover:bg-white/90 hover:shadow-lg"
             >
               <div
                 className={cn(
@@ -151,7 +121,7 @@ export function CategoriesGrid({ categories }: CategoriesGridProps) {
               >
                 <Icon className="h-6 w-6 stroke-[2.2]" />
               </div>
-              <span className="text-xs font-bold leading-tight text-slate-800 transition-colors group-hover:text-blue-700">
+              <span className="text-[11px] md:text-xs font-bold leading-tight text-slate-800 transition-colors group-hover:text-blue-700">
                 {c.name}
               </span>
             </Link>

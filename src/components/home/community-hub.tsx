@@ -26,7 +26,7 @@ export function CommunityHub() {
           <p className="mt-2 flex-1 text-sm font-medium text-slate-500 font-telugu">
             స్థానిక వ్యాపారాలను యాప్ లో చేర్చి ఆదాయం పొందండి.
           </p>
-          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md bg-slate-900 text-white hover:bg-slate-800">
+          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md bg-blue-600 text-white hover:bg-blue-700">
             <a
               href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to join as an Agent for Choutuppal App.')}`}
               target="_blank"
@@ -48,7 +48,7 @@ export function CommunityHub() {
           <p className="mt-2 flex-1 text-sm font-medium text-slate-500 font-telugu">
             మీరు ఉండే ఊరిలో చౌటుప్పల్ యాప్ లాంటి యాప్ మొదలుపెట్టండి.
           </p>
-          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md bg-slate-900 text-white hover:bg-slate-800">
+          <Button asChild className="mt-5 w-full gap-1.5 font-bold text-xs shadow-md bg-blue-600 text-white hover:bg-blue-700">
             <a
               href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Hello! I want to get info about starting a City Franchise.')}`}
               target="_blank"
