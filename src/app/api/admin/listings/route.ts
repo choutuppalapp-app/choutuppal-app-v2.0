@@ -129,7 +129,7 @@ try {
 
     if (itemType === 'realestate') {
       const dataToUpdate: any = {}
-      if (typeof isFeatured === 'boolean') dataToUpdate.isFeatured = isFeatured
+      if (isFeatured !== undefined) dataToUpdate.isFeatured = (isFeatured === 'true' || isFeatured === true)
       if (typeof status === 'string') dataToUpdate.status = status
       if (title) dataToUpdate.title = title
       if (description) dataToUpdate.description = description
@@ -150,7 +150,7 @@ try {
     } else {
       // business listing
       const dataToUpdate: any = {}
-      if (typeof isFeatured === 'boolean') dataToUpdate.isFeatured = isFeatured
+      if (isFeatured !== undefined) dataToUpdate.isFeatured = (isFeatured === 'true' || isFeatured === true)
       if (typeof isPremium === 'boolean') dataToUpdate.isPremium = isPremium
       if (typeof status === 'string') dataToUpdate.status = status
       if (expiresAt !== undefined) dataToUpdate.expiresAt = expiresAt ? new Date(expiresAt) : null

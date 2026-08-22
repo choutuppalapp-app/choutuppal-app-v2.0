@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
     const listing = await prisma.listing.create({
       data: {
         ...parsed.data,
+        isFeatured: Boolean((body as any)?.isFeatured),
         slug,
         gallery: parsed.data.gallery ? parsed.data.gallery : undefined,
         servicesCatalog: parsed.data.servicesCatalog ? (parsed.data.servicesCatalog as any) : undefined,
