@@ -3,15 +3,8 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import bcrypt from 'bcryptjs'
-import { prisma } from '@/lib/prisma'
+import { prisma, safeDbQuery } from '@/lib/prisma'
 import { authConfig } from '@/lib/auth.config'
-
-/**
- * Full NextAuth options (Node runtime).
- *
- * Implements credentials and OAuth authentication with Prisma adapter.
- * Sessions use JWT strategy.
- */
 
 const useSecure = process.env.NODE_ENV === 'production' || process.env.NEXTAUTH_URL?.startsWith('https://')
 
@@ -49,29 +42,21 @@ export const authOptions: NextAuthOptions = {
       id: 'credentials',
       name: 'Email or Phone',
       credentials: {
-        identifier: {
-          label: 'Email, Phone or Username',
-          type: 'text',
-          placeholder: 'you@example.com, phone, or username',
-        },
+        identifier: { label: 'Email, Phone or Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         try {
           const rawIdentifier = credentials?.identifier?.trim()
           const password = credentials?.password
-          console.log('[Auth authorize] Login attempt for identifier:', rawIdentifier)
-
-          if (!rawIdentifier || !password) {
-            console.log('[Auth authorize] Missing identifier or password')
-            return null
-          }
+          
+          if (!rawIdentifier || !password) return null
 
           const key = rawIdentifier.toLowerCase()
           const phoneClean = rawIdentifier.replace(/[^\d+]/g, '')
 
-          // Query user by email, username, or phone (case-insensitive)
-          const user = await prisma.user.findFirst({
+          // Query user by email, username, or phone safely
+          const user = await safeDbQuery(() => prisma.user.findFirst({
             where: {
               OR: [
                 { email: { equals: key, mode: 'insensitive' } },
@@ -80,41 +65,18 @@ export const authOptions: NextAuthOptions = {
                 ...(phoneClean ? [{ phone: phoneClean }] : []),
               ],
             },
-          })
+          }), null)
 
-          if (!user) {
-            console.log(`[Auth authorize] User NOT found for identifier: ${rawIdentifier}`)
-            return null
-          }
-
-          console.log(`[Auth authorize] User found: ${user.email || user.username || user.id} | Role: ${user.role}`)
-
-          if (!user.passwordHash) {
-            console.log(`[Auth authorize] User ${user.email} has no password hash set`)
-            return null
-          }
-
-          if (user.isBanned) {
-            console.log(`[Auth authorize] User ${user.email} is banned`)
-            return null
-          }
+          if (!user) return null
+          if (!user.passwordHash) return null
+          if (user.isBanned) return null
 
           let isPasswordValid = await bcrypt.compare(password, user.passwordHash)
-          if (!isPasswordValid) {
-            // Check plaintext fallback match (e.g. initial setup)
-            if (password === user.passwordHash) {
-              isPasswordValid = true
-              console.log('[Auth authorize] Plaintext password match validated')
-            }
+          if (!isPasswordValid && password === user.passwordHash) {
+            isPasswordValid = true
           }
 
-          console.log(`[Auth authorize] Password match result for ${user.email}: ${isPasswordValid ? 'MATCH' : 'MISMATCH'}`)
-
-          if (!isPasswordValid) {
-            return null
-          }
-
-          console.log(`[Auth authorize] Login SUCCESSFUL for ${user.email} (Role: ${user.role})`)
+          if (!isPasswordValid) return null
 
           return {
             id: user.id,
