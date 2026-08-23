@@ -102,7 +102,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             fill
             priority
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-contain bg-slate-100"
           />
         ) : null}
         {/* Gloss overlay */}
@@ -216,7 +216,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 
             {current?.imageUrl ? (
               <div className="relative w-full flex items-center justify-center bg-black">
-                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="aspect-[16/9] w-full h-full object-cover" loading="lazy" decoding="async" />
+                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="aspect-[16/9] w-full h-full object-contain bg-black" loading="lazy" decoding="async" />
               </div>
             ) : null}
 

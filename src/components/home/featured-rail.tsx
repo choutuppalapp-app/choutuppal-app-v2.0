@@ -26,7 +26,7 @@ interface FeaturedRailProps {
 }
 
 export function FeaturedRail({ listings }: FeaturedRailProps) {
-  const topListings = listings.slice(0, 4)
+  const topListings = listings.slice(0, 12)
 
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
