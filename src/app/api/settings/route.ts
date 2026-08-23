@@ -15,8 +15,8 @@ const DEFAULTS: Record<string, string> = {
   social_instagram: 'https://www.instagram.com/choutuppalapp/',
   social_facebook: 'https://www.facebook.com/Choutuppalapp/',
   social_youtube: 'https://www.youtube.com/@choutuppalapp',
-  social_whatsapp_community: 'https://chat.whatsapp.com/Lldpx4K3oECGGTD3ckBgM3',
-  social_whatsapp_channel: 'https://whatsapp.com/channel/0029VbAyp614IBhHFXOBXv08',
+  social_whatsapp_community: 'https://chat.whatsapp.com/ItRGBPJJQSZF6x40IozSJe',
+  social_whatsapp_channel: 'https://whatsapp.com/channel/0029VbD28mkGpLHOk8wrLE1a',
 }
 
 /** GET /api/settings — Returns public settings */

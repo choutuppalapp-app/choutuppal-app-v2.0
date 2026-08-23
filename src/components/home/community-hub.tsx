@@ -70,7 +70,7 @@ export function CommunityHub() {
           </p>
           
           <div className="flex flex-col gap-2 flex-1 justify-end">
-            <a href="https://chat.whatsapp.com/choutuppal" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl bg-white/50 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-white transition shadow-sm border border-slate-100">
+            <a href="https://chat.whatsapp.com/ItRGBPJJQSZF6x40IozSJe" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl bg-white/50 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-white transition shadow-sm border border-slate-100">
               <MessageCircle size={16} className="text-[#25D366]" /> WhatsApp Group
             </a>
             <a href="https://youtube.com/@choutuppalapp" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-xl bg-white/50 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-white transition shadow-sm border border-slate-100">
