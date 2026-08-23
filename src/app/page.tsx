@@ -92,7 +92,7 @@ export default async function Home() {
           </div>
 
           {/* 3. Browse Categories */}
-          <CategoriesGrid categories={data.categories} />
+          <CategoriesGrid />
 
           {/* 4. Top Local Businesses Grid */}
           <FeaturedRail listings={data.featured} />

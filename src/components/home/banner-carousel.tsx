@@ -215,8 +215,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             ) : null}
 
             {current?.imageUrl ? (
-              <div className="relative flex-1 w-full md:aspect-[16/9] overflow-hidden md:rounded-2xl flex items-center justify-center bg-black">
-                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="h-full w-full object-contain" loading="lazy" decoding="async" />
+              <div className="relative w-full flex items-center justify-center bg-black">
+                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="aspect-[16/9] w-full h-full object-cover" loading="lazy" decoding="async" />
               </div>
             ) : null}
 

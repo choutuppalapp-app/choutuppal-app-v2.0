@@ -20,12 +20,10 @@ export async function getActiveStories() {
 }
 
 export async function getActiveBanners() {
-  const tenant = await getCurrentTenant()
-  const tenantFilter = getTenantWhereClause(tenant.id)
   return safeDbQuery(
     () =>
       prisma.banner.findMany({
-        where: { ...tenantFilter, expiresAt: { gt: new Date() }, status: 'APPROVED' },
+        where: { expiresAt: { gt: new Date() }, status: 'APPROVED' },
         orderBy: { createdAt: 'desc' },
         take: 6,
       }),

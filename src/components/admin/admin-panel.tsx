@@ -1415,6 +1415,31 @@ function StoriesTab() {
     return () => { active = false }
   }, [])
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    toast.loading('Uploading media...', { id: 'upload' })
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        setMediaUrl(data.url)
+        setMediaType(file.type.includes('video') ? 'VIDEO' : 'IMAGE')
+        toast.success('Media uploaded successfully', { id: 'upload' })
+      } else {
+        throw new Error(data.error || 'Upload failed')
+      }
+    } catch (err: any) {
+      toast.error(err.message, { id: 'upload' })
+    }
+  }
+
   async function handleCreateStory() {
     if (!mediaUrl.trim()) {
       toast.error('Please upload an image or enter a media URL')
@@ -1434,6 +1459,7 @@ function StoriesTab() {
           hours,
         }),
       })
+      console.log('[AdminStories] POST Payload:', { mediaUrl, mediaType, caption, link, hours })
       const json = await res.json()
       if (!res.ok || !json.ok) throw new Error(json.error || 'Failed to create story')
 
@@ -1592,12 +1618,18 @@ function StoriesTab() {
 
             <div className="space-y-3 text-xs">
               <div>
-                <Label className="mb-1 block font-semibold text-slate-700">Media URL *</Label>
+                <Label className="mb-1 block font-semibold text-slate-700">Upload Media (Image/Video) *</Label>
                 <Input
-                  value={mediaUrl}
-                  onChange={(e) => setMediaUrl(e.target.value)}
-                  placeholder="https://images.choutuppal.in/..."
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleFileUpload}
+                  className="cursor-pointer"
                 />
+                {mediaUrl && (
+                  <p className="mt-1 text-[10px] text-green-600 truncate">
+                    Uploaded: {mediaUrl}
+                  </p>
+                )}
               </div>
 
               <div>

@@ -6,7 +6,6 @@ import { Plus, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Story } from '@prisma/client'
-import { StoryViewer, type StoryItem } from '@/components/stories/story-viewer'
 import { StoryCreator } from '@/components/stories/story-creator'
 
 interface StoriesRailProps {
@@ -24,7 +23,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
   const [creatorOpen, setCreatorOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
 
-  const storyItems: StoryItem[] = stories.map((s) => ({
+  const storyItems = stories.map((s) => ({
     id: s.id,
     mediaUrl: s.mediaUrl,
     mediaType: s.mediaType,
@@ -119,13 +118,72 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
         })}
       </div>
 
-      {/* Full-screen viewer */}
-      {viewerIndex !== null && (
-        <StoryViewer
-          stories={storyItems}
-          startIndex={viewerIndex}
-          onClose={() => setViewerIndex(null)}
-        />
+      {/* Full-screen viewer Modal */}
+      {viewerIndex !== null && storyItems[viewerIndex] && (
+        <div className="fixed inset-0 z-50 h-screen w-screen bg-black flex flex-col items-center justify-center">
+          <div className="w-full h-full md:relative md:max-w-md md:h-[80vh] md:rounded-2xl bg-black overflow-hidden flex items-center justify-center">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => setViewerIndex(null)}
+              className="absolute top-4 right-4 text-white text-3xl z-50 cursor-pointer"
+            >
+              &times;
+            </button>
+
+            {/* Left Nav */}
+            {viewerIndex > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setViewerIndex(viewerIndex - 1)
+                }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer z-50 select-none"
+              >
+                &#8249;
+              </button>
+            )}
+
+            {/* Right Nav */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                if (viewerIndex < storyItems.length - 1) {
+                  setViewerIndex(viewerIndex + 1)
+                } else {
+                  setViewerIndex(null) // Close if it's the last story
+                }
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer z-50 select-none"
+            >
+              &#8250;
+            </button>
+
+            {/* Media Image */}
+            {storyItems[viewerIndex].mediaType === 'VIDEO' ? (
+              <video
+                src={storyItems[viewerIndex].mediaUrl}
+                autoPlay
+                controls
+                playsInline
+                className="aspect-[9/16] w-full h-full object-cover"
+              />
+            ) : (
+              <img
+                src={storyItems[viewerIndex].mediaUrl}
+                alt={storyItems[viewerIndex].caption || 'Story'}
+                className="aspect-[9/16] w-full h-full object-cover"
+              />
+            )}
+            
+            {/* Caption Overlay */}
+            {storyItems[viewerIndex].caption && (
+              <div className="absolute bottom-4 left-4 right-4 text-white text-sm bg-black/50 p-2 rounded-lg backdrop-blur-sm z-40">
+                {storyItems[viewerIndex].caption}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Creator modal */}

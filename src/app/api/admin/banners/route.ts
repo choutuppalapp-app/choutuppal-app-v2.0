@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
+import { getCurrentTenant } from '@/lib/tenant'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
@@ -38,6 +39,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
+    const tenant = await getCurrentTenant()
+    
     // Bulk creation support
     if (Array.isArray(body.items)) {
       const validItems = body.items.filter((item: any) => item && typeof item.imageUrl === 'string' && item.imageUrl.trim())
@@ -56,6 +59,7 @@ export async function POST(request: NextRequest) {
               status: 'APPROVED',
               expiresAt,
               ownerId: user.id,
+              tenantId: tenant.id,
             },
           }),
         ),
@@ -77,6 +81,7 @@ export async function POST(request: NextRequest) {
         status: 'APPROVED',
         expiresAt,
         ownerId: user.id,
+        tenantId: tenant.id,
       },
     })
 

@@ -72,6 +72,30 @@ export function AdminBannersTab() {
     load()
   }, [load])
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    toast.loading('Uploading banner image...', { id: 'upload' })
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        setImageUrl(data.url)
+        toast.success('Banner image uploaded successfully', { id: 'upload' })
+      } else {
+        throw new Error(data.error || 'Upload failed')
+      }
+    } catch (err: any) {
+      toast.error(err.message, { id: 'upload' })
+    }
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     if (!imageUrl) {
@@ -90,6 +114,7 @@ export function AdminBannersTab() {
           link: link.trim() || undefined,
         }),
       })
+      console.log('[AdminBanners] POST Payload:', { imageUrl, title, link })
       const j = await res.json()
       if (!res.ok || !j.ok) throw new Error(j.error || 'Failed to create banner')
 
@@ -135,7 +160,7 @@ export function AdminBannersTab() {
     }
   }
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleCsvUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
@@ -246,11 +271,17 @@ export function AdminBannersTab() {
           <form onSubmit={handleCreate} className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-slate-700">16:9 Banner Image *</Label>
-              <ImageUpload
-                value={imageUrl}
-                onChange={(val) => setImageUrl(val ?? '')}
-                label="Upload Banner (16:9)"
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="cursor-pointer"
               />
+              {imageUrl && (
+                <p className="mt-1 text-[10px] text-green-600 truncate">
+                  Uploaded: {imageUrl}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -298,7 +329,7 @@ export function AdminBannersTab() {
           <form onSubmit={handleBulkSubmit} className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-slate-700">Select CSV File</Label>
-              <Input type="file" accept=".csv,text/csv" onChange={handleFileUpload} className="cursor-pointer" />
+              <Input type="file" accept=".csv,text/csv" onChange={handleCsvUpload} className="cursor-pointer" />
             </div>
 
             <div className="space-y-1.5">
