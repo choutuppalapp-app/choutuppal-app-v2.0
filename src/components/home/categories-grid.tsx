@@ -30,9 +30,7 @@ export function CategoriesGrid() {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
-        eyebrow="EXPLORE"
         title="Browse Categories"
-        subtitle="Find the best local businesses and services in Choutuppal."
       />
 
       {/* Mobile Horizontal Scroll Container */}

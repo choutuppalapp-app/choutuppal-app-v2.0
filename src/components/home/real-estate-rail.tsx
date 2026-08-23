@@ -37,9 +37,7 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
-        eyebrow="Real Estate"
         title="Premium Properties"
-        subtitle="Plots, houses and rentals in & around Choutuppal."
         action={
           <Link href="/listings?tab=realestate">
             <Button

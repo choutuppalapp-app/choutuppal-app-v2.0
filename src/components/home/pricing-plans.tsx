@@ -103,9 +103,7 @@ export function PricingPlans() {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
-        eyebrow="ADVERTISING"
         title="Promote Your Business Locally"
-        subtitle="Transparent, high-impact marketing plans to reach thousands of Choutuppal residents."
       />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">

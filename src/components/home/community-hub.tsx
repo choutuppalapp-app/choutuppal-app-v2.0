@@ -9,9 +9,7 @@ export function CommunityHub() {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6 mt-12">
       <SectionHeading
-        eyebrow="COMMUNITY"
         title="Join Our Network"
-        subtitle="Become a part of the fastest growing digital platform in Choutuppal."
       />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

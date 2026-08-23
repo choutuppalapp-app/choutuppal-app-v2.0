@@ -51,7 +51,7 @@ export function BlogList({ posts }: { posts: Post[] }) {
       </header>
 
       <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4">
-        <SectionHeading eyebrow="Stay Updated" title="Choutuppal Blogs & News" subtitle="Stories, insights, and local updates from the community." />
+        <SectionHeading title="Choutuppal Blogs & News" />
 
         {/* AdSense Slot (Responsive) */}
         <div className="ad-slot w-full h-[250px] bg-gray-100 my-4 flex items-center justify-center text-gray-400 font-medium text-xs rounded-2xl border border-slate-200/60 shadow-inner">

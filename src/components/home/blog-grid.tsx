@@ -23,9 +23,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
-        eyebrow="Articles"
         title="Recent Blogs"
-        subtitle="Informative articles, guides, and stories."
         action={
           <Link href="/blog">
             <Button

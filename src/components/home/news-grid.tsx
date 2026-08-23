@@ -23,9 +23,7 @@ export function NewsGrid({ articles }: NewsGridProps) {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
-        eyebrow="Updates"
         title="Latest News"
-        subtitle="Recent events, announcements, and news from Choutuppal."
         action={
           <Link href="/news">
             <Button

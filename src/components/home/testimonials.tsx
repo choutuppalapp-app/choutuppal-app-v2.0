@@ -32,9 +32,7 @@ export function Testimonials() {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
-        eyebrow="Reviews"
         title="What People Say"
-        subtitle="Loved by businesses and families across Choutuppal."
       />
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {TESTIMONIALS.map((t, i) => (

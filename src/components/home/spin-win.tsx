@@ -39,9 +39,7 @@ export function SpinWin() {
           <div className="grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-2 relative z-10">
             <div>
               <SectionHeading
-                eyebrow="Daily Reward"
                 title="Spin & Win"
-                subtitle="One free spin every day for early-bird users."
               />
               <ul className="mt-4 space-y-3 text-sm font-medium text-slate-700">
                 <li className="flex items-center gap-2">

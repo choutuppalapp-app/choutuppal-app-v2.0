@@ -84,9 +84,7 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
     <section id="shorts" className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <Script src="https://www.instagram.com/embed.js" strategy="afterInteractive" />
       <SectionHeading
-        eyebrow="Watch"
         title="Shorts & Reels"
-        subtitle="Local moments, business reels & temple darshan."
         action={
           <div className="flex items-center gap-2">
             <Button

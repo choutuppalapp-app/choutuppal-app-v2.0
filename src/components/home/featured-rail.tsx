@@ -31,9 +31,7 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
   return (
     <section className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
       <SectionHeading
-        eyebrow="Featured"
         title="Top Local Businesses"
-        subtitle="Top-rated local businesses trusted by the community."
         action={
           <Link href="/listings">
             <Button
