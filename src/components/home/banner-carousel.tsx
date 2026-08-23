@@ -185,12 +185,12 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           onClick={() => setModalOpen(false)}
         >
           <div
-            className="relative h-full w-full bg-black overflow-hidden flex flex-col md:relative md:inset-auto md:h-auto md:max-h-[90vh] md:max-w-3xl md:rounded-3xl md:bg-slate-900 md:border md:border-slate-800 md:p-5"
+            className="fixed inset-0 z-50 h-screen w-screen bg-black flex items-center justify-center md:relative md:inset-auto md:h-auto md:max-h-[90vh] md:max-w-3xl md:rounded-3xl md:bg-slate-900 md:border md:border-slate-800 md:p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setModalOpen(false)}
-              className="absolute top-4 right-4 z-50 text-white text-3xl cursor-pointer"
+              className="absolute top-4 right-4 z-[100] text-white text-4xl bg-black/50 rounded-full p-2 cursor-pointer"
             >
               <X className="h-8 w-8" />
             </button>
@@ -200,14 +200,14 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
                 <button
                   aria-label="Previous banner"
                   onClick={(e) => { e.stopPropagation(); go(-1); }}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-50 text-white text-4xl cursor-pointer"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-[100] text-white text-4xl cursor-pointer"
                 >
                   <ChevronLeft className="h-10 w-10" />
                 </button>
                 <button
                   aria-label="Next banner"
                   onClick={(e) => { e.stopPropagation(); go(1); }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-50 text-white text-4xl cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-[100] text-white text-4xl cursor-pointer"
                 >
                   <ChevronRight className="h-10 w-10" />
                 </button>

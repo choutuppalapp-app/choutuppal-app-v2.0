@@ -121,12 +121,12 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
       {/* Full-screen viewer Modal */}
       {viewerIndex !== null && storyItems[viewerIndex] && (
         <div className="fixed inset-0 z-50 h-screen w-screen bg-black flex flex-col items-center justify-center">
-          <div className="w-full h-full md:relative md:max-w-md md:h-[80vh] md:rounded-2xl bg-black overflow-hidden flex items-center justify-center">
+          <div className="fixed inset-0 z-50 h-screen w-screen bg-black flex flex-col items-center justify-center md:relative md:max-w-md md:h-[80vh] md:rounded-2xl overflow-hidden">
             
             {/* Close Button */}
             <button
               onClick={() => setViewerIndex(null)}
-              className="absolute top-4 right-4 text-white text-3xl z-50 cursor-pointer"
+              className="absolute top-4 right-4 z-[100] text-white text-4xl bg-black/50 rounded-full p-2 cursor-pointer"
             >
               &times;
             </button>
@@ -138,7 +138,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
                   e.stopPropagation()
                   setViewerIndex(viewerIndex - 1)
                 }}
-                className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer z-50 select-none"
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-[100] text-white text-4xl cursor-pointer"
               >
                 &#8249;
               </button>
@@ -154,7 +154,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
                   setViewerIndex(null) // Close if it's the last story
                 }
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer z-50 select-none"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-[100] text-white text-4xl cursor-pointer"
             >
               &#8250;
             </button>
