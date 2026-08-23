@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
-import { ExploreGrid } from '@/components/explore/explore-grid'
+import nextDynamic from 'next/dynamic'
+const ExploreGrid = nextDynamic(() => import('@/components/explore/explore-grid').then(m => ({ default: m.ExploreGrid })), { ssr: true, loading: () => null })
 
 export const revalidate = 3600
 export const dynamic = 'force-static'

@@ -458,7 +458,7 @@ export function ExploreGrid({
                     className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden">
-                      <img decoding="async" loading="lazy"
+                      <img decoding="async" loading="lazy" sizes="(max-width: 768px) 100vw, 33vw"
                         src={cover}
                         alt={l.title}
                         className="h-full w-full object-cover transition group-hover:scale-105"
@@ -523,7 +523,7 @@ export function ExploreGrid({
                     className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden">
-                      <img loading="lazy" decoding="async" src={reCover} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                      <img loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, 33vw" src={reCover} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
                       <Badge className={`absolute left-2 top-2 ${r.listingType === 'SALE' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
                         For {r.listingType === 'SALE' ? 'Sale' : 'Rent'}
                       </Badge>

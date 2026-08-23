@@ -4,7 +4,6 @@ import { Ticker } from '@/components/home/ticker'
 import { prisma } from '@/lib/prisma'
 import { StickySocials } from '@/components/home/sticky-socials'
 import nextDynamic from 'next/dynamic'
-import Link from 'next/link'
 
 // Heavy client components — lazy-loaded to reduce initial JS bundle
 const StoriesRail = nextDynamic(() => import('@/components/home/stories-rail').then(m => ({ default: m.StoriesRail })))

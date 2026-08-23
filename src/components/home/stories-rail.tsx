@@ -9,9 +9,16 @@ import type { Story } from '@prisma/client'
 import { StoryCreator } from '@/components/stories/story-creator'
 
 interface StoriesRailProps {
-  stories: (Story & {
+  stories: {
+    id: string
+    mediaUrl: string
+    mediaType: string
+    caption: string | null
+    views: number
+    expiresAt: Date
+    createdAt: Date
     owner: { username: string | null; name: string | null; image: string | null }
-  })[]
+  }[]
   viewer: {
     isLoggedIn: boolean
     isPremium: boolean
@@ -98,7 +105,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
               <span className="rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 p-1">
                 <span className="relative grid h-16 w-16 place-items-center overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-blue-500 to-amber-400 text-lg font-bold text-white">
                   {s.owner.image ? (
-                    <img loading="lazy" decoding="async"
+                    <img loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, 33vw"
                       src={s.owner.image}
                       alt={name}
                       className="h-full w-full object-cover"

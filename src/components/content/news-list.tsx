@@ -101,7 +101,7 @@ export function NewsList({ articles }: { articles: Article[] }) {
                   <div>
                     <div className="relative aspect-[16/9] w-full overflow-hidden">
                       {a.image ? (
-                        <img loading="lazy" decoding="async" src={a.image} alt={a.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                        <img loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, 33vw" src={a.image} alt={a.title} className="h-full w-full object-cover transition group-hover:scale-105" />
                       ) : (
                         <div className="grid h-full w-full place-items-center gradient-brand">
                           <Newspaper className="h-8 w-8 text-white" />

@@ -13,7 +13,16 @@ export async function getActiveStories() {
         where: { expiresAt: { gt: new Date() } },
         orderBy: { createdAt: 'desc' },
         take: 12,
-        include: { owner: { select: { username: true, name: true, image: true } } },
+        select: {
+          id: true,
+          mediaUrl: true,
+          mediaType: true,
+          caption: true,
+          views: true,
+          expiresAt: true,
+          createdAt: true,
+          owner: { select: { username: true, name: true, image: true } },
+        },
       }),
     [],
   )
@@ -26,6 +35,12 @@ export async function getActiveBanners() {
         where: { expiresAt: { gt: new Date() }, status: 'APPROVED' },
         orderBy: { createdAt: 'desc' },
         take: 6,
+        select: {
+          id: true,
+          title: true,
+          imageUrl: true,
+          link: true,
+        },
       }),
     [],
   )
@@ -37,6 +52,12 @@ export async function getCategories() {
       prisma.category.findMany({
         orderBy: { name: 'asc' },
         take: 12,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          icon: true,
+        },
       }),
     [],
   )
@@ -113,7 +134,13 @@ export async function getShorts() {
         where: tenantFilter,
         orderBy: { createdAt: 'desc' },
         take: 10,
-        include: {
+        select: {
+          id: true,
+          videoUrl: true,
+          thumbnail: true,
+          title: true,
+          views: true,
+          createdAt: true,
           owner: { select: { username: true, name: true } },
         },
       }),

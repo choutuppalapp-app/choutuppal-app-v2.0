@@ -18,9 +18,15 @@ if (!process.env.DATABASE_URL) {
   console.error('[Prisma] CRITICAL: DATABASE_URL environment variable is missing from environment!')
 }
 
+let dbUrl = process.env.DATABASE_URL || ''
+if (dbUrl && !dbUrl.includes('pgbouncer=true')) {
+  dbUrl += dbUrl.includes('?') ? '&pgbouncer=true&connection_limit=1' : '?pgbouncer=true&connection_limit=1'
+}
+
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
+    datasources: { db: { url: dbUrl } },
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
   })
 

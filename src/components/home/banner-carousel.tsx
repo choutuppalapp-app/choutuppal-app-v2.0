@@ -10,7 +10,12 @@ import type { Banner } from '@prisma/client'
 import Image from 'next/image'
 
 interface BannerCarouselProps {
-  banners: Banner[]
+  banners: {
+    id: string
+    title: string | null
+    imageUrl: string
+    link: string | null
+  }[]
 }
 
 const DEFAULT_BANNERS = [
