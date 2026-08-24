@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     let activeTenantId = tenant?.id
     if (!activeTenantId) {
       const defaultTenant = await prisma.tenant.findFirst()
-      activeTenantId = defaultTenant?.id
+      activeTenantId = defaultTenant?.id as string
     }
     
     // Bulk creation support
