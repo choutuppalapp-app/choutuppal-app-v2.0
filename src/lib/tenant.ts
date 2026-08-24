@@ -83,3 +83,36 @@ export const getCurrentTenant = cache(async (): Promise<TenantConfig> => {
     return DEFAULT_TENANT
   }
 })
+
+/**
+ * Bulletproof helper to always return a valid tenant ID,
+ * creating a default tenant if the database is completely empty.
+ */
+export async function getSafeTenantId(): Promise<string | null> {
+  try {
+    // 1. Try to get current tenant
+    const tenant = await getCurrentTenant()
+    if (tenant && tenant.id) {
+      // Make sure this tenant actually exists in the DB (getCurrentTenant might return default config without DB ID)
+      const exists = await prisma.tenant.findUnique({ where: { id: tenant.id } })
+      if (exists) return exists.id
+    }
+
+    // 2. Fallback: find any first tenant
+    const firstTenant = await prisma.tenant.findFirst()
+    if (firstTenant) return firstTenant.id
+
+    // 3. Fallback: completely empty DB, create a default
+    const newTenant = await prisma.tenant.create({
+      data: {
+        name: 'Choutuppal',
+        domain: 'choutuppal.in',
+        adminPhone: '0000000000',
+      }
+    })
+    return newTenant.id
+  } catch (err) {
+    console.error('[getSafeTenantId] Error resolving tenant ID:', err)
+    return null
+  }
+}

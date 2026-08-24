@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
-import { getCurrentTenant } from '@/lib/tenant'
+import { getSafeTenantId } from '@/lib/tenant'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
@@ -39,16 +39,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
-    const tenant = await getCurrentTenant()
-    
     console.log("Received payload (Banners):", body)
     
-    // Ensure we have a valid tenant to avoid foreign key errors
-    let activeTenantId = tenant?.id
-    if (!activeTenantId) {
-      const defaultTenant = await prisma.tenant.findFirst()
-      activeTenantId = defaultTenant?.id as string
+    const tenantId = await getSafeTenantId()
+    if (!tenantId) {
+      return NextResponse.json({ ok: false, error: "Could not resolve or create a tenant." }, { status: 500 })
     }
+    console.log("Using Tenant ID:", tenantId)
     
     // Bulk creation support
     if (Array.isArray(body.items)) {
@@ -69,7 +66,7 @@ export async function POST(request: NextRequest) {
                 status: 'APPROVED',
                 expiresAt,
                 ownerId: user.id,
-                tenantId: activeTenantId as string,
+                tenantId: tenantId,
               },
             }),
           ),
@@ -96,7 +93,7 @@ export async function POST(request: NextRequest) {
           status: 'APPROVED',
           expiresAt,
           ownerId: user.id,
-          tenantId: activeTenantId as string,
+          tenantId: tenantId,
         },
       })
       return NextResponse.json({ ok: true, banner }, { status: 200 })

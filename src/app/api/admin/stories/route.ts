@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireApiAdmin } from '@/lib/session'
 
+import { getSafeTenantId } from '@/lib/tenant'
+
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
@@ -36,6 +38,12 @@ export async function POST(request: NextRequest) {
     const defaultExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
     console.log("Received payload (Stories):", body)
+    
+    const tenantId = await getSafeTenantId()
+    if (!tenantId) {
+      return NextResponse.json({ ok: false, error: "Could not resolve or create a tenant." }, { status: 500 })
+    }
+    console.log("Using Tenant ID:", tenantId)
 
     // Bulk creation support
     if (Array.isArray(body.items)) {
