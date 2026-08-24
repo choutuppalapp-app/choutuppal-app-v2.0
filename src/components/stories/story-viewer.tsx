@@ -61,6 +61,14 @@ export function StoryViewer({
 
   const story = stories[index]
 
+  // Body scroll lock
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
+
   // Progress bar animation
   useEffect(() => {
     if (paused || !story) return
@@ -175,14 +183,14 @@ export function StoryViewer({
   const ownerName = story.owner.name ?? story.owner.username ?? 'User'
 
   return (
-    <div className="fixed inset-0 z-50 h-screen w-screen bg-black flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden">
       {/* Close */}
       <button
         onClick={onClose}
         aria-label="Close"
-        className="absolute top-4 right-4 text-white text-3xl z-50 cursor-pointer"
+        className="absolute top-4 right-4 z-[10001] text-white text-3xl cursor-pointer bg-black/40 rounded-full p-2 h-12 w-12 flex items-center justify-center"
       >
-        <X className="h-5 w-5" />
+        <X className="h-6 w-6" />
       </button>
 
       {/* Delete (owner/admin) */}
@@ -209,14 +217,36 @@ export function StoryViewer({
         ))}
       </div>
 
+      {/* Left Tap Zone (Previous) */}
+      <div
+        className="absolute left-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation()
+          if (index > 0) setIndex((i) => i - 1)
+        }}
+      />
+
+      {/* Right Tap Zone (Next) */}
+      <div
+        className="absolute right-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation()
+          if (index < stories.length - 1) {
+            setIndex((i) => i + 1)
+          } else {
+            onClose()
+          }
+        }}
+      />
+
       {/* Story media */}
-      <div className="relative h-full w-full max-w-md overflow-hidden bg-black md:relative md:inset-auto md:h-[80vh] md:rounded-2xl"
+      <div className="relative h-full w-full flex items-center justify-center pointer-events-none z-[9999]"
         onPointerDown={() => setPaused(true)}
         onPointerUp={() => setPaused(false)}
         onPointerLeave={() => setPaused(false)}
       >
         {/* Owner header */}
-        <div className="absolute left-0 right-0 top-8 z-30 flex items-center gap-2 px-4">
+        <div className="absolute left-0 right-0 top-8 z-[10001] flex items-center gap-2 px-4 pointer-events-auto">
           <Avatar className="h-9 w-9 border-2 border-white">
             <AvatarImage src={story.owner.image ?? undefined} />
             <AvatarFallback className="gradient-brand text-xs text-white">
@@ -234,7 +264,7 @@ export function StoryViewer({
           story.mediaType === 'VIDEO' ? (
             <video
               src={story.mediaUrl}
-              className="h-full w-full object-contain"
+              className="max-h-full max-w-full object-contain pointer-events-auto"
               autoPlay
               muted
               loop
@@ -244,11 +274,11 @@ export function StoryViewer({
             <img loading="lazy" decoding="async"
               src={story.mediaUrl}
               alt={story.caption ?? 'Story'}
-              className="h-full w-full object-contain"
+              className="max-h-full max-w-full object-contain pointer-events-auto"
             />
           )
         ) : (
-          <div className="grid h-full w-full place-items-center gradient-brand p-8 text-center">
+          <div className="grid h-full w-full place-items-center gradient-brand p-8 text-center pointer-events-auto">
             <span className="font-telugu text-lg font-medium text-white">{story.caption ?? 'Story'}</span>
           </div>
         )}
@@ -388,24 +418,6 @@ export function StoryViewer({
           </div>
         )}
       </div>
-
-      {/* Navigation arrows (desktop) */}
-      {index > 0 ? (
-        <button
-          onClick={() => setIndex((i) => Math.max(0, i - 1))}
-          aria-label="Previous"
-          className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer z-50">
-          <ChevronLeft className="h-10 w-10" />
-        </button>
-      ) : null}
-      {true ? (
-        <button
-          onClick={() => { if (index < stories.length - 1) setIndex(index + 1); else onClose(); }}
-          aria-label="Next"
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer z-50">
-          <ChevronRight className="h-10 w-10" />
-        </button>
-      ) : null}
     </div>
   )
 }

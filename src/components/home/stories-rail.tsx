@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -29,6 +29,17 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
   const router = useRouter()
   const [creatorOpen, setCreatorOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (viewerIndex !== null) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [viewerIndex])
 
   const storyItems = stories.map((s) => ({
     id: s.id,
@@ -127,65 +138,58 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
 
       {/* Full-screen viewer Modal */}
       {viewerIndex !== null && storyItems[viewerIndex] && (
-        <div className="fixed inset-0 z-50 h-screen w-screen bg-black flex flex-col items-center justify-center">
-          <div className="fixed inset-0 z-50 h-screen w-screen bg-black flex flex-col items-center justify-center md:relative md:max-w-md md:h-[80vh] md:rounded-2xl overflow-hidden">
-            
-            {/* Close Button */}
-            <button
-              onClick={() => setViewerIndex(null)}
-              className="absolute top-4 right-4 z-[100] text-white text-4xl bg-black/50 rounded-full p-2 cursor-pointer"
-            >
-              &times;
-            </button>
+        <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden">
+          {/* Close Button */}
+          <button
+            onClick={() => setViewerIndex(null)}
+            className="absolute top-4 right-4 z-[10001] text-white text-3xl cursor-pointer bg-black/40 rounded-full p-2 h-12 w-12 flex items-center justify-center"
+          >
+            &times;
+          </button>
 
-            {/* Left Nav */}
-            {viewerIndex > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setViewerIndex(viewerIndex - 1)
-                }}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-[100] text-white text-4xl cursor-pointer"
-              >
-                &#8249;
-              </button>
-            )}
+          {/* Left Tap Zone (Previous) */}
+          <div
+            className="absolute left-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (viewerIndex > 0) setViewerIndex(viewerIndex - 1)
+            }}
+          />
 
-            {/* Right Nav */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                if (viewerIndex < storyItems.length - 1) {
-                  setViewerIndex(viewerIndex + 1)
-                } else {
-                  setViewerIndex(null) // Close if it's the last story
-                }
-              }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-[100] text-white text-4xl cursor-pointer"
-            >
-              &#8250;
-            </button>
+          {/* Right Tap Zone (Next) */}
+          <div
+            className="absolute right-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (viewerIndex < storyItems.length - 1) {
+                setViewerIndex(viewerIndex + 1)
+              } else {
+                setViewerIndex(null)
+              }
+            }}
+          />
 
-            {/* Media Image */}
+          {/* Media Container */}
+          <div className="relative w-full h-full flex items-center justify-center pointer-events-none z-[9999]">
             {storyItems[viewerIndex].mediaType === 'VIDEO' ? (
               <video
                 src={storyItems[viewerIndex].mediaUrl}
                 autoPlay
                 controls
                 playsInline
-                className="aspect-[9/16] w-full h-full object-cover"
+                className="max-h-full max-w-full object-contain pointer-events-auto"
               />
             ) : (
               <img
                 src={storyItems[viewerIndex].mediaUrl}
                 alt={storyItems[viewerIndex].caption || 'Story'}
-                className="aspect-[9/16] w-full h-full object-cover"
+                className="max-h-full max-w-full object-contain pointer-events-auto"
               />
             )}
             
             {/* Caption Overlay */}
             {storyItems[viewerIndex].caption && (
-              <div className="absolute bottom-4 left-4 right-4 text-white text-sm bg-black/50 p-2 rounded-lg backdrop-blur-sm z-40">
+              <div className="absolute bottom-8 left-4 right-4 text-white text-base bg-black/60 p-4 rounded-xl backdrop-blur-md z-[10001] pointer-events-auto text-center">
                 {storyItems[viewerIndex].caption}
               </div>
             )}

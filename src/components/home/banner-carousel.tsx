@@ -49,6 +49,18 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     return () => clearInterval(timer)
   }, [count, isPaused, modalOpen])
 
+  // Body scroll lock for modal
+  useEffect(() => {
+    if (modalOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [modalOpen])
+
   // Touch swipe for mobile
   function onTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX
@@ -185,47 +197,42 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 
       {/* Full-Screen Banner Modal */}
       {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 h-screen w-screen bg-black flex items-center justify-center"
-          onClick={() => setModalOpen(false)}
-        >
-          <div
-            className="fixed inset-0 z-50 h-screen w-screen bg-black flex items-center justify-center md:relative md:inset-auto md:h-auto md:max-h-[90vh] md:max-w-3xl md:rounded-3xl md:bg-slate-900 md:border md:border-slate-800 md:p-5"
-            onClick={(e) => e.stopPropagation()}
+        <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden">
+          <button
+            onClick={() => setModalOpen(false)}
+            className="absolute top-4 right-4 z-[10001] text-white text-3xl cursor-pointer bg-black/40 rounded-full p-2 h-12 w-12 flex items-center justify-center"
           >
-            <button
-              onClick={() => setModalOpen(false)}
-              className="absolute top-4 right-4 z-[100] text-white text-4xl bg-black/50 rounded-full p-2 cursor-pointer"
-            >
-              <X className="h-8 w-8" />
-            </button>
+            <X className="h-6 w-6" />
+          </button>
 
-            {count > 1 ? (
-              <>
-                <button
-                  aria-label="Previous banner"
-                  onClick={(e) => { e.stopPropagation(); go(-1); }}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-[100] text-white text-4xl cursor-pointer"
-                >
-                  <ChevronLeft className="h-10 w-10" />
-                </button>
-                <button
-                  aria-label="Next banner"
-                  onClick={(e) => { e.stopPropagation(); go(1); }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-[100] text-white text-4xl cursor-pointer"
-                >
-                  <ChevronRight className="h-10 w-10" />
-                </button>
-              </>
-            ) : null}
+          {count > 1 ? (
+            <>
+              {/* Left Tap Zone */}
+              <div
+                className="absolute left-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  go(-1)
+                }}
+              />
+              {/* Right Tap Zone */}
+              <div
+                className="absolute right-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  go(1)
+                }}
+              />
+            </>
+          ) : null}
 
+          {/* Media Container */}
+          <div className="relative w-full h-full flex flex-col items-center justify-center pointer-events-none z-[9999]">
             {current?.imageUrl ? (
-              <div className="relative w-full flex items-center justify-center bg-black">
-                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="aspect-[16/9] w-full h-full object-contain bg-black" loading="lazy" decoding="async" />
-              </div>
+              <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="max-h-full max-w-full object-contain pointer-events-auto" loading="lazy" decoding="async" />
             ) : null}
 
-            <div className="p-5 pb-8 md:p-0 md:pt-4 md:pb-0 bg-black md:bg-transparent">
+            <div className="absolute bottom-8 left-4 right-4 bg-black/80 backdrop-blur-md p-5 rounded-2xl pointer-events-auto z-[10001]">
               <h3 className="text-xl md:text-2xl font-black text-white">{current?.title ?? 'Special Offer'}</h3>
               <p className="mt-1 text-xs md:text-sm text-slate-300">
                 Reach customers across Choutuppal, Yadadri &amp; nearby villages.
@@ -248,7 +255,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
                 ) : null}
 
                 <a
-                  href={`https://wa.me/919494348175?text=${encodeURIComponent(`"r,? _,, "؅"? ^ ?__"? ݅?__ ,,?݅,? ?"?"_"?: ${current?.title}`)}`}
+                  href={`https://wa.me/919494348175?text=${encodeURIComponent(`నమస్కారం చౌటుప్పల్ యాప్, నా బిజినెస్ కోసం బ్యానర్ అడ్ ఇవ్వాలనుకుంటున్నాను: ${current?.title}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:flex-1"
