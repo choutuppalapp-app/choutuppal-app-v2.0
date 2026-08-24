@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { Plus, Star } from 'lucide-react'
+import { Plus, Star, Heart, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Story } from '@prisma/client'
@@ -31,10 +31,45 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
   const [creatorOpen, setCreatorOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [isLiked, setIsLiked] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Reset liked state when viewing a new story
+  useEffect(() => {
+    setIsLiked(false)
+  }, [viewerIndex])
+
+  // Auto-play and progress bar
+  useEffect(() => {
+    if (viewerIndex === null) return
+    setProgress(0)
+    
+    const STORY_DURATION = 5000
+    const start = Date.now()
+    
+    const tick = setInterval(() => {
+      const elapsed = Date.now() - start
+      const pct = Math.min(100, (elapsed / STORY_DURATION) * 100)
+      setProgress(pct)
+      
+      if (pct >= 100) {
+        clearInterval(tick)
+        // Note: storyItems length is derived from stories prop. 
+        // We use stories.length to avoid dependency cycle with storyItems if it's declared after this block or not memoized.
+        if (viewerIndex < stories.length - 1) {
+          setViewerIndex(viewerIndex + 1)
+        } else {
+          setViewerIndex(null)
+        }
+      }
+    }, 50)
+    
+    return () => clearInterval(tick)
+  }, [viewerIndex, stories.length])
 
   useEffect(() => {
     if (viewerIndex !== null) {
@@ -176,13 +211,27 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
               }}
             />
 
+            {/* Progress bar */}
+            <div className="absolute top-0 left-0 w-full z-[10001] flex gap-1 p-2">
+              {storyItems.map((_, i) => (
+                <div key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-white/30">
+                  <div
+                    className="h-full bg-white transition-all duration-75 ease-linear"
+                    style={{
+                      width: i < viewerIndex ? '100%' : i === viewerIndex ? `${progress}%` : '0%'
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
             {/* Media Container */}
             <div className="relative w-full h-full flex items-center justify-center pointer-events-none z-[9999]">
               {storyItems[viewerIndex].mediaType === 'VIDEO' ? (
                 <video
                   src={storyItems[viewerIndex].mediaUrl}
                   autoPlay
-                  controls
+                  controls={false}
                   playsInline
                   className="max-h-full max-w-full object-contain pointer-events-auto"
                 />
@@ -196,10 +245,25 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
               
               {/* Caption Overlay */}
               {storyItems[viewerIndex].caption && (
-                <div className="absolute bottom-8 left-4 right-4 text-white text-base bg-black/60 p-4 rounded-xl backdrop-blur-md z-[10001] pointer-events-auto text-center">
+                <div className="absolute bottom-20 left-4 right-4 text-white text-base bg-black/60 p-4 rounded-xl backdrop-blur-md z-[10001] pointer-events-auto text-center">
                   {storyItems[viewerIndex].caption}
                 </div>
               )}
+            </div>
+
+            {/* Bottom Bar: Like & Comment */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex items-center gap-4 z-[10001] pointer-events-auto">
+              <input
+                type="text"
+                placeholder="Reply..."
+                className="flex-1 bg-white/10 text-white rounded-full px-4 py-2 outline-none border border-white/20"
+              />
+              <button className="text-white hover:text-blue-400 shrink-0">
+                <Send className="h-5 w-5" />
+              </button>
+              <button onClick={() => setIsLiked(!isLiked)} className="text-white shrink-0">
+                <Heart className={cn('h-7 w-7 transition', isLiked && 'fill-red-500 text-red-500')} />
+              </button>
             </div>
           </div>
         </div>,
