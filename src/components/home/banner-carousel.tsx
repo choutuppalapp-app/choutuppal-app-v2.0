@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Megaphone, Sparkles, MessageCircle, X, ExternalLink } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Megaphone, Sparkles, MessageCircle, X, ExternalLink, Heart, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import type { Banner } from '@prisma/client'
@@ -30,6 +30,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
   const [isPaused, setIsPaused] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [isLiked, setIsLiked] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
   useEffect(() => {
@@ -54,6 +56,37 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     }, 4000)
     return () => clearInterval(timer)
   }, [count, isPaused, modalOpen])
+
+  // Reset liked state when viewing a new banner
+  useEffect(() => {
+    setIsLiked(false)
+  }, [index])
+
+  // Auto-play and progress bar for modal
+  useEffect(() => {
+    if (!modalOpen || count <= 1) return
+    setProgress(0)
+    
+    const DURATION = 5000
+    const start = Date.now()
+    
+    const tick = setInterval(() => {
+      const elapsed = Date.now() - start
+      const pct = Math.min(100, (elapsed / DURATION) * 100)
+      setProgress(pct)
+      
+      if (pct >= 100) {
+        clearInterval(tick)
+        if (index < count - 1) {
+          setIndex(index + 1)
+        } else {
+          setModalOpen(false)
+        }
+      }
+    }, 50)
+    
+    return () => clearInterval(tick)
+  }, [modalOpen, index, count])
 
   // Body scroll lock for modal
   useEffect(() => {
@@ -233,13 +266,29 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               </>
             ) : null}
 
+            {/* Progress bar */}
+            {count > 1 ? (
+              <div className="absolute top-0 left-0 w-full z-[10001] flex gap-1 p-2">
+                {active.map((_, i) => (
+                  <div key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-white/30">
+                    <div
+                      className="h-full bg-white transition-all duration-75 ease-linear"
+                      style={{
+                        width: i < index ? '100%' : i === index ? `${progress}%` : '0%'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
             {/* Media Container */}
             <div className="relative w-full h-full flex flex-col items-center justify-center pointer-events-none z-[9999]">
               {current?.imageUrl ? (
                 <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="max-h-full max-w-full object-contain pointer-events-auto" loading="lazy" decoding="async" />
               ) : null}
 
-              <div className="absolute bottom-8 left-4 right-4 bg-black/80 backdrop-blur-md p-5 rounded-2xl pointer-events-auto z-[10001]">
+              <div className="absolute bottom-24 left-4 right-4 bg-black/80 backdrop-blur-md p-5 rounded-2xl pointer-events-auto z-[10001]">
                 <h3 className="text-xl md:text-2xl font-black text-white">{current?.title ?? 'Special Offer'}</h3>
                 <p className="mt-1 text-xs md:text-sm text-slate-300">
                   Reach customers across Choutuppal, Yadadri &amp; nearby villages.
@@ -274,6 +323,21 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
                   </a>
                 </div>
               </div>
+            </div>
+
+            {/* Bottom Bar: Like & Comment */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent flex items-center gap-4 z-[10001] pointer-events-auto">
+              <input
+                type="text"
+                placeholder="Reply..."
+                className="flex-1 bg-white/10 text-white rounded-full px-4 py-2 outline-none border border-white/20"
+              />
+              <button className="text-white hover:text-blue-400 shrink-0">
+                <Send className="h-5 w-5" />
+              </button>
+              <button onClick={() => setIsLiked(!isLiked)} className="text-white shrink-0">
+                <Heart className={cn('h-7 w-7 transition', isLiked && 'fill-red-500 text-red-500')} />
+              </button>
             </div>
           </div>
         </div>,
