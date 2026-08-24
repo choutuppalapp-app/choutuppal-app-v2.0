@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Megaphone, Sparkles, MessageCircle, X, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -28,7 +29,12 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
   const [index, setIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const touchStartX = useRef<number | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const active = banners.length > 0 ? banners : DEFAULT_BANNERS
   const count = active.length
@@ -196,79 +202,82 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
       </div>
 
       {/* Full-Screen Banner Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden">
-          <button
-            onClick={() => setModalOpen(false)}
-            className="absolute top-4 right-4 z-[10001] text-white text-3xl cursor-pointer bg-black/40 rounded-full p-2 h-12 w-12 flex items-center justify-center"
-          >
-            <X className="h-6 w-6" />
-          </button>
+      {mounted && modalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] h-screen w-screen bg-black flex items-center justify-center overflow-hidden">
+          <div className="w-full h-full flex items-center justify-center md:relative md:max-w-3xl md:h-[90vh] md:rounded-3xl md:border md:border-slate-800 md:z-50 md:overflow-hidden bg-black md:bg-slate-900">
+            <button
+              onClick={() => setModalOpen(false)}
+              className="absolute top-4 right-4 z-[10001] text-white text-3xl cursor-pointer bg-black/40 rounded-full p-2 h-12 w-12 flex items-center justify-center"
+            >
+              <X className="h-6 w-6" />
+            </button>
 
-          {count > 1 ? (
-            <>
-              {/* Left Tap Zone */}
-              <div
-                className="absolute left-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  go(-1)
-                }}
-              />
-              {/* Right Tap Zone */}
-              <div
-                className="absolute right-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  go(1)
-                }}
-              />
-            </>
-          ) : null}
-
-          {/* Media Container */}
-          <div className="relative w-full h-full flex flex-col items-center justify-center pointer-events-none z-[9999]">
-            {current?.imageUrl ? (
-              <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="max-h-full max-w-full object-contain pointer-events-auto" loading="lazy" decoding="async" />
+            {count > 1 ? (
+              <>
+                {/* Left Tap Zone */}
+                <div
+                  className="absolute left-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    go(-1)
+                  }}
+                />
+                {/* Right Tap Zone */}
+                <div
+                  className="absolute right-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    go(1)
+                  }}
+                />
+              </>
             ) : null}
 
-            <div className="absolute bottom-8 left-4 right-4 bg-black/80 backdrop-blur-md p-5 rounded-2xl pointer-events-auto z-[10001]">
-              <h3 className="text-xl md:text-2xl font-black text-white">{current?.title ?? 'Special Offer'}</h3>
-              <p className="mt-1 text-xs md:text-sm text-slate-300">
-                Reach customers across Choutuppal, Yadadri &amp; nearby villages.
-              </p>
+            {/* Media Container */}
+            <div className="relative w-full h-full flex flex-col items-center justify-center pointer-events-none z-[9999]">
+              {current?.imageUrl ? (
+                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="max-h-full max-w-full object-contain pointer-events-auto" loading="lazy" decoding="async" />
+              ) : null}
 
-              <div className="flex flex-col sm:flex-row items-center gap-3 pt-4">
-                {current?.link ? (
+              <div className="absolute bottom-8 left-4 right-4 bg-black/80 backdrop-blur-md p-5 rounded-2xl pointer-events-auto z-[10001]">
+                <h3 className="text-xl md:text-2xl font-black text-white">{current?.title ?? 'Special Offer'}</h3>
+                <p className="mt-1 text-xs md:text-sm text-slate-300">
+                  Reach customers across Choutuppal, Yadadri &amp; nearby villages.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-4">
+                  {current?.link ? (
+                    <a
+                      href={current.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={trackClick}
+                      className="w-full sm:flex-1"
+                    >
+                      <Button size="lg" className="w-full gap-2 gradient-brand text-white shadow-lg">
+                        <ExternalLink className="h-4 w-4" />
+                        Visit Offer / Learn More
+                      </Button>
+                    </a>
+                  ) : null}
+
                   <a
-                    href={current.link}
+                    href={`https://wa.me/919494348175?text=${encodeURIComponent(`నమస్కారం చౌటుప్పల్ యాప్, నా బిజినెస్ కోసం బ్యానర్ అడ్ ఇవ్వాలనుకుంటున్నాను: ${current?.title}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={trackClick}
                     className="w-full sm:flex-1"
                   >
-                    <Button size="lg" className="w-full gap-2 gradient-brand text-white shadow-lg">
-                      <ExternalLink className="h-4 w-4" />
-                      Visit Offer / Learn More
+                    <Button size="lg" variant="outline" className="w-full gap-2 border-emerald-500 text-emerald-400 bg-transparent hover:bg-emerald-950">
+                      <MessageCircle className="h-4 w-4" />
+                      Inquire on WhatsApp
                     </Button>
                   </a>
-                ) : null}
-
-                <a
-                  href={`https://wa.me/919494348175?text=${encodeURIComponent(`నమస్కారం చౌటుప్పల్ యాప్, నా బిజినెస్ కోసం బ్యానర్ అడ్ ఇవ్వాలనుకుంటున్నాను: ${current?.title}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:flex-1"
-                >
-                  <Button size="lg" variant="outline" className="w-full gap-2 border-emerald-500 text-emerald-400 bg-transparent hover:bg-emerald-950">
-                    <MessageCircle className="h-4 w-4" />
-                    Inquire on WhatsApp
-                  </Button>
-                </a>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   )

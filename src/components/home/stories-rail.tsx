@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { Plus, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -29,6 +30,11 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
   const router = useRouter()
   const [creatorOpen, setCreatorOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (viewerIndex !== null) {
@@ -137,64 +143,67 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
       </div>
 
       {/* Full-screen viewer Modal */}
-      {viewerIndex !== null && storyItems[viewerIndex] && (
-        <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden">
-          {/* Close Button */}
-          <button
-            onClick={() => setViewerIndex(null)}
-            className="absolute top-4 right-4 z-[10001] text-white text-3xl cursor-pointer bg-black/40 rounded-full p-2 h-12 w-12 flex items-center justify-center"
-          >
-            &times;
-          </button>
+      {mounted && viewerIndex !== null && storyItems[viewerIndex] && createPortal(
+        <div className="fixed inset-0 z-[9999] h-screen w-screen bg-black flex items-center justify-center overflow-hidden">
+          <div className="w-full h-full flex items-center justify-center md:relative md:max-w-md md:h-[85vh] md:rounded-2xl md:z-50 md:overflow-hidden md:border md:border-white/10 bg-black">
+            {/* Close Button */}
+            <button
+              onClick={() => setViewerIndex(null)}
+              className="absolute top-4 right-4 z-[10001] text-white text-3xl cursor-pointer bg-black/40 rounded-full p-2 h-12 w-12 flex items-center justify-center"
+            >
+              &times;
+            </button>
 
-          {/* Left Tap Zone (Previous) */}
-          <div
-            className="absolute left-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation()
-              if (viewerIndex > 0) setViewerIndex(viewerIndex - 1)
-            }}
-          />
+            {/* Left Tap Zone (Previous) */}
+            <div
+              className="absolute left-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (viewerIndex > 0) setViewerIndex(viewerIndex - 1)
+              }}
+            />
 
-          {/* Right Tap Zone (Next) */}
-          <div
-            className="absolute right-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation()
-              if (viewerIndex < storyItems.length - 1) {
-                setViewerIndex(viewerIndex + 1)
-              } else {
-                setViewerIndex(null)
-              }
-            }}
-          />
+            {/* Right Tap Zone (Next) */}
+            <div
+              className="absolute right-0 top-0 h-full w-1/2 z-[10000] cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (viewerIndex < storyItems.length - 1) {
+                  setViewerIndex(viewerIndex + 1)
+                } else {
+                  setViewerIndex(null)
+                }
+              }}
+            />
 
-          {/* Media Container */}
-          <div className="relative w-full h-full flex items-center justify-center pointer-events-none z-[9999]">
-            {storyItems[viewerIndex].mediaType === 'VIDEO' ? (
-              <video
-                src={storyItems[viewerIndex].mediaUrl}
-                autoPlay
-                controls
-                playsInline
-                className="max-h-full max-w-full object-contain pointer-events-auto"
-              />
-            ) : (
-              <img
-                src={storyItems[viewerIndex].mediaUrl}
-                alt={storyItems[viewerIndex].caption || 'Story'}
-                className="max-h-full max-w-full object-contain pointer-events-auto"
-              />
-            )}
-            
-            {/* Caption Overlay */}
-            {storyItems[viewerIndex].caption && (
-              <div className="absolute bottom-8 left-4 right-4 text-white text-base bg-black/60 p-4 rounded-xl backdrop-blur-md z-[10001] pointer-events-auto text-center">
-                {storyItems[viewerIndex].caption}
-              </div>
-            )}
+            {/* Media Container */}
+            <div className="relative w-full h-full flex items-center justify-center pointer-events-none z-[9999]">
+              {storyItems[viewerIndex].mediaType === 'VIDEO' ? (
+                <video
+                  src={storyItems[viewerIndex].mediaUrl}
+                  autoPlay
+                  controls
+                  playsInline
+                  className="max-h-full max-w-full object-contain pointer-events-auto"
+                />
+              ) : (
+                <img
+                  src={storyItems[viewerIndex].mediaUrl}
+                  alt={storyItems[viewerIndex].caption || 'Story'}
+                  className="max-h-full max-w-full object-contain pointer-events-auto"
+                />
+              )}
+              
+              {/* Caption Overlay */}
+              {storyItems[viewerIndex].caption && (
+                <div className="absolute bottom-8 left-4 right-4 text-white text-base bg-black/60 p-4 rounded-xl backdrop-blur-md z-[10001] pointer-events-auto text-center">
+                  {storyItems[viewerIndex].caption}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Creator modal */}
