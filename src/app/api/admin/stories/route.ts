@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const defaultExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
 
+    console.log("Received payload (Stories):", body)
+
     // Bulk creation support
     if (Array.isArray(body.items)) {
       const validItems = body.items.filter((item: any) => item && typeof item.mediaUrl === 'string' && item.mediaUrl.trim())
@@ -42,23 +44,28 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: false, error: 'No valid story items found in bulk payload' }, { status: 400 })
       }
 
-      const created = await prisma.$transaction(
-        validItems.map((item: any) => {
-          const durationHours = Number(item.hours) > 0 ? Number(item.hours) : 24
-          const expiresAt = new Date(Date.now() + durationHours * 60 * 60 * 1000)
-          return prisma.story.create({
-            data: {
-              mediaUrl: item.mediaUrl.trim(),
-              mediaType: item.mediaType === 'VIDEO' || String(item.mediaUrl).match(/\.(mp4|mov|webm)$/i) ? 'VIDEO' : 'IMAGE',
-              caption: item.caption ? String(item.caption).trim() : null,
-              link: item.link ? String(item.link).trim() : null,
-              expiresAt,
-              ownerId: auth.user.id,
-            },
-          })
-        }),
-      )
-      return NextResponse.json({ ok: true, count: created.length, stories: created }, { status: 201 })
+      try {
+        const created = await prisma.$transaction(
+          validItems.map((item: any) => {
+            const durationHours = Number(item.hours) > 0 ? Number(item.hours) : 24
+            const expiresAt = new Date(Date.now() + durationHours * 60 * 60 * 1000)
+            return prisma.story.create({
+              data: {
+                mediaUrl: item.mediaUrl.trim(),
+                mediaType: item.mediaType === 'VIDEO' || String(item.mediaUrl).match(/\.(mp4|mov|webm)$/i) ? 'VIDEO' : 'IMAGE',
+                caption: item.caption ? String(item.caption).trim() : null,
+                link: item.link ? String(item.link).trim() : null,
+                expiresAt,
+                ownerId: auth.user.id,
+              },
+            })
+          }),
+        )
+        return NextResponse.json({ ok: true, count: created.length, stories: created }, { status: 201 })
+      } catch (err: any) {
+        console.error('[AdminStoriesAPI] Bulk POST error:', err)
+        return NextResponse.json({ ok: false, error: err.message }, { status: 500 })
+      }
     }
 
     const { mediaUrl, mediaType, caption, link, hours } = body
@@ -69,22 +76,26 @@ export async function POST(request: NextRequest) {
     const durationHours = Number(hours) > 0 ? Number(hours) : 24
     const expiresAt = new Date(Date.now() + durationHours * 60 * 60 * 1000)
 
-    const story = await prisma.story.create({
-      data: {
-        mediaUrl: mediaUrl.trim(),
-        mediaType: mediaType === 'VIDEO' ? 'VIDEO' : 'IMAGE',
-        caption: caption ? String(caption).trim() : null,
-        link: link ? String(link).trim() : null,
-        expiresAt,
-        ownerId: auth.user.id,
-      },
-    })
-
-    return NextResponse.json({ ok: true, story }, { status: 201 })
-  } catch (err) {
-    console.error('[AdminStoriesAPI] POST error:', err)
+    try {
+      const story = await prisma.story.create({
+        data: {
+          mediaUrl: mediaUrl.trim(),
+          mediaType: mediaType === 'VIDEO' ? 'VIDEO' : 'IMAGE',
+          caption: caption ? String(caption).trim() : null,
+          link: link ? String(link).trim() : null,
+          expiresAt,
+          ownerId: auth.user.id,
+        },
+      })
+      return NextResponse.json({ ok: true, story }, { status: 200 })
+    } catch (err: any) {
+      console.error('[AdminStoriesAPI] POST error:', err)
+      return NextResponse.json({ ok: false, error: err.message }, { status: 500 })
+    }
+  } catch (err: any) {
+    console.error('[AdminStoriesAPI] POST outer error:', err)
     return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : 'Failed to create story' },
+      { ok: false, error: err.message || 'Failed to create story' },
       { status: 500 },
     )
   }

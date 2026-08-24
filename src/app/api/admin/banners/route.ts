@@ -41,6 +41,15 @@ export async function POST(request: NextRequest) {
 
     const tenant = await getCurrentTenant()
     
+    console.log("Received payload (Banners):", body)
+    
+    // Ensure we have a valid tenant to avoid foreign key errors
+    let activeTenantId = tenant?.id
+    if (!activeTenantId) {
+      const defaultTenant = await prisma.tenant.findFirst()
+      activeTenantId = defaultTenant?.id
+    }
+    
     // Bulk creation support
     if (Array.isArray(body.items)) {
       const validItems = body.items.filter((item: any) => item && typeof item.imageUrl === 'string' && item.imageUrl.trim())
@@ -48,23 +57,28 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: false, error: 'No valid banner items found in bulk payload' }, { status: 400 })
       }
 
-      const created = await prisma.$transaction(
-        validItems.map((item: any) =>
-          prisma.banner.create({
-            data: {
-              imageUrl: item.imageUrl.trim(),
-              title: item.title ? String(item.title).trim() : 'Banner Ad',
-              link: item.link ? String(item.link).trim() : null,
-              position: item.position || 'HOME_TOP',
-              status: 'APPROVED',
-              expiresAt,
-              ownerId: user.id,
-              tenantId: tenant.id,
-            },
-          }),
-        ),
-      )
-      return NextResponse.json({ ok: true, count: created.length, banners: created }, { status: 201 })
+      try {
+        const created = await prisma.$transaction(
+          validItems.map((item: any) =>
+            prisma.banner.create({
+              data: {
+                imageUrl: item.imageUrl.trim(),
+                title: item.title ? String(item.title).trim() : 'Banner Ad',
+                link: item.link ? String(item.link).trim() : null,
+                position: item.position || 'HOME_TOP',
+                status: 'APPROVED',
+                expiresAt,
+                ownerId: user.id,
+                tenantId: activeTenantId as string,
+              },
+            }),
+          ),
+        )
+        return NextResponse.json({ ok: true, count: created.length, banners: created }, { status: 201 })
+      } catch (err: any) {
+        console.error('[AdminBannersAPI] Bulk POST error:', err)
+        return NextResponse.json({ ok: false, error: err.message }, { status: 500 })
+      }
     }
 
     const { imageUrl, title, link, position } = body
@@ -72,23 +86,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Image URL is required' }, { status: 400 })
     }
 
-    const banner = await prisma.banner.create({
-      data: {
-        imageUrl: imageUrl.trim(),
-        title: title ? String(title).trim() : 'Banner Ad',
-        link: link ? String(link).trim() : null,
-        position: position || 'HOME_TOP',
-        status: 'APPROVED',
-        expiresAt,
-        ownerId: user.id,
-        tenantId: tenant.id,
-      },
-    })
-
-    return NextResponse.json({ ok: true, banner }, { status: 201 })
-  } catch (err) {
-    console.error('[AdminBannersAPI] POST error:', err)
-    return NextResponse.json({ ok: false, error: 'Failed to create banner' }, { status: 500 })
+    try {
+      const banner = await prisma.banner.create({
+        data: {
+          imageUrl: imageUrl.trim(),
+          title: title ? String(title).trim() : 'Banner Ad',
+          link: link ? String(link).trim() : null,
+          position: position || 'HOME_TOP',
+          status: 'APPROVED',
+          expiresAt,
+          ownerId: user.id,
+          tenantId: activeTenantId as string,
+        },
+      })
+      return NextResponse.json({ ok: true, banner }, { status: 200 })
+    } catch (err: any) {
+      console.error('[AdminBannersAPI] POST error:', err)
+      return NextResponse.json({ ok: false, error: err.message }, { status: 500 })
+    }
+  } catch (err: any) {
+    console.error('[AdminBannersAPI] POST outer error:', err)
+    return NextResponse.json({ ok: false, error: err.message || 'Failed to create banner' }, { status: 500 })
   }
 }
 
