@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser } from '@/lib/session'
 import { getCurrentTenant } from '@/lib/tenant'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
     const story = await prisma.story.create({
       data: { ...parsed.data, expiresAt, ownerId: auth.user.id },
     })
+    revalidatePath('/')
     return NextResponse.json({ ok: true, story }, { status: 201 })
   } catch (err: any) {
     console.error('Story Creation Error:', err)

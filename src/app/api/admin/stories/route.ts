@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiAdmin } from '@/lib/session'
 
 import { getSafeTenantId } from '@/lib/tenant'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
             })
           }),
         )
+        revalidatePath('/')
         return NextResponse.json({ ok: true, count: created.length, stories: created }, { status: 201 })
       } catch (err: any) {
         console.error('[AdminStoriesAPI] Bulk POST error:', err)
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
           ownerId: auth.user.id,
         },
       })
+      revalidatePath('/')
       return NextResponse.json({ ok: true, story }, { status: 200 })
     } catch (err: any) {
       console.error('[AdminStoriesAPI] POST error:', err)
@@ -123,6 +126,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.story.delete({ where: { id } })
+    revalidatePath('/')
     return NextResponse.json({ ok: true, message: 'Story deleted successfully' })
   } catch (err) {
     console.error('[AdminStoriesAPI] DELETE error:', err)

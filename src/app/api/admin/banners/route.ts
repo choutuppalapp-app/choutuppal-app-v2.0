@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { getSafeTenantId } from '@/lib/tenant'
 import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest) {
             }),
           ),
         )
+        revalidatePath('/')
         return NextResponse.json({ ok: true, count: created.length, banners: created }, { status: 201 })
       } catch (err: any) {
         console.error('[AdminBannersAPI] Bulk POST error:', err)
@@ -96,6 +98,7 @@ export async function POST(request: NextRequest) {
           tenantId: tenantId,
         },
       })
+      revalidatePath('/')
       return NextResponse.json({ ok: true, banner }, { status: 200 })
     } catch (err: any) {
       console.error('[AdminBannersAPI] POST error:', err)
@@ -123,6 +126,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await prisma.banner.delete({ where: { id } })
+    revalidatePath('/')
     return NextResponse.json({ ok: true, message: 'Banner deleted' })
   } catch (err) {
     console.error('[AdminBannersAPI] DELETE error:', err)
