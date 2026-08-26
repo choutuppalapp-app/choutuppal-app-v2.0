@@ -236,7 +236,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
                   className="max-h-full max-w-full object-contain pointer-events-auto"
                 />
               ) : (
-                <img
+                <img loading="lazy" decoding="async"
                   src={storyItems[viewerIndex].mediaUrl}
                   alt={storyItems[viewerIndex].caption || 'Story'}
                   className="max-h-full max-w-full object-contain pointer-events-auto"

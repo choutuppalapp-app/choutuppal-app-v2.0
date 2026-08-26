@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser, isAdminRole } from '@/lib/session'
-import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
+import { getCurrentTenant, getTenantWhereClause, getSafeTenantId } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -75,20 +75,9 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const tenant = await getCurrentTenant()
-  
-  // Safely resolve tenantId to prevent foreign key constraint violations
-  let resolvedTenantId: string | undefined = tenant.id
-  if (resolvedTenantId === 'choutuppal-default') {
-    const realTenant = await prisma.tenant.findFirst({
-      where: { OR: [{ domain: 'choutuppal.in' }, { name: 'Choutuppal App' }] }
-    }) || await prisma.tenant.findFirst()
-    
-    if (realTenant) {
-      resolvedTenantId = realTenant.id
-    } else {
-      resolvedTenantId = undefined // Let it be null if no tenant exists at all
-    }
+  const resolvedTenantId = await getSafeTenantId()
+  if (!resolvedTenantId) {
+    return NextResponse.json({ ok: false, error: 'Could not resolve or create a tenant.' }, { status: 500 })
   }
 
   const slug = await uniqueSlug(parsed.data.title)

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser } from '@/lib/session'
-import { getCurrentTenant } from '@/lib/tenant'
+import { getSafeTenantId } from '@/lib/tenant'
 import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
@@ -48,6 +48,11 @@ export async function POST(request: NextRequest) {
   const parsed = CreateSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
+  }
+
+  const tenantId = await getSafeTenantId()
+  if (!tenantId) {
+    return NextResponse.json({ ok: false, error: 'Could not resolve or create a tenant.' }, { status: 500 })
   }
 
   const expiresAt = new Date(Date.now() + TTL_HOURS * 60 * 60 * 1000)

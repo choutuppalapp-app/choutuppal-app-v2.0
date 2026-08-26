@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser } from '@/lib/session'
-import { getCurrentTenant } from '@/lib/tenant'
+import { getSafeTenantId } from '@/lib/tenant'
 import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
@@ -33,11 +33,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
   }
 
-  const tenant = await getCurrentTenant()
+  const tenantId = await getSafeTenantId()
+  if (!tenantId) {
+    return NextResponse.json({ ok: false, error: 'Could not resolve or create a tenant.' }, { status: 500 })
+  }
+  
   const expiresAt = new Date(Date.now() + TTL_HOURS * 60 * 60 * 1000)
   try {
     const banner = await prisma.banner.create({
-      data: { ...parsed.data, expiresAt, ownerId: auth.user.id, tenantId: tenant.id },
+      data: { ...parsed.data, expiresAt, ownerId: auth.user.id, tenantId },
     })
     revalidatePath('/')
     return NextResponse.json({ ok: true, banner }, { status: 201 })
