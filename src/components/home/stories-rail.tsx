@@ -16,7 +16,7 @@ interface StoriesRailProps {
     mediaType: string
     caption: string | null
     views: number
-    expiresAt: Date
+    expiresAt: Date | null
     createdAt: Date
     owner: { username: string | null; name: string | null; image: string | null }
   }[]
@@ -88,7 +88,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
     mediaType: s.mediaType,
     caption: s.caption,
     views: s.views,
-    expiresAt: s.expiresAt.toISOString(),
+    expiresAt: s.expiresAt ? s.expiresAt.toISOString() : new Date().toISOString(),
     createdAt: s.createdAt.toISOString(),
     owner: {
       id: '',

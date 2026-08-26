@@ -10,7 +10,7 @@ export async function getActiveStories() {
   return safeDbQuery(
     () =>
       prisma.story.findMany({
-        where: { expiresAt: { gt: new Date() } },
+        where: { expiresAt: { gt: new Date() }, isActive: true },
         orderBy: { createdAt: 'desc' },
         take: 12,
         select: {
@@ -32,7 +32,7 @@ export async function getActiveBanners() {
   return safeDbQuery(
     () =>
       prisma.banner.findMany({
-        where: { expiresAt: { gt: new Date() }, status: 'APPROVED' },
+        where: { expiresAt: { gt: new Date() }, status: 'APPROVED', isActive: true },
         orderBy: { createdAt: 'desc' },
         take: 6,
         select: {

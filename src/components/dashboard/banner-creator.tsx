@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { ImageUploader } from '@/components/ui/image-uploader'
+import { RazorpayCheckout } from '@/components/payment/razorpay-checkout'
 
 interface BannerCreatorProps {
   open: boolean
@@ -62,14 +63,10 @@ export function BannerCreator({ open, onOpenChange, onCreated }: BannerCreatorPr
     }
   }
 
-  async function postBanner() {
-    if (!imageUrl) {
-      toast.error('Please upload a 16:9 banner image first')
-      return
-    }
+  async function postBanner(paymentData: { razorpay_payment_id: string; razorpay_order_id: string }) {
     setPosting(true)
     try {
-      const res = await fetch('/api/banners', {
+      const res = await fetch('/api/admin/banners', { // Use the admin endpoint where payment is required
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -77,6 +74,8 @@ export function BannerCreator({ open, onOpenChange, onCreated }: BannerCreatorPr
           title: title.trim() || undefined,
           link: link.trim() || undefined,
           position,
+          paymentId: paymentData.razorpay_payment_id,
+          orderId: paymentData.razorpay_order_id,
         }),
       })
       let j;
@@ -162,10 +161,23 @@ export function BannerCreator({ open, onOpenChange, onCreated }: BannerCreatorPr
             </Select>
           </div>
 
-          <Button onClick={postBanner} disabled={!imageUrl || posting} className="w-full gap-2 gradient-brand text-white">
-            {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Promote Now (24h)
-          </Button>
+          {imageUrl ? (
+            <RazorpayCheckout
+              amount={99}
+              planName="Banner Ad"
+              onSuccess={postBanner}
+              disabled={posting}
+              className="w-full gap-2 gradient-brand text-white"
+            >
+              {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              Pay & Upload (₹99)
+            </RazorpayCheckout>
+          ) : (
+            <Button disabled className="w-full gap-2 gradient-brand text-white">
+              <Send className="h-4 w-4" />
+              Upload Image First
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

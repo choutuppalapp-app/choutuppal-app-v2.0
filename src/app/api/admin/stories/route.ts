@@ -78,9 +78,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { mediaUrl, mediaType, caption, link, hours } = body
+    const { mediaUrl, mediaType, caption, link, hours, paymentId, orderId } = body
     if (!mediaUrl || typeof mediaUrl !== 'string') {
       return NextResponse.json({ ok: false, error: 'Media URL is required' }, { status: 400 })
+    }
+    
+    if (!paymentId || !orderId) {
+      return NextResponse.json({ ok: false, error: 'Payment is required to post a story' }, { status: 400 })
     }
 
     const durationHours = Number(hours) > 0 ? Number(hours) : 24
@@ -94,6 +98,9 @@ export async function POST(request: NextRequest) {
           caption: caption ? String(caption).trim() : null,
           link: link ? String(link).trim() : null,
           expiresAt,
+          isActive: true,
+          paymentId,
+          orderId,
           ownerId: auth.user.id,
         },
       })

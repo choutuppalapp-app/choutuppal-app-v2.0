@@ -6,9 +6,13 @@ import { Button } from '@/components/ui/button'
 interface RazorpayCheckoutProps {
   amount: number // in INR rupees
   planName: string
+  onSuccess?: (data: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => void
+  disabled?: boolean
+  className?: string
+  children?: React.ReactNode
 }
 
-export function RazorpayCheckout({ amount, planName }: RazorpayCheckoutProps) {
+export function RazorpayCheckout({ amount, planName, onSuccess, disabled, className, children }: RazorpayCheckoutProps) {
   const [loading, setLoading] = useState(false)
 
   const handlePayment = async () => {
@@ -54,7 +58,15 @@ export function RazorpayCheckout({ amount, planName }: RazorpayCheckoutProps) {
             const verifyData = await verifyRes.json()
 
             if (verifyData.success) {
-              alert('Payment Successful!')
+              if (onSuccess) {
+                onSuccess({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                })
+              } else {
+                alert('Payment Successful!')
+              }
             } else {
               alert('Payment Verification Failed!')
             }
@@ -91,8 +103,8 @@ export function RazorpayCheckout({ amount, planName }: RazorpayCheckoutProps) {
   }
 
   return (
-    <Button onClick={handlePayment} disabled={loading} className="w-full">
-      {loading ? 'Processing...' : `Pay ₹${amount}`}
+    <Button onClick={handlePayment} disabled={loading || disabled} className={className || "w-full"}>
+      {loading ? 'Processing...' : children ? children : `Pay ₹${amount}`}
     </Button>
   )
 }

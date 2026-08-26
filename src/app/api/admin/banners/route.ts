@@ -80,9 +80,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { imageUrl, title, link, position } = body
+    const { imageUrl, title, link, position, paymentId, orderId } = body
     if (!imageUrl || typeof imageUrl !== 'string') {
       return NextResponse.json({ ok: false, error: 'Image URL is required' }, { status: 400 })
+    }
+    
+    if (!paymentId || !orderId) {
+      return NextResponse.json({ ok: false, error: 'Payment is required to post a banner' }, { status: 400 })
     }
 
     try {
@@ -94,6 +98,9 @@ export async function POST(request: NextRequest) {
           position: position || 'HOME_TOP',
           status: 'APPROVED',
           expiresAt,
+          isActive: true,
+          paymentId,
+          orderId,
           ownerId: user.id,
           tenantId: tenantId,
         },

@@ -55,8 +55,8 @@ export function MyBannersStories({
   banners: Banner[]
   stories: StoryWithCounts[]
 }) {
-  const activeBanners = banners.filter((b) => new Date(b.expiresAt) > new Date())
-  const activeStories = stories.filter((s) => new Date(s.expiresAt) > new Date())
+  const activeBanners = banners.filter((b) => b.expiresAt && new Date(b.expiresAt) > new Date())
+  const activeStories = stories.filter((s) => s.expiresAt && new Date(s.expiresAt) > new Date())
   const [creatorOpen, setCreatorOpen] = useState(false)
   const [bannerOpen, setBannerOpen] = useState(false)
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
@@ -81,7 +81,7 @@ export function MyBannersStories({
     mediaType: s.mediaType,
     caption: s.caption,
     views: s.views,
-    expiresAt: s.expiresAt.toISOString(),
+    expiresAt: s.expiresAt ? s.expiresAt.toISOString() : new Date().toISOString(),
     createdAt: s.createdAt.toISOString(),
     owner: { id: '', name: null, username: null, image: null },
   }))
@@ -152,7 +152,7 @@ export function MyBannersStories({
                     </div>
                   )}
                   <span className="absolute right-3 top-3">
-                    <CountdownPill expiresAt={b.expiresAt} />
+                    <CountdownPill expiresAt={b.expiresAt ?? new Date()} />
                   </span>
                 </div>
                 <div className="flex items-center justify-between p-3">
@@ -210,7 +210,7 @@ export function MyBannersStories({
                     </span>
                   ) : null}
                   <span className="absolute right-2.5 top-2.5">
-                    <CountdownPill expiresAt={s.expiresAt} />
+                    <CountdownPill expiresAt={s.expiresAt ?? new Date()} />
                   </span>
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 text-white">
                     {s.caption ? <p className="line-clamp-2 text-xs font-medium">{s.caption}</p> : null}
@@ -250,6 +250,9 @@ export function MyBannersStories({
                 createdAt: new Date(newStory.createdAt),
                 expiresAt: new Date(newStory.expiresAt),
                 ownerId: newStory.owner.id || '',
+                isActive: true,
+                paymentId: null,
+                orderId: null,
                 _count: { storyViews: 0, storyReplies: 0, storyLikes: 0 },
               }
               setStoryList((prev) => [fullStory, ...prev])

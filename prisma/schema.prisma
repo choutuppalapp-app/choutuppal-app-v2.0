@@ -280,7 +280,10 @@ model Story {
   caption   String?
   link      String?
   views     Int      @default(0)
-  expiresAt DateTime
+  expiresAt DateTime?
+  isActive  Boolean  @default(true)
+  paymentId String?
+  orderId   String?
   ownerId   String
   owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -342,7 +345,10 @@ model Banner {
   position  String   @default("HOME_TOP")
   status    String   @default("PENDING")
   clicks    Int      @default(0)
-  expiresAt DateTime
+  expiresAt DateTime?
+  isActive  Boolean  @default(true)
+  paymentId String?
+  orderId   String?
   ownerId   String?
   owner     User?    @relation(fields: [ownerId], references: [id])
 

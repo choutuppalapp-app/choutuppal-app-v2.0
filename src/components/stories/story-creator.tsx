@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { ImageUploader } from '@/components/ui/image-uploader'
+import { RazorpayCheckout } from '@/components/payment/razorpay-checkout'
 
 interface StoryCreatorProps {
   open: boolean
@@ -65,17 +66,19 @@ export function StoryCreator({ open, onOpenChange, onCreated }: StoryCreatorProp
     }
   }
 
-  async function postStory() {
-    if (!mediaUrl) {
-      toast.error('Please upload a photo or video first')
-      return
-    }
+  async function postStory(paymentData: { razorpay_payment_id: string; razorpay_order_id: string }) {
     setPosting(true)
     try {
-      const res = await fetch('/api/stories', {
+      const res = await fetch('/api/admin/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mediaUrl, mediaType, caption: caption.trim() || undefined }),
+        body: JSON.stringify({ 
+          mediaUrl, 
+          mediaType, 
+          caption: caption.trim() || undefined,
+          paymentId: paymentData.razorpay_payment_id,
+          orderId: paymentData.razorpay_order_id,
+        }),
       })
       let j;
         try {
@@ -158,14 +161,23 @@ export function StoryCreator({ open, onOpenChange, onCreated }: StoryCreatorProp
           </div>
 
           {/* Post */}
-          <Button
-            onClick={postStory}
-            disabled={!mediaUrl || posting}
-            className="w-full gap-2 gradient-brand text-white"
-          >
-            {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Post Story
-          </Button>
+          {mediaUrl ? (
+            <RazorpayCheckout
+              amount={99}
+              planName="Story Ad"
+              onSuccess={postStory}
+              disabled={posting}
+              className="w-full gap-2 gradient-brand text-white"
+            >
+              {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              Pay & Upload (₹99)
+            </RazorpayCheckout>
+          ) : (
+            <Button disabled className="w-full gap-2 gradient-brand text-white">
+              <Send className="h-4 w-4" />
+              Upload Media First
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
