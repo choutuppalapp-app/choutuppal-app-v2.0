@@ -1,3 +1,4 @@
+// AdSense Update Force
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
 import { Geist, Geist_Mono, Noto_Sans_Telugu } from 'next/font/google'
