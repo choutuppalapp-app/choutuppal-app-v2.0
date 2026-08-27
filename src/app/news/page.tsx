@@ -24,6 +24,7 @@ export default async function NewsPage() {
         prisma.news.findMany({
           where: { ...tenantFilter, isPublished: true },
           orderBy: { createdAt: 'desc' },
+          take: 24,
           select: {
             id: true, slug: true, title: true, summary: true, image: true,
             createdAt: true,
@@ -36,6 +37,7 @@ export default async function NewsPage() {
         prisma.blog.findMany({
           where: { ...tenantFilter, isPublished: true },
           orderBy: { createdAt: 'desc' },
+          take: 24,
           select: {
             id: true, slug: true, title: true, excerpt: true, coverImage: true,
             createdAt: true,

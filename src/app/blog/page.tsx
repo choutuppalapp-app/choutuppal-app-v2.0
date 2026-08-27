@@ -18,6 +18,7 @@ export default async function BlogPage() {
       prisma.blog.findMany({
         where: { isPublished: true },
         orderBy: { createdAt: 'desc' },
+        take: 24,
         select: {
           id: true, slug: true, title: true, excerpt: true, coverImage: true, category: true,
           createdAt: true,
