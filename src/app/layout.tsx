@@ -125,6 +125,7 @@ export default async function RootLayout({
   return (
     <html lang="te" suppressHydrationWarning>
       <head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1914892456105863" crossOrigin="anonymous"></script>
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
       </head>
       <body
