@@ -3,7 +3,7 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
 import { CommunityFeed } from '@/components/community/community-feed'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
@@ -22,7 +22,12 @@ export const metadata: Metadata = {
 }
 
 export default async function CommunityPage() {
-  const viewer = await getCurrentUser().catch(() => null)
+  let viewer: any = null
+  try {
+    viewer = await getCurrentUser()
+  } catch (err) {
+    console.warn('[Community] Failed to get user:', err)
+  }
 
   const posts = await safeDbQuery(
     () =>
@@ -30,7 +35,11 @@ export default async function CommunityPage() {
         where: { author: { isPublic: true, isBanned: false } },
         orderBy: { createdAt: 'desc' },
         take: 30,
-        include: {
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          likes: true,
           author: {
             select: {
               id: true,

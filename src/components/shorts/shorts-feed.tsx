@@ -7,9 +7,7 @@ import type { Short } from '@prisma/client'
 import Script from 'next/script'
 
 interface ShortsFeedProps {
-  shorts: (Short & {
-    owner: { name: string | null; username: string | null }
-  })[]
+  shorts: any[]
 }
 
 const WHATSAPP_LINK =
