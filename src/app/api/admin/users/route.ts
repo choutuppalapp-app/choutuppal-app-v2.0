@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireApiAdmin } from '@/lib/session'
@@ -10,7 +11,7 @@ export async function GET() {
   const auth = await requireApiAdmin()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const users = await prisma.user.findMany({
+  const users = (await (async () => { try { return await prisma.user.findMany({
     orderBy: { createdAt: 'desc' },
     select: {
       id: true, name: true, username: true, email: true, phone: true,
@@ -18,6 +19,6 @@ export async function GET() {
       createdAt: true, image: true,
       _count: { select: { listings: true, realEstates: true } },
     },
-  })
+  }); } catch(e) { return [] as any; } })())
   return NextResponse.json({ ok: true, users })
 }

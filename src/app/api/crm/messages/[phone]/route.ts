@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -19,11 +20,11 @@ export async function GET(
     const { phone } = await params
     const cleanPhone = phone.replace(/\D/g, '')
 
-    const logs = await prisma.whatsAppLog.findMany({
+    const logs = (await (async () => { try { return await prisma.whatsAppLog.findMany({
       where: { phone: cleanPhone },
       orderBy: { createdAt: 'asc' },
       take: 200,
-    })
+    }); } catch(e) { return [] as any; } })())
 
     const contact = await prisma.whatsAppContact.findUnique({
       where: { phone: cleanPhone },

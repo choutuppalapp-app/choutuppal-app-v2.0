@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -33,13 +34,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const listings = await prisma.listing.findMany({
+    const listings = (await (async () => { try { return await prisma.listing.findMany({
       select: {
         title: true,
         phone: true,
         whatsapp: true,
       },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     const seenPhones = new Set<string>()
     const rows: Array<{ phone: string; title: string }> = []

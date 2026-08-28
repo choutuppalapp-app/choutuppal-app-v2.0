@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -22,7 +23,7 @@ const DEFAULTS: Record<string, string> = {
 /** GET /api/settings — Returns public settings */
 export async function GET() {
   try {
-    const rows = await prisma.setting.findMany()
+    const rows = (await (async () => { try { return await prisma.setting.findMany(); } catch(e) { return [] as any; } })())
     const settings: Record<string, string> = {}
     for (const r of rows) {
       settings[r.key] = r.value

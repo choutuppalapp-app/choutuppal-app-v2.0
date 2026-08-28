@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -87,15 +88,15 @@ export async function GET(request: NextRequest) {
 
   const type = request.nextUrl.searchParams.get('type') ?? 'news'
   if (type === 'blog') {
-    const blogs = await prisma.blog.findMany({
+    const blogs = (await (async () => { try { return await prisma.blog.findMany({
       where: { authorId: auth.user.id },
       orderBy: { createdAt: 'desc' },
-    })
+    }); } catch(e) { return [] as any; } })())
     return NextResponse.json({ ok: true, items: blogs })
   }
-  const news = await prisma.news.findMany({
+  const news = (await (async () => { try { return await prisma.news.findMany({
     where: { authorId: auth.user.id },
     orderBy: { createdAt: 'desc' },
-  })
+  }); } catch(e) { return [] as any; } })())
   return NextResponse.json({ ok: true, items: news })
 }

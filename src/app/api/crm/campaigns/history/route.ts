@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -12,10 +13,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const campaigns = await prisma.whatsAppCampaign.findMany({
+    const campaigns = (await (async () => { try { return await prisma.whatsAppCampaign.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50,
-    })
+    }); } catch(e) { return [] as any; } })())
 
     return NextResponse.json({ ok: true, campaigns })
   } catch (err) {

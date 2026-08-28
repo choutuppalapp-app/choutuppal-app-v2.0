@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -8,9 +9,9 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET() {
   try {
-    const templates = await prisma.whatsAppTemplate.findMany({
+    const templates = (await (async () => { try { return await prisma.whatsAppTemplate.findMany({
       orderBy: { createdAt: 'desc' },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     return NextResponse.json({ ok: true, templates })
   } catch (err) {

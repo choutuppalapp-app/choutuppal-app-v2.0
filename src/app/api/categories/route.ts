@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -8,10 +9,10 @@ export const revalidate = 0
 /** GET /api/categories — public list of all categories. */
 export async function GET() {
   try {
-    const categories = await prisma.category.findMany({
+    const categories = (await (async () => { try { return await prisma.category.findMany({
       orderBy: { name: 'asc' },
       select: { id: true, name: true, slug: true, icon: true, description: true },
-    })
+    }); } catch(e) { return [] as any; } })())
     return NextResponse.json(
       { ok: true, categories, data: categories },
       { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' } }

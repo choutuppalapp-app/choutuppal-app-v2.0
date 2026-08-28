@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -12,7 +13,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const contacts = await prisma.whatsAppContact.findMany({
+    const contacts = (await (async () => { try { return await prisma.whatsAppContact.findMany({
       orderBy: { createdAt: 'desc' },
       select: {
         phone: true,
@@ -21,7 +22,7 @@ export async function GET() {
         tag: true,
         dateOfBirth: true,
       },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     let csvContent = 'phone_number,name,user_type,tag,date_of_birth\n'
 

@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { getAIResponse } from '@/lib/ai-agent'
 import { sendWhatsAppMessage } from '@/lib/whatsapp'
@@ -208,7 +209,7 @@ export async function POST(request: NextRequest) {
             .replace(/police|emergency|collector|mla|hospital number|hospital|fire|tahsildar|mpdo|rdo|sarpanch|నంబర్|నెంబర్|ఫోన్/gi, '')
             .trim()
 
-          const emergencyContacts = await prisma.whatsAppContact.findMany({
+          const emergencyContacts = (await (async () => { try { return await prisma.whatsAppContact.findMany({
             where: {
               userType: 'emergency_govt_leader',
               ...(searchKey
@@ -221,7 +222,7 @@ export async function POST(request: NextRequest) {
                 : {}),
             },
             take: 10,
-          })
+          }); } catch(e) { return [] as any; } })())
 
           if (emergencyContacts.length > 0) {
             let emergencyReply = '🚨 *చౌటుప్పల్ అత్యవసర & ప్రభుత్వ ఫోన్ నంబర్లు:*\n\n'
@@ -255,7 +256,7 @@ export async function POST(request: NextRequest) {
             .trim()
 
           if (bizKeyword) {
-            const listings = await prisma.listing.findMany({
+            const listings = (await (async () => { try { return await prisma.listing.findMany({
               where: {
                 title: { contains: bizKeyword, mode: 'insensitive' },
               },
@@ -266,7 +267,7 @@ export async function POST(request: NextRequest) {
                 category: { select: { name: true } },
               },
               take: 5,
-            })
+            }); } catch(e) { return [] as any; } })())
 
             if (listings.length > 0) {
               let bizReply = `🏪 *చౌటుప్పల్ బిజినెస్ వివరాలు ("${bizKeyword}"):*\n\n`
@@ -334,12 +335,12 @@ export async function POST(request: NextRequest) {
         }
 
         if (lowerText.includes('news') || rawText.includes('న్యూస్') || rawText.includes('వార్త')) {
-          const latestNews = await prisma.news.findMany({
+          const latestNews = (await (async () => { try { return await prisma.news.findMany({
             where: { isPublished: true },
             orderBy: { createdAt: 'desc' },
             take: 3,
             select: { title: true, summary: true, slug: true },
-          })
+          }); } catch(e) { return [] as any; } })())
 
           if (latestNews.length > 0) {
             let newsMsg = '📰 చౌటుప్పల్ తాజా వార్తలు:\n\n'

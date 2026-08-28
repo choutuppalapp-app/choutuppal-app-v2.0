@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -12,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: postId } = await params
-  const comments = await prisma.communityComment.findMany({
+  const comments = (await (async () => { try { return await prisma.communityComment.findMany({
     where: { postId },
     orderBy: { createdAt: 'asc' },
     take: 100,
@@ -28,7 +29,7 @@ export async function GET(
         },
       },
     },
-  })
+  }); } catch(e) { return [] as any; } })())
   return NextResponse.json({ ok: true, comments })
 }
 

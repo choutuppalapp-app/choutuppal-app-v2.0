@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -12,7 +13,7 @@ export async function GET() {
     }
 
     // Fetch all distinct category names from Category table that have listings
-    const categories = await prisma.category.findMany({
+    const categories = (await (async () => { try { return await prisma.category.findMany({
       where: {
         listings: {
           some: {}
@@ -25,7 +26,7 @@ export async function GET() {
       orderBy: {
         name: 'asc'
       }
-    })
+    }); } catch(e) { return [] as any; } })())
 
     return NextResponse.json({
       ok: true,

@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -28,11 +29,11 @@ export async function GET() {
 
     const templatesCount = await prisma.whatsAppTemplate.count()
 
-    const recentLogs = await prisma.whatsAppLog.findMany({
+    const recentLogs = (await (async () => { try { return await prisma.whatsAppLog.findMany({
       where: { direction: 'inbound' },
       orderBy: { createdAt: 'desc' },
       take: 5,
-    })
+    }); } catch(e) { return [] as any; } })())
 
     const recentInbound = await Promise.all(
       recentLogs.map(async (log) => {

@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -10,9 +11,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const autoLinks = await prisma.autoLink.findMany({
+    const autoLinks = (await (async () => { try { return await prisma.autoLink.findMany({
       orderBy: { createdAt: 'desc' },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     return NextResponse.json({ ok: true, autoLinks })
   } catch (error) {

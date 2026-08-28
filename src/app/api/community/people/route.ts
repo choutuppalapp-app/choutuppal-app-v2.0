@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   const viewer = await getCurrentUser()
   const q = request.nextUrl.searchParams.get('q')?.trim()
 
-  const people = await prisma.user.findMany({
+  const people = (await (async () => { try { return await prisma.user.findMany({
     where: {
       isPublic: true,
       isBanned: false,
@@ -40,6 +41,6 @@ export async function GET(request: NextRequest) {
       
       village: { select: { name: true } },
     },
-  })
+  }); } catch(e) { return [] as any; } })())
   return NextResponse.json({ ok: true, people })
 }

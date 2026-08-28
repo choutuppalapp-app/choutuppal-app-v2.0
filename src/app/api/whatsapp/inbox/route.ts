@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -13,15 +14,15 @@ export async function GET() {
     }
 
     // 1. Fetch unique phones from WhatsAppLog
-    const logPhones = await prisma.whatsAppLog.findMany({
+    const logPhones = (await (async () => { try { return await prisma.whatsAppLog.findMany({
       select: { phone: true },
       distinct: ['phone'],
-    })
+    }); } catch(e) { return [] as any; } })())
 
     // 2. Fetch unique phones from WhatsAppContact
-    const contactPhones = await prisma.whatsAppContact.findMany({
+    const contactPhones = (await (async () => { try { return await prisma.whatsAppContact.findMany({
       select: { phone: true },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     // Combine & deduplicate phone numbers
     const allPhones = Array.from(

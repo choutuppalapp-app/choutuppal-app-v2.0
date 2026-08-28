@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -80,7 +81,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: listingId } = await params
-  const reviews = await prisma.review.findMany({
+  const reviews = (await (async () => { try { return await prisma.review.findMany({
     where: { listingId },
     orderBy: { createdAt: 'desc' },
     take: 20,
@@ -89,6 +90,6 @@ export async function GET(
         select: { id: true, name: true, username: true, image: true },
       },
     },
-  })
+  }); } catch(e) { return [] as any; } })())
   return NextResponse.json({ ok: true, reviews })
 }

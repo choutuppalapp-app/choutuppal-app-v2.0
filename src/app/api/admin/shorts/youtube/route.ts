@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -216,10 +217,10 @@ export async function POST(request: NextRequest) {
 
     // 3. De-dupe against existing shorts, then insert the new ones.
     const videoIds = items.map((i) => i.snippet.resourceId.videoId).filter(Boolean)
-    const existing = await prisma.short.findMany({
+    const existing = (await (async () => { try { return await prisma.short.findMany({
       where: { youtubeId: { in: videoIds } },
       select: { youtubeId: true },
-    })
+    }); } catch(e) { return [] as any; } })())
     const existingSet = new Set(existing.map((e) => e.youtubeId))
 
     const toCreate = items

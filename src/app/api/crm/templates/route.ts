@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -41,9 +42,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    let templates = await prisma.whatsAppTemplate.findMany({
+    let templates = (await (async () => { try { return await prisma.whatsAppTemplate.findMany({
       orderBy: { createdAt: 'desc' },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     // If empty, auto-seed default templates
     if (templates.length === 0) {
@@ -51,9 +52,9 @@ export async function GET() {
         data: DEFAULT_TEMPLATES,
       })
 
-      templates = await prisma.whatsAppTemplate.findMany({
+      templates = (await (async () => { try { return await prisma.whatsAppTemplate.findMany({
         orderBy: { createdAt: 'desc' },
-      })
+      }); } catch(e) { return [] as any; } })())
     }
 
     return NextResponse.json({ ok: true, templates })

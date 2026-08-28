@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -32,10 +33,10 @@ export async function POST(request: NextRequest) {
   const { title, message, link } = parsed.data
 
   // Fetch all user IDs (non-banned).
-  const users = await prisma.user.findMany({
+  const users = (await (async () => { try { return await prisma.user.findMany({
     where: { isBanned: false },
     select: { id: true },
-  })
+  }); } catch(e) { return [] as any; } })())
 
   if (users.length === 0) {
     return NextResponse.json({ error: 'No users to notify' }, { status: 400 })

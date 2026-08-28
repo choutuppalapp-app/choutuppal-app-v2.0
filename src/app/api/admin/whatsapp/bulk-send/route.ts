@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -43,25 +44,25 @@ export async function POST(request: NextRequest) {
     let targets: { phone: string; name?: string }[] = []
 
     if (recipientMode === 'ALL_USERS') {
-      const users = await prisma.user.findMany({
+      const users = (await (async () => { try { return await prisma.user.findMany({
         where: {
           phone: { not: null },
           isBanned: false,
         },
         select: { phone: true, name: true },
-      })
+      }); } catch(e) { return [] as any; } })())
       targets = users
         .filter((u) => u.phone && u.phone.trim().length > 5)
         .map((u) => ({ phone: u.phone!, name: u.name || 'Valued User' }))
     } else if (recipientMode === 'CONTACT_GROUP' && groupId) {
-      const groupContacts = await prisma.whatsAppContact.findMany({
+      const groupContacts = (await (async () => { try { return await prisma.whatsAppContact.findMany({
         where: {
           groups: {
             some: { id: groupId },
           },
         },
         select: { phone: true, name: true },
-      })
+      }); } catch(e) { return [] as any; } })())
       targets = groupContacts.map((c) => ({ phone: c.phone, name: c.name || 'User' }))
     } else {
       let phoneArray: string[] = []

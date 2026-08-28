@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { getSafeTenantId } from '@/lib/tenant'
@@ -15,12 +16,12 @@ export async function GET() {
       return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const banners = await prisma.banner.findMany({
+    const banners = (await (async () => { try { return await prisma.banner.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         owner: { select: { id: true, name: true, email: true } },
       },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     return NextResponse.json({ ok: true, banners })
   } catch (err) {

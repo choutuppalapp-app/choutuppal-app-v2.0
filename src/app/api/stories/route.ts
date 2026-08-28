@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -72,12 +73,12 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const stories = await prisma.story.findMany({
+  const stories = (await (async () => { try { return await prisma.story.findMany({
     where: { ownerId: auth.user.id },
     orderBy: { createdAt: 'desc' },
     include: {
       _count: { select: { storyViews: true, storyReplies: true, storyLikes: true } },
     },
-  })
+  }); } catch(e) { return [] as any; } })())
   return NextResponse.json({ ok: true, stories })
 }

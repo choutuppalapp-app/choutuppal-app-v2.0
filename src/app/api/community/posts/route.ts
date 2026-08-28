@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
   const tag = request.nextUrl.searchParams.get('tag') // optional filter
   const viewer = await getCurrentUser()
 
-  const posts = await prisma.communityPost.findMany({
+  const posts = (await (async () => { try { return await prisma.communityPost.findMany({
     where: {
       author: { isPublic: true, isBanned: false },
     },
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
       _count: { select: { comments: true } },
       likesRel: viewer ? { where: { userId: viewer.id }, select: { id: true } } : false,
     },
-  })
+  }); } catch(e) { return [] as any; } })())
 
   const serialised = posts.map((p) => ({
     id: p.id,

@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -24,13 +25,13 @@ export async function POST(request: NextRequest) {
 
     if (Array.isArray(customPhones) && customPhones.length > 0) {
       const cleanList = customPhones.map((p: string) => p.replace(/\D/g, '')).filter(Boolean)
-      const dbContacts = await prisma.whatsAppContact.findMany({
+      const dbContacts = (await (async () => { try { return await prisma.whatsAppContact.findMany({
         where: {
           phone: { in: cleanList },
           userType: { not: 'emergency_govt_leader' },
         },
         select: { phone: true, name: true, userType: true },
-      })
+      }); } catch(e) { return [] as any; } })())
 
       const foundSet = new Set(dbContacts.map((c) => c.phone))
       contacts = [...dbContacts]
@@ -50,11 +51,11 @@ export async function POST(request: NextRequest) {
         whereClause.userType = 'customer'
       }
 
-      contacts = await prisma.whatsAppContact.findMany({
+      contacts = (await (async () => { try { return await prisma.whatsAppContact.findMany({
         where: whereClause,
         select: { phone: true, name: true, userType: true },
         take: 500,
-      })
+      }); } catch(e) { return [] as any; } })())
     }
 
     // STRICT MARKETING EXCLUSION GUARANTEE: Never send marketing campaigns to Emergency Services, Police, or Govt Officials

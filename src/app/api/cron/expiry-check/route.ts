@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
@@ -31,12 +32,12 @@ export async function GET(request: NextRequest) {
     // --------------------------------------------------------------------------
     // Task 1: Partner City Tenant Subscriptions Expiry
     // --------------------------------------------------------------------------
-    const expiredTenants = await prisma.tenant.findMany({
+    const expiredTenants = (await (async () => { try { return await prisma.tenant.findMany({
       where: {
         subscriptionExpiresAt: { lt: now },
         subscriptionStatus: { not: 'EXPIRED' },
       },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     let tenantsUpdated = 0
     if (expiredTenants.length > 0) {
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
     // --------------------------------------------------------------------------
     // Task 2: Free User Listings 30-Day Expiry & Alerts
     // --------------------------------------------------------------------------
-    const expiredListings = await prisma.listing.findMany({
+    const expiredListings = (await (async () => { try { return await prisma.listing.findMany({
       where: {
         expiresAt: { lt: now },
         status: { not: 'EXPIRED' },
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
       include: {
         owner: { select: { id: true, name: true, phone: true, email: true } },
       },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     let listingsUpdated = 0
     const alertLogs: string[] = []

@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -11,7 +12,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const groups = await prisma.contactGroup.findMany({
+    const groups = (await (async () => { try { return await prisma.contactGroup.findMany({
       include: {
         contacts: {
           select: { phone: true, name: true, userType: true },
@@ -21,7 +22,7 @@ export async function GET() {
         },
       },
       orderBy: { name: 'asc' },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     return NextResponse.json({ ok: true, groups })
   } catch (err) {

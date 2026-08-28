@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -26,12 +27,12 @@ export async function POST(request: NextRequest) {
       where: { id: categoryId },
     })
 
-    const listings = await prisma.listing.findMany({
+    const listings = (await (async () => { try { return await prisma.listing.findMany({
       where: { categoryId, status: 'APPROVED' },
       take: 5,
       select: { title: true, phone: true, whatsapp: true, address: true },
       orderBy: { views: 'desc' },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     if (listings.length === 0) {
       return NextResponse.json({ error: 'No approved listings found in this category' }, { status: 404 })

@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -24,7 +25,7 @@ export async function GET(
     return NextResponse.json({ error: 'Only the owner can view replies' }, { status: 403 })
   }
 
-  const replies = await prisma.storyReply.findMany({
+  const replies = (await (async () => { try { return await prisma.storyReply.findMany({
     where: { storyId },
     orderBy: { createdAt: 'desc' },
     include: {
@@ -32,7 +33,7 @@ export async function GET(
         select: { id: true, name: true, username: true, image: true },
       },
     },
-  })
+  }); } catch(e) { return [] as any; } })())
   return NextResponse.json({ ok: true, replies })
 }
 

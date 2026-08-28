@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -30,10 +31,10 @@ export async function GET(request: NextRequest) {
     } else if (group.startsWith('category:')) {
       const categoryFilter = decodeURIComponent(group.replace('category:', ''))
       
-      const listings = await prisma.listing.findMany({
+      const listings = (await (async () => { try { return await prisma.listing.findMany({
         where: { category: { name: categoryFilter } },
         select: { phone: true, whatsapp: true }
-      })
+      }); } catch(e) { return [] as any; } })())
       
       const phones = new Set<string>()
       for (const l of listings) {

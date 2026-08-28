@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
@@ -12,9 +13,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const rules = await prisma.triggerRule.findMany({
+    const rules = (await (async () => { try { return await prisma.triggerRule.findMany({
       orderBy: { createdAt: 'desc' },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     return NextResponse.json({ ok: true, rules })
   } catch (err) {

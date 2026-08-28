@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -102,10 +103,10 @@ export async function GET(request: NextRequest) {
     targetUserId = queryUserId
   }
 
-  const realEstates = await prisma.realEstate.findMany({
+  const realEstates = (await (async () => { try { return await prisma.realEstate.findMany({
     where: { ownerId: targetUserId, ...tenantFilter },
     orderBy: { createdAt: 'desc' },
     include: { village: true },
-  })
+  }); } catch(e) { return [] as any; } })())
   return NextResponse.json({ ok: true, realEstates })
 }

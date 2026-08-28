@@ -1,3 +1,4 @@
+import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
@@ -13,7 +14,7 @@ export async function GET() {
       return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const tenants = await prisma.tenant.findMany({
+    const tenants = (await (async () => { try { return await prisma.tenant.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
@@ -26,7 +27,7 @@ export async function GET() {
           },
         },
       },
-    })
+    }); } catch(e) { return [] as any; } })())
 
     return NextResponse.json({ ok: true, tenants })
   } catch (err) {
