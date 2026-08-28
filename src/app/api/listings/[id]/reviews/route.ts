@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiUser } from '@/lib/session'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 const Schema = z.object({
   rating: z.number().int().min(1).max(5),

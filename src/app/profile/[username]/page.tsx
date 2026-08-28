@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { ProfileView } from '@/components/community/profile-view'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 

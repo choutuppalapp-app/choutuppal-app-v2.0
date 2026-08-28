@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
 import { sendWhatsAppMessage, WhatsAppMessagePayloadOptions } from '@/lib/whatsapp'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /**
  * POST /api/admin/whatsapp/bulk-send — Bulk WhatsApp Campaign Sender (Text, Interactive Buttons, Lists, Templates)

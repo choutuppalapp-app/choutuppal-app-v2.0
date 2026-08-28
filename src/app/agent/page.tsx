@@ -2,7 +2,7 @@ import { getCurrentUser, isAgentRole } from '@/lib/session'
 import { AgentPanel } from '@/components/agent/agent-panel'
 import { AgentLoginForm } from '@/components/agent/agent-login-form'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export default async function AgentPage() {
   const user = await getCurrentUser()

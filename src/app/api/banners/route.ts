@@ -7,7 +7,7 @@ import { getSafeTenantId } from '@/lib/tenant'
 import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 const TTL_HOURS = 24
 

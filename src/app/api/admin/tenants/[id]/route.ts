@@ -3,7 +3,7 @@ import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /** PATCH /api/admin/tenants/[id] — Update tenant details */
 export async function PATCH(

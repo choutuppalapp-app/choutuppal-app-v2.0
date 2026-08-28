@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiAgent } from '@/lib/session'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /**
  * GET /api/agent/leads

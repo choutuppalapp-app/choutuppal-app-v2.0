@@ -4,7 +4,7 @@ import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /** GET /api/admin/tenants — List all tenant partner configurations */
 export async function GET() {

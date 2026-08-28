@@ -4,7 +4,7 @@ import { requireApiUser } from '@/lib/session'
 import { deleteFromR2, keyFromUrl } from '@/lib/r2-storage'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireApiUser()

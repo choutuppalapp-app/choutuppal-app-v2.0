@@ -2,7 +2,7 @@ import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { AdminPanel } from '@/components/admin/admin-panel'
 import { AdminLoginForm } from '@/components/admin/admin-login-form'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 export default async function AdminPage() {
   const user = await getCurrentUser()

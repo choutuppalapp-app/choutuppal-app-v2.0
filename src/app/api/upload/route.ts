@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { uploadToR2 } from '@/lib/r2-storage'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /**
  * POST /api/upload — upload file(s) to Cloudflare R2 (or local fallback).

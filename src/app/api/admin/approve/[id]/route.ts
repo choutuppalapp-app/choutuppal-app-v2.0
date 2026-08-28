@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiAdmin } from '@/lib/session'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /**
  * PATCH /api/admin/approve/[id]?type=listing|realestate|banner

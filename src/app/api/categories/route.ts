@@ -1,10 +1,11 @@
+export const revalidate = 3600;
 import { safeDbQuery } from '@/lib/prisma';
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+
+
 
 /** GET /api/categories — public list of all categories. */
 export async function GET() {

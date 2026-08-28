@@ -1,3 +1,4 @@
+export const revalidate = 3600;
 // AdSense Update Force
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'

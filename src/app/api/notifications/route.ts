@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiUser } from '@/lib/session'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /** GET /api/notifications — unread count + latest 5 notifications for the current user. */
 export async function GET(request: NextRequest) {

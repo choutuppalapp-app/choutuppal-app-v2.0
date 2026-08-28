@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiAdmin } from '@/lib/session'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /** GET /api/admin/pending — all Listings, RealEstate & Banners with status PENDING. */
 export async function GET() {

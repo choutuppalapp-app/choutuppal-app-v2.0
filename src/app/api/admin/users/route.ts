@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiAdmin } from '@/lib/session'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /** GET /api/admin/users — list all users (paginated, newest first). */
 export async function GET() {

@@ -5,7 +5,7 @@ import { deleteFromR2, keyFromUrl } from '@/lib/r2-storage'
 import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /** DELETE /api/admin/content/blogs/[id] — delete a blog + its cover image. */
 export async function DELETE(

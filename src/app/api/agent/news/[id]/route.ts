@@ -4,7 +4,7 @@ import { requireApiAgent } from '@/lib/session'
 import { deleteFromR2, keyFromUrl } from '@/lib/r2-storage'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /** DELETE /api/agent/news/[id]?type=news|blog — delete own post + its image. */
 export async function DELETE(

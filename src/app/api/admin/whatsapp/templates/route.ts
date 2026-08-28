@@ -2,7 +2,7 @@ import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /**
  * GET /api/admin/whatsapp/templates — Fetch all saved custom WhatsApp templates

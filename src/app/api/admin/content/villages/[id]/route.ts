@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiAdmin } from '@/lib/session'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /** DELETE /api/admin/content/villages/[id] — delete a village. */
 export async function DELETE(

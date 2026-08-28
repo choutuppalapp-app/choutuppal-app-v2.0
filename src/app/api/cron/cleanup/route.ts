@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { deleteFromR2, keyFromUrl } from '@/lib/r2-storage'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 /**
  * 24-hour auto-delete cron job.
