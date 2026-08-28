@@ -144,15 +144,12 @@ export function ListingDetailView({
                 alt={`${listing.title} cover`}
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-            </div>
-
-            {/* Overlapping Logo (Centered on mobile, left on desktop) + Title & Info */}
-            <div className="px-5 pb-5">
-              <div className="-mt-12 sm:-mt-16 relative z-10 flex flex-col items-center text-center sm:flex-row sm:items-end sm:text-left gap-3 sm:gap-5">
-                
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              
+              {/* Title Overlay */}
+              <div className="absolute bottom-0 left-0 w-full p-4 sm:p-6 flex flex-col sm:flex-row sm:items-end gap-4">
                 {/* Logo (1:1 aspect ratio) */}
-                <div className="h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg relative z-10">
+                <div className="hidden sm:block h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white/20 bg-white shadow-2xl relative z-10">
                   <img
                     loading="lazy"
                     decoding="async"
@@ -163,48 +160,55 @@ export function ListingDetailView({
                 </div>
 
                 {/* Business Title, Category, Rating & Hours */}
-                <div className="min-w-0 flex-1 pb-1">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h1 className="text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
-                        {listing.title}
-                      </h1>
-                      <div className="mt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                        {listing.category ? (
-                          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 font-semibold">
-                            {listing.category.name}
-                          </Badge>
-                        ) : null}
-                        {listing.isFeatured ? (
-                          <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                            <BadgeCheck className="h-3 w-3 text-amber-600" /> Featured
-                          </span>
-                        ) : null}
-                      </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3 sm:hidden mb-2">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 border-white/20 bg-white shadow-lg">
+                      <img
+                        loading="lazy"
+                        decoding="async"
+                        src={getLogoUrl(listing)}
+                        alt={listing.title}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
+                    <h1 className="text-2xl font-black tracking-tight text-white leading-tight line-clamp-2">
+                      {listing.title}
+                    </h1>
+                  </div>
 
-                    {/* Rating & Hours badges */}
-                    <div className="flex items-center justify-center sm:justify-end gap-2.5">
-                      {/* Rating */}
-                      <div className="flex items-center gap-1 rounded-xl bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-700 shadow-sm">
-                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                        <span>{avgRatingDisplay} ⭐</span>
-                      </div>
+                  <h1 className="hidden sm:block text-3xl font-black tracking-tight text-white sm:text-4xl drop-shadow-md mb-2">
+                    {listing.title}
+                  </h1>
 
-                      {/* Hours / Open status */}
-                      <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                        <Clock className="h-3.5 w-3.5 text-blue-600" />
-                        <span>{getBusinessHours(listing)}</span>
-                        <span className="ml-1 rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-green-100 text-green-700">
-                          Open
-                        </span>
-                      </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {listing.category ? (
+                      <Badge className="bg-blue-600/90 text-white hover:bg-blue-600 border-none shadow-sm backdrop-blur-md">
+                        {listing.category.name}
+                      </Badge>
+                    ) : null}
+                    {listing.isFeatured ? (
+                      <span className="flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-xs font-bold text-amber-900 shadow-sm">
+                        <BadgeCheck className="h-3.5 w-3.5" /> Featured
+                      </span>
+                    ) : null}
+                    <div className="flex items-center gap-1 rounded-full bg-black/40 border border-white/20 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md shadow-sm">
+                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                      <span>{avgRatingDisplay} ⭐</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 rounded-full bg-black/40 border border-white/20 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md shadow-sm">
+                      <Clock className="h-3.5 w-3.5 text-blue-200" />
+                      <span>{getBusinessHours(listing)}</span>
+                      <span className="ml-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold bg-green-500 text-white">
+                        Open
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Claim Listing Banner */}
+            {/* Claim Listing Banner */}
+            <div className="px-5 pb-5">
               {!isOwner ? (
                 <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-3 shadow-sm">
                   <div className="flex items-center gap-2.5">
@@ -263,21 +267,37 @@ export function ListingDetailView({
                   Services Catalog
                 </h2>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {services.map((s, i) => (
-                    <div key={i} className="hover-lift rounded-2xl border border-white/40 bg-white/60 p-4 shadow-sm backdrop-blur-md">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-bold text-slate-900">{s.name}</h3>
-                        {s.price ? (
-                          <span className="shrink-0 rounded-full gradient-brand px-2.5 py-0.5 text-xs font-bold text-white shadow-sm">
-                            {s.price}
-                          </span>
-                        ) : null}
+                  {services.map((s, i) => {
+                    const priceText = s.price ? s.price : 'వివరాలు అడగండి';
+                    const waLink = `https://wa.me/919494348175?text=${encodeURIComponent("నమస్కారం, మీ " + listing.title + " లో " + s.name + " సర్వీస్ కావాలి. ధర: " + priceText + ". దయచేసి సమాచారం ఇవ్వండి.")}`;
+                    
+                    return (
+                      <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm border border-slate-100 flex flex-col justify-between h-full">
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900">{s.name}</h3>
+                          {s.description ? (
+                            <p className="mt-1 text-sm text-slate-500">{s.description}</p>
+                          ) : null}
+                          {s.price ? (
+                            <div className="mt-3 text-xl font-extrabold text-green-600">
+                              {s.price}
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="mt-4 flex justify-end">
+                          <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-[#25D366] hover:bg-[#20bd5a] text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                            Product Enquiry
+                          </a>
+                        </div>
                       </div>
-                      {s.description ? (
-                        <p className="mt-1.5 text-xs text-slate-600 leading-normal">{s.description}</p>
-                      ) : null}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
             ) : null}
