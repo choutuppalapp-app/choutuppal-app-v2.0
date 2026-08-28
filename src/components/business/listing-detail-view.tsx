@@ -144,12 +144,12 @@ export function ListingDetailView({
                 alt={`${listing.title} cover`}
                 className="h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              {/* Gradient overlay only visible on md and up */}
+              <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               
-              {/* Title Overlay */}
-              <div className="absolute bottom-0 left-0 w-full p-4 sm:p-6 flex flex-col sm:flex-row sm:items-end gap-4">
-                {/* Logo (1:1 aspect ratio) */}
-                <div className="hidden sm:block h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white/20 bg-white shadow-2xl relative z-10">
+              {/* Title Overlay for Desktop */}
+              <div className="hidden md:flex absolute bottom-0 left-0 w-full p-6 items-end gap-5">
+                <div className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white/20 bg-white shadow-2xl relative z-10">
                   <img
                     loading="lazy"
                     decoding="async"
@@ -159,24 +159,8 @@ export function ListingDetailView({
                   />
                 </div>
 
-                {/* Business Title, Category, Rating & Hours */}
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-3 sm:hidden mb-2">
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 border-white/20 bg-white shadow-lg">
-                      <img
-                        loading="lazy"
-                        decoding="async"
-                        src={getLogoUrl(listing)}
-                        alt={listing.title}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <h1 className="text-2xl font-black tracking-tight text-white leading-tight line-clamp-2">
-                      {listing.title}
-                    </h1>
-                  </div>
-
-                  <h1 className="hidden sm:block text-3xl font-black tracking-tight text-white sm:text-4xl drop-shadow-md mb-2">
+                  <h1 className="text-3xl font-black tracking-tight text-white lg:text-4xl drop-shadow-md mb-2">
                     {listing.title}
                   </h1>
 
@@ -199,6 +183,51 @@ export function ListingDetailView({
                       <Clock className="h-3.5 w-3.5 text-blue-200" />
                       <span>{getBusinessHours(listing)}</span>
                       <span className="ml-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold bg-green-500 text-white">
+                        Open
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Title block (hidden on md) */}
+            <div className="px-4 pb-5 md:hidden">
+              <div className="-mt-12 relative z-10 flex flex-col items-center text-center gap-3">
+                <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg mx-auto">
+                  <img
+                    loading="lazy"
+                    decoding="async"
+                    src={getLogoUrl(listing)}
+                    alt={listing.title}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+
+                <div className="w-full flex flex-col items-center">
+                  <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-tight">
+                    {listing.title}
+                  </h1>
+
+                  <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+                    {listing.category ? (
+                      <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 font-semibold border-none">
+                        {listing.category.name}
+                      </Badge>
+                    ) : null}
+                    {listing.isFeatured ? (
+                      <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                        <BadgeCheck className="h-3 w-3 text-amber-600" /> Featured
+                      </span>
+                    ) : null}
+                    <div className="flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-700 shadow-sm">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <span>{avgRatingDisplay} ⭐</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-700 shadow-sm">
+                      <Clock className="h-3.5 w-3.5 text-blue-600" />
+                      <span>{getBusinessHours(listing)}</span>
+                      <span className="ml-1 rounded-full px-1.5 py-0.2 text-[9px] font-bold bg-green-100 text-green-700">
                         Open
                       </span>
                     </div>
