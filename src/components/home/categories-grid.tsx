@@ -34,7 +34,10 @@ export function CategoriesGrid() {
       />
 
       {/* Mobile Horizontal Scroll Container */}
-      <div className="flex overflow-x-auto no-scrollbar gap-3 md:hidden pb-4">
+      <div 
+        className="flex overflow-x-auto no-scrollbar gap-3 md:hidden pb-4" 
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
         {CATEGORIES.map((cat) => {
           const Icon = cat.icon
           return (

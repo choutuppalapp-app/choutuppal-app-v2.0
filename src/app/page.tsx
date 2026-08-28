@@ -80,7 +80,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:gap-7 px-3 py-4 sm:px-4 sm:py-6 lg:px-6 mt-[-2rem] relative z-20">
+        <div className="mx-auto flex w-full overflow-visible max-w-7xl flex-col gap-6 sm:gap-7 px-3 py-4 sm:px-4 sm:py-6 lg:px-6 mt-[-2rem] relative z-20">
           
           {/* 2. Stories & Banners */}
           <div className="relative w-full overflow-hidden bg-white/40 backdrop-blur-md rounded-[2rem] p-4 shadow-sm border border-white/50">
