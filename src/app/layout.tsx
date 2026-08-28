@@ -127,10 +127,12 @@ export default async function RootLayout({
       <head>
         <Script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1914892456105863" strategy="lazyOnload" crossOrigin="anonymous" />
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}
       >
+        <amp-auto-ads type="adsense" data-ad-client="ca-pub-1914892456105863"></amp-auto-ads>
         <Providers>
           {gaId ? (
             <>
