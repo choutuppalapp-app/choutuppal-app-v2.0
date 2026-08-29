@@ -105,7 +105,7 @@ export default function CrmPage() {
           />
           <div className="relative z-50 w-64 h-full bg-white shadow-2xl flex flex-col">
             <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
-              <span className="font-extrabold text-xs text-gray-900">CRM Menu</span>
+              <span className="font-extrabold text-xs text-gray-900">WACRM Menu</span>
               <button
                 onClick={() => setMobileDrawerOpen(false)}
                 className="p-1 rounded-lg text-gray-500 hover:bg-gray-200"

@@ -188,7 +188,7 @@ export function ContactsView() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-gray-200 pb-4 bg-white p-5 rounded-2xl border shadow-xs">
         <div>
           <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-            CRM Contacts Directory & Groups <Users className="h-5 w-5 text-emerald-600" />
+            WACRM Contacts Directory & Groups <Users className="h-5 w-5 text-emerald-600" />
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             Manage your leads, segment users into groups, and run targeted campaigns.
