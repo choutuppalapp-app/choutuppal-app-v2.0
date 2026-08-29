@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -388,7 +389,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
                 >
                   {m.imageUrl || m.mediaUrl ? (
                     <div className="mb-2 overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-                      <img loading="lazy" decoding="async"
+                      <Image width={800} height={800} loading="lazy" decoding="async"
                         src={m.imageUrl || m.mediaUrl || ''}
                         alt="Attachment preview"
                         className="max-h-48 w-full object-cover"
@@ -426,7 +427,7 @@ export function ChatWindow({ phone, onBackMobile, onContactUpdated }: ChatWindow
         {mediaUrl ? (
           <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-xl border border-emerald-200">
             <div className="h-10 w-10 shrink-0 rounded-lg overflow-hidden border border-emerald-300 bg-white">
-              <img loading="lazy" decoding="async" src={mediaUrl} alt="Attached preview" className="h-full w-full object-cover" />
+              <Image width={800} height={800} loading="lazy" decoding="async" src={mediaUrl} alt="Attached preview" className="h-full w-full object-cover" />
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="text-xs font-bold text-emerald-950 truncate">Image Attached</p>

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 export const revalidate = 3600;
 // AdSense Update Force
 import type { Metadata, Viewport } from 'next'
@@ -172,9 +173,9 @@ export default async function RootLayout({
                 `}
               </Script>
               <noscript>
-                <img loading="lazy" decoding="async"
-                  height="1"
-                  width="1"
+                <Image width={1} height={1} loading="lazy" decoding="async"
+                  
+                  
                   style={{ display: 'none' }}
                   src={`https://www.facebook.com/tr?id=${fbPixelId}&ev=PageView&noscript=1`}
                   alt=""

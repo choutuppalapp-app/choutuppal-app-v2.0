@@ -285,7 +285,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             {/* Media Container */}
             <div className="relative w-full h-full flex flex-col items-center justify-center pointer-events-none z-[9999]">
               {current?.imageUrl ? (
-                <img src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="max-h-full max-w-full object-contain pointer-events-auto" loading="lazy" decoding="async" />
+                <Image width={800} height={800} src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="max-h-full max-w-full object-contain pointer-events-auto" loading="lazy" decoding="async" />
               ) : null}
 
               <div className="absolute bottom-24 left-4 right-4 bg-black/80 backdrop-blur-md p-5 rounded-2xl pointer-events-auto z-[10001]">

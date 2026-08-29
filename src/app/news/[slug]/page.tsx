@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -96,7 +97,7 @@ export default async function NewsDetailPage({
         {/* Featured Image */}
         {article.image ? (
           <div className="overflow-hidden rounded-3xl">
-            <img loading="lazy" decoding="async" src={article.image} alt={article.title} className="aspect-[16/9] w-full object-cover" />
+            <Image width={800} height={800} loading="lazy" decoding="async" src={article.image} alt={article.title} className="aspect-[16/9] w-full object-cover" />
           </div>
         ) : null}
 

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
@@ -281,7 +282,7 @@ export function StoryViewer({
                 playsInline
               />
             ) : (
-              <img loading="lazy" decoding="async"
+              <Image width={800} height={800} loading="lazy" decoding="async"
                 src={story.mediaUrl}
                 alt={story.caption ?? 'Story'}
                 className="max-h-full max-w-full object-contain pointer-events-auto"

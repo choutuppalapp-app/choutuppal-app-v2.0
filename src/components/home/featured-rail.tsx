@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import Link from 'next/link'
@@ -58,7 +59,7 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
             >
               {/* cover */}
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
-                <img decoding="async" sizes="(max-width: 768px) 100vw, 33vw" src={imgUrl} alt={l.title} loading={i < 4 ? 'eager' : 'lazy'}
+                <Image width={800} height={800} decoding="async" sizes="(max-width: 768px) 100vw, 33vw" src={imgUrl} alt={l.title} loading={i < 4 ? 'eager' : 'lazy'}
                   fetchPriority={i === 0 ? 'high' : 'auto'}
                   className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                 />

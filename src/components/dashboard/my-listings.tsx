@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useState } from 'react'
@@ -61,7 +62,7 @@ export function MyListings({
               <div className="relative aspect-[16/9]">
                 {l.coverImage ? (
                    
-                  <img loading="lazy" decoding="async" src={l.coverImage} alt={l.title} className="h-full w-full object-cover" />
+                  <Image width={800} height={800} loading="lazy" decoding="async" src={l.coverImage} alt={l.title} className="h-full w-full object-cover" />
                 ) : (
                   <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white">
                     {l.title.charAt(0)}

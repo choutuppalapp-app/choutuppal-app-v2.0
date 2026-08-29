@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -157,7 +158,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
               <span className="rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 p-1">
                 <span className="relative grid h-16 w-16 place-items-center overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-blue-500 to-amber-400 text-lg font-bold text-white">
                   {s.owner.image ? (
-                    <img loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, 33vw"
+                    <Image width={800} height={800} loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, 33vw"
                       src={s.owner.image}
                       alt={name}
                       className="h-full w-full object-cover"
@@ -236,7 +237,7 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
                   className="max-h-full max-w-full object-contain pointer-events-auto"
                 />
               ) : (
-                <img loading="lazy" decoding="async"
+                <Image width={800} height={800} loading="lazy" decoding="async"
                   src={storyItems[viewerIndex].mediaUrl}
                   alt={storyItems[viewerIndex].caption || 'Story'}
                   className="max-h-full max-w-full object-contain pointer-events-auto"

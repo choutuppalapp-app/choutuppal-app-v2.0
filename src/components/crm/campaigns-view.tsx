@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -743,7 +744,7 @@ export function CampaignsView() {
               {headerImageUrl ? (
                 <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-xl border border-emerald-200">
                   <div className="h-10 w-10 shrink-0 rounded-lg overflow-hidden border border-emerald-300 bg-white">
-                    <img loading="lazy" decoding="async" src={headerImageUrl} alt="Campaign header" className="h-full w-full object-cover" />
+                    <Image width={800} height={800} loading="lazy" decoding="async" src={headerImageUrl} alt="Campaign header" className="h-full w-full object-cover" />
                   </div>
                   <div className="flex-1 overflow-hidden">
                     <p className="text-xs font-bold text-emerald-950 truncate">Header Image Attached</p>
@@ -1098,7 +1099,7 @@ export function CampaignsView() {
                   {/* Attached Header Image Preview */}
                   {headerImageUrl ? (
                     <div className="relative max-h-36 overflow-hidden border-b border-[#b7e3ae]">
-                      <img loading="lazy" decoding="async" src={headerImageUrl} alt="Header media preview" className="w-full object-cover max-h-36" />
+                      <Image width={800} height={800} loading="lazy" decoding="async" src={headerImageUrl} alt="Header media preview" className="w-full object-cover max-h-36" />
                     </div>
                   ) : null}
 

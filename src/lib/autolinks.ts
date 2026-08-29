@@ -1,3 +1,4 @@
+import Image from 'next/image';
 export interface AutoLinkItem {
   id?: string
   keyword: string
@@ -7,7 +8,7 @@ export interface AutoLinkItem {
 
 /**
  * Replaces the first occurrence of each keyword in the HTML content with an anchor tag.
- * Does not replace keywords inside existing HTML tags (e.g. <img src="..."> or inside <a ...>...</a>).
+ * Does not replace keywords inside existing HTML tags (e.g. <Image width={800} height={800} src="..."> or inside <a ...>...</a>).
  */
 export function applyAutoLinks(htmlContent: string, autoLinks: AutoLinkItem[]): string {
   if (!htmlContent || !autoLinks || autoLinks.length === 0) {

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -139,7 +140,7 @@ export function ListingDetailView({
           <div className="relative">
             {/* Cover Image (16:9 aspect ratio) */}
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-              <img loading="lazy" decoding="async"
+              <Image width={800} height={800} loading="lazy" decoding="async"
                 src={getCoverUrl(listing)}
                 alt={`${listing.title} cover`}
                 className="h-full w-full object-cover"
@@ -150,7 +151,7 @@ export function ListingDetailView({
               {/* Title Overlay for Desktop */}
               <div className="hidden md:flex absolute bottom-0 left-0 w-full p-6 items-end gap-5">
                 <div className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white/20 bg-white shadow-2xl relative z-10">
-                  <img
+                  <Image width={800} height={800}
                     loading="lazy"
                     decoding="async"
                     src={getLogoUrl(listing)}
@@ -195,7 +196,7 @@ export function ListingDetailView({
             <div className="px-4 pb-5 md:hidden">
               <div className="-mt-12 relative z-10 flex flex-col items-center text-center gap-3">
                 <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg mx-auto">
-                  <img
+                  <Image width={800} height={800}
                     loading="lazy"
                     decoding="async"
                     src={getLogoUrl(listing)}
@@ -367,7 +368,7 @@ export function ListingDetailView({
                       rel="noopener noreferrer"
                       className="relative h-40 w-40 shrink-0 overflow-hidden rounded-2xl border border-white/50 bg-white/30 shadow-sm sm:h-44 sm:w-44"
                     >
-                      <img loading="lazy" decoding="async"
+                      <Image width={800} height={800} loading="lazy" decoding="async"
                         src={url}
                         alt={`${listing.title} gallery image ${i + 1}`}
                         className="h-full w-full object-cover transition hover:scale-105"
@@ -544,7 +545,7 @@ export function ListingDetailView({
               >
                 <div className="relative aspect-[16/9] overflow-hidden">
                   {r.coverImage || r.logo ? (
-                    <img loading="lazy" decoding="async" src={(r.coverImage || r.logo)!} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                    <Image width={800} height={800} loading="lazy" decoding="async" src={(r.coverImage || r.logo)!} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
                   ) : (
                     <div className="grid h-full w-full place-items-center gradient-brand text-2xl font-black text-white">
                       {r.title.charAt(0)}

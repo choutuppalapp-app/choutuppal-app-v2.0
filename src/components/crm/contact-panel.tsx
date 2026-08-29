@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -271,7 +272,7 @@ export function ContactPanel({
                       rel="noopener noreferrer"
                       className="group relative aspect-square overflow-hidden rounded-xl bg-gray-100 border border-gray-200 hover:opacity-90"
                     >
-                      <img loading="lazy" decoding="async" src={src} alt="Shared media" className="h-full w-full object-cover" />
+                      <Image width={800} height={800} loading="lazy" decoding="async" src={src} alt="Shared media" className="h-full w-full object-cover" />
                     </a>
                   )
                 })}

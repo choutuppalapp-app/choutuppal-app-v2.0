@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
@@ -162,7 +163,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           <Link href="/" className="hidden md:grid h-9 w-9 place-items-center rounded-lg border border-slate-200" title="Back to home">
             <ChevronLeft className="h-4 w-4" />
           </Link>
-          <img loading="lazy" decoding="async" src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
+          <Image width={800} height={800} loading="lazy" decoding="async" src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
           <span className="font-bold text-slate-900 text-sm sm:text-base">Admin Panel</span>
           <div className="ml-auto flex items-center gap-2">
             <Link
@@ -194,7 +195,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           >
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center gap-2">
-                <img loading="lazy" decoding="async" src="/logo.png" alt="Logo" className="h-7 w-auto" />
+                <Image width={800} height={800} loading="lazy" decoding="async" src="/logo.png" alt="Logo" className="h-7 w-auto" />
                 <span className="font-bold text-sm text-slate-900">Admin Navigation</span>
               </div>
               <button onClick={() => setDrawerOpen(false)} aria-label="Close">
@@ -527,7 +528,7 @@ function ApprovalCard({
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
           {cover || logo ? (
              
-            <img loading="lazy" decoding="async" src={(cover || logo)!} alt={title} className="h-full w-full object-cover" />
+            <Image width={800} height={800} loading="lazy" decoding="async" src={(cover || logo)!} alt={title} className="h-full w-full object-cover" />
           ) : (
             <div className="grid h-full w-full place-items-center gradient-brand text-2xl font-black text-white">
               {title.charAt(0)}
@@ -1569,7 +1570,7 @@ function StoriesTab() {
                   s.mediaType === 'VIDEO' ? (
                     <video src={s.mediaUrl} className="h-full w-full object-cover" muted />
                   ) : (
-                    <img loading="lazy" decoding="async" src={s.mediaUrl} alt={s.caption ?? 'story'} className="h-full w-full object-cover" />
+                    <Image width={800} height={800} loading="lazy" decoding="async" src={s.mediaUrl} alt={s.caption ?? 'story'} className="h-full w-full object-cover" />
                   )
                 ) : (
                   <div className="grid h-full w-full place-items-center gradient-brand p-3 text-center">

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
@@ -195,7 +196,7 @@ export function ShortsManager() {
                 <div key={s.id} className="overflow-hidden rounded-xl border border-slate-100 bg-white/60">
                   <div className="relative aspect-video">
                     {s.thumbnail ? (
-                      <img loading="lazy" decoding="async" src={s.thumbnail} alt={s.title ?? 'Short'} className="h-full w-full object-cover" />
+                      <Image width={800} height={800} loading="lazy" decoding="async" src={s.thumbnail} alt={s.title ?? 'Short'} className="h-full w-full object-cover" />
                     ) : s.platform === 'INSTAGRAM' ? (
                       <div className="grid h-full w-full place-items-center bg-gradient-to-tr from-purple-600 via-pink-500 to-yellow-500 text-white">
                         <Instagram className="h-8 w-8" />

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import Link from 'next/link'
@@ -150,7 +151,7 @@ export function ArticleFooter({
                 >
                   {img ? (
                     <div className="relative aspect-[16/9] w-full overflow-hidden">
-                      <img loading="lazy" decoding="async"
+                      <Image width={800} height={800} loading="lazy" decoding="async"
                         src={img}
                         alt={post.title}
                         className="h-full w-full object-cover transition group-hover:scale-105"

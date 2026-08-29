@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useState } from 'react'
@@ -102,7 +103,7 @@ export function BlogList({ posts }: { posts: Post[] }) {
                   <div>
                     <div className="relative aspect-[16/9] overflow-hidden">
                       {p.coverImage ? (
-                        <img loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, 33vw" src={p.coverImage} alt={p.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        <Image width={800} height={800} loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, 33vw" src={p.coverImage} alt={p.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                       ) : (
                         <div className="grid h-full w-full place-items-center bg-gradient-to-br from-blue-50 to-amber-50">
                           <BookOpen className="h-10 w-10 text-blue-200" />

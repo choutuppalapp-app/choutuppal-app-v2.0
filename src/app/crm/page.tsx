@@ -1,3 +1,4 @@
+import nextDynamic from 'next/dynamic';
 "use client"
 
 import { useCallback, useEffect, useState } from 'react'
@@ -29,10 +30,10 @@ import type {
 import { MetricCard } from '@/components/wacrm/dashboard/metric-card'
 import { SkeletonCard } from '@/components/wacrm/dashboard/skeleton'
 import { QuickActions } from '@/components/wacrm/dashboard/quick-actions'
-import { ConversationsChart } from '@/components/wacrm/dashboard/conversations-chart'
-import { PipelineDonut } from '@/components/wacrm/dashboard/pipeline-donut'
-import { ResponseTimeChart } from '@/components/wacrm/dashboard/response-time-chart'
-import { ActivityFeed } from '@/components/wacrm/dashboard/activity-feed'
+const ConversationsChart = nextDynamic(() => import('@/components/wacrm/dashboard/conversations-chart').then(m => ({ default: m.ConversationsChart })), { ssr: false, loading: () => <div className="h-64 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
+const PipelineDonut = nextDynamic(() => import('@/components/wacrm/dashboard/pipeline-donut').then(m => ({ default: m.PipelineDonut })), { ssr: false, loading: () => <div className="h-64 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
+const ResponseTimeChart = nextDynamic(() => import('@/components/wacrm/dashboard/response-time-chart').then(m => ({ default: m.ResponseTimeChart })), { ssr: false, loading: () => <div className="h-64 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
+const ActivityFeed = nextDynamic(() => import('@/components/wacrm/dashboard/activity-feed').then(m => ({ default: m.ActivityFeed })), { ssr: false, loading: () => <div className="h-64 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
 
 import { useTranslations } from 'next-intl'
 

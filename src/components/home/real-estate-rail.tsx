@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import Link from 'next/link'
@@ -61,7 +62,7 @@ export function RealEstateRail({ properties }: RealEstateRailProps) {
               className="hover-lift group flex w-full flex-col justify-between overflow-hidden rounded-2xl glass transition-all duration-300 hover:border-blue-400"
             >
               <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
-                <img sizes="(max-width: 768px) 100vw, 33vw"
+                <Image width={800} height={800} sizes="(max-width: 768px) 100vw, 33vw"
                   src={imgUrl}
                   alt={p.title}
                   loading="lazy"

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import Link from 'next/link'
@@ -34,9 +35,9 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
           <div className="col-span-1 space-y-3">
             <div className="flex items-center gap-2">
               {tenant.logoUrl ? (
-                <img src={tenant.logoUrl} alt={tenant.name} className="h-9 w-auto object-contain" loading="lazy" decoding="async" />
+                <Image width={800} height={800} src={tenant.logoUrl} alt={tenant.name} className="h-9 w-auto object-contain" loading="lazy" decoding="async" />
               ) : isDefault ? (
-                <img src="/logo.png" alt="Choutuppal App" className="h-9 w-auto" loading="lazy" decoding="async" />
+                <Image width={800} height={800} src="/logo.png" alt="Choutuppal App" className="h-9 w-auto" loading="lazy" decoding="async" />
               ) : (
                 <div className="font-black text-slate-900 text-base flex items-center gap-1.5">
                   <div

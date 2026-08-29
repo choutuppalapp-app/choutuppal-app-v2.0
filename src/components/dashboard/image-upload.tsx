@@ -1,3 +1,4 @@
+import Image from 'next/image';
 'use client'
 
 import { useRef, useState } from 'react'
@@ -108,7 +109,7 @@ export function GalleryUpload({
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
         {value.map((url, i) => (
           <div key={i} className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200">
-            <img loading="lazy" decoding="async" src={url} alt={`gallery ${i + 1}`} className="h-full w-full object-cover" />
+            <Image width={800} height={800} loading="lazy" decoding="async" src={url} alt={`gallery ${i + 1}`} className="h-full w-full object-cover" />
             <button
               type="button"
               onClick={() => onChange(value.filter((_, idx) => idx !== i))}
