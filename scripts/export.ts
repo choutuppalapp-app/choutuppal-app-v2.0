@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const fs = require('fs'); async function run() { const prisma = new PrismaClient(); const contacts = await prisma.whatsAppContact.findMany(); fs.writeFileSync('public/contacts-backup.json', JSON.stringify(contacts, null, 2)); console.log('Contacts exported'); } run();
