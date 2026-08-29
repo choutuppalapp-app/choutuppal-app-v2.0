@@ -93,6 +93,7 @@ export const metadata: Metadata = {
 
 import { getCurrentTenant, DEFAULT_TENANT } from '@/lib/tenant'
 import { Phone, AlertTriangle } from 'lucide-react'
+import { DelayedScripts } from '@/components/analytics/delayed-scripts'
 
 export const viewport: Viewport = {
   themeColor: '#1d4ed8',
@@ -127,9 +128,6 @@ export default async function RootLayout({
   return (
     <html lang="te" suppressHydrationWarning>
       <head>
-        <Script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1914892456105863" strategy="lazyOnload" crossOrigin="anonymous" />
-        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
-        <Script src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js" strategy="lazyOnload" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}
@@ -139,53 +137,13 @@ export default async function RootLayout({
         <Providers>
           {gaId ? (
             <>
-              <Script
-                src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-                strategy="lazyOnload"
-              />
-              <Script id="google-analytics" strategy="lazyOnload">
-                {`
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag(){dataLayer.push(arguments);}
-                  gtag('js', new Date());
-                  gtag('config', '${gaId}', {
-                    page_path: window.location.pathname,
-                  });
-                `}
-              </Script>
-            </>
-          ) : null}
-
-          {fbPixelId ? (
-            <>
-              <Script id="fb-pixel" strategy="lazyOnload">
-                {`
-                  !function(f,b,e,v,n,t,s)
-                  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                  n.queue=[];t=b.createElement(e);t.async=!0;
-                  t.src=v;s=b.getElementsByTagName(e)[0];
-                  s.parentNode.insertBefore(t,s)}(window, document,'script',
-                  'https://connect.facebook.net/en_US/fbevents.js');
-                  fbq('init', '${fbPixelId}');
-                  fbq('track', 'PageView');
-                `}
-              </Script>
-              <noscript>
-                <Image width={1} height={1} loading="lazy" decoding="async"
-                  
-                  
-                  style={{ display: 'none' }}
-                  src={`https://www.facebook.com/tr?id=${fbPixelId}&ev=PageView&noscript=1`}
-                  alt=""
-                />
-              </noscript>
               <Suspense fallback={null}>
                 <MetaPixel pixelId={fbPixelId} />
               </Suspense>
             </>
           ) : null}
+
+          <DelayedScripts gaId={gaId} fbPixelId={fbPixelId} />
 
           {isExpired ? (
             <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-6 text-center text-white">
