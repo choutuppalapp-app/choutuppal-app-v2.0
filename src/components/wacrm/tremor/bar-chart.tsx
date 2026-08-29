@@ -1,3 +1,4 @@
+"use client"
 // ============================================================
 // Tremor BarChart [v1.0.0] — vendored from tremorlabs/tremor.
 //
@@ -20,7 +21,6 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-"use client"
 
 import React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"

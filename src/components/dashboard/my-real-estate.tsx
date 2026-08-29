@@ -1,5 +1,5 @@
-import Image from 'next/image';
 'use client'
+import Image from 'next/image';
 
 import { useState } from 'react'
 import { Home, Plus, Trash2, MapPin, IndianRupee, BedDouble, Maximize } from 'lucide-react'

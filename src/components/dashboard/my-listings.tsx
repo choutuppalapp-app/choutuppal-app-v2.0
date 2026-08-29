@@ -1,5 +1,5 @@
-import Image from 'next/image';
 'use client'
+import Image from 'next/image';
 
 import { useState } from 'react'
 import { Store, Plus, Trash2, Eye, MapPin, BadgeCheck, Clock, XCircle } from 'lucide-react'

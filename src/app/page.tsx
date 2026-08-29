@@ -6,17 +6,17 @@ import { StickySocials } from '@/components/home/sticky-socials'
 import nextDynamic from 'next/dynamic'
 
 // Heavy client components — lazy-loaded to reduce initial JS bundle
-const StoriesRail = nextDynamic(() => import('@/components/home/stories-rail').then(m => ({ default: m.StoriesRail  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const BannerCarousel = nextDynamic(() => import('@/components/home/banner-carousel').then(m => ({ default: m.BannerCarousel  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const CategoriesGrid = nextDynamic(() => import('@/components/home/categories-grid').then(m => ({ default: m.CategoriesGrid  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const FeaturedRail = nextDynamic(() => import('@/components/home/featured-rail').then(m => ({ default: m.FeaturedRail  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const RealEstateRail = nextDynamic(() => import('@/components/home/real-estate-rail').then(m => ({ default: m.RealEstateRail  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const SendNewsCTA = nextDynamic(() => import('@/components/home/send-news-cta').then(m => ({ default: m.SendNewsCTA  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const BlogGrid = nextDynamic(() => import('@/components/home/blog-grid').then(m => ({ default: m.BlogGrid  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const SpinWin = nextDynamic(() => import('@/components/home/spin-win').then(m => ({ default: m.SpinWin  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const Testimonials = nextDynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans').then(m => ({ default: m.PricingPlans  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
-const CommunityHub = nextDynamic(() => import('@/components/home/community-hub').then(m => ({ default: m.CommunityHub  })), { ssr: false, loading: () => <div className="h-32 w-full animate-pulse bg-slate-100 rounded-xl"></div> })
+const StoriesRail = nextDynamic(() => import('@/components/home/stories-rail').then(m => ({ default: m.StoriesRail  })))
+const BannerCarousel = nextDynamic(() => import('@/components/home/banner-carousel').then(m => ({ default: m.BannerCarousel  })))
+const CategoriesGrid = nextDynamic(() => import('@/components/home/categories-grid').then(m => ({ default: m.CategoriesGrid  })))
+const FeaturedRail = nextDynamic(() => import('@/components/home/featured-rail').then(m => ({ default: m.FeaturedRail  })))
+const RealEstateRail = nextDynamic(() => import('@/components/home/real-estate-rail').then(m => ({ default: m.RealEstateRail  })))
+const SendNewsCTA = nextDynamic(() => import('@/components/home/send-news-cta').then(m => ({ default: m.SendNewsCTA  })))
+const BlogGrid = nextDynamic(() => import('@/components/home/blog-grid').then(m => ({ default: m.BlogGrid  })))
+const SpinWin = nextDynamic(() => import('@/components/home/spin-win').then(m => ({ default: m.SpinWin  })))
+const Testimonials = nextDynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials  })))
+const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans').then(m => ({ default: m.PricingPlans  })))
+const CommunityHub = nextDynamic(() => import('@/components/home/community-hub').then(m => ({ default: m.CommunityHub  })))
 
 // Home page using ISR 1-hour revalidation & force-static for instant Edge caching
 export const revalidate = 3600

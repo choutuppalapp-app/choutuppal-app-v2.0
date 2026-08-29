@@ -1,5 +1,5 @@
-import Image from 'next/image';
 'use client'
+import Image from 'next/image';
 
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Globe, Building2, Phone, Palette, Loader2, Save, ExternalLink } from 'lucide-react'

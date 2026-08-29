@@ -1,5 +1,5 @@
-import Image from 'next/image';
 'use client'
+import Image from 'next/image';
 
 import { useRef, useState } from 'react'
 import { ImagePlus, Loader2, X, Link as LinkIcon, Check } from 'lucide-react'

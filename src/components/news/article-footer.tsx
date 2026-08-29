@@ -1,5 +1,5 @@
-import Image from 'next/image';
 'use client'
+import Image from 'next/image';
 
 import Link from 'next/link'
 import { Share2, MessageCircle, Facebook, Twitter, Link as LinkIcon, Check } from 'lucide-react'

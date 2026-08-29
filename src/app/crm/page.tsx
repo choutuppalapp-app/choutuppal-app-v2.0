@@ -1,5 +1,5 @@
-import nextDynamic from 'next/dynamic';
 "use client"
+import nextDynamic from 'next/dynamic';
 
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/wacrm/supabase/client'

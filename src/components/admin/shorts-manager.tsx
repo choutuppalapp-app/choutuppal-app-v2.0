@@ -1,5 +1,5 @@
-import Image from 'next/image';
 'use client'
+import Image from 'next/image';
 
 import { useCallback, useEffect, useState } from 'react'
 import { Video, Plus, Trash2, Loader2, RefreshCw, Link2, Youtube, Instagram } from 'lucide-react'

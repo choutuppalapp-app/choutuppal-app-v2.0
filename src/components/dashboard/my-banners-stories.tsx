@@ -1,5 +1,5 @@
-import Image from 'next/image';
 'use client'
+import Image from 'next/image';
 
 import { useEffect, useState } from 'react'
 import { Image as ImageIcon, Megaphone, Plus, Clock, Video, Eye, MessageCircle, Heart, Sparkles, Send } from 'lucide-react'
