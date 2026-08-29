@@ -105,7 +105,7 @@ export default function ContactsPage() {
   const fetchSeq = useRef(0);
 
   const fetchTags = useCallback(async () => {
-    const data = [];
+    const data: any[] = [];
     if (data) {
       const map: Record<string, Tag> = {};
       data.forEach((t) => (map[t.id] = t));
@@ -146,7 +146,7 @@ export default function ContactsPage() {
         setLoading(false);
         return;
       }
-      const rows = (data ?? []) as { contact: Contact; total_count: number }[];
+      const rows = (data ?? []) as unknown as { contact: Contact; total_count: number }[];
       contactRows = rows.map((r) => r.contact);
       count = rows.length > 0 ? Number(rows[0].total_count) : 0;
     } else {
