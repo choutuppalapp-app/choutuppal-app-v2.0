@@ -50,7 +50,7 @@ export function NewsGrid({ articles }: NewsGridProps) {
                   <Image
                     src={a.image}
                     alt={a.title}
-                    fill
+                    width={800} height={500}
                     loading="lazy"
                     sizes="(max-width: 768px) 50vw, 25vw"
                     className="h-full w-full object-cover transition group-hover:scale-105"

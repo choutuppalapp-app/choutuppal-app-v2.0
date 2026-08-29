@@ -57,8 +57,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'Choutuppal App Team' }],
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/logo-pwa.png',
-    apple: '/logo-pwa.png',
+    icon: '/logo-pwa.webp',
+    apple: '/logo-pwa.webp',
   },
   openGraph: {
     title: 'Choutuppal App v2.0 — Business, Real Estate & Community',
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     siteName: 'Choutuppal App',
     images: [
       {
-        url: `${SITE_URL}/logo-pwa.png`,
+        url: `${SITE_URL}/logo-pwa.webp`,
         width: 1200,
         height: 630,
         alt: 'Choutuppal App v2.0',
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     title: 'Choutuppal App v2.0',
     description:
       'Businesses, services, real estate, news & community for Choutuppal, Yadadri, Telangana.',
-    images: [`${SITE_URL}/logo-pwa.png`],
+    images: [`${SITE_URL}/logo-pwa.webp`],
   },
   verification: {
     other: {
@@ -128,8 +128,8 @@ export default async function RootLayout({
     <html lang="te" suppressHydrationWarning>
       <head>
         <Script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1914892456105863" strategy="lazyOnload" crossOrigin="anonymous" />
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-        <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js"></script>
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+        <Script src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js" strategy="lazyOnload" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}
@@ -158,7 +158,7 @@ export default async function RootLayout({
 
           {fbPixelId ? (
             <>
-              <Script id="fb-pixel" strategy="afterInteractive">
+              <Script id="fb-pixel" strategy="lazyOnload">
                 {`
                   !function(f,b,e,v,n,t,s)
                   {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

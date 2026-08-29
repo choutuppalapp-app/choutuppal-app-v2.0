@@ -50,7 +50,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
                   <Image
                     src={b.coverImage}
                     alt={b.title}
-                    fill
+                    width={800} height={500}
                     loading="lazy"
                     sizes="(max-width: 768px) 50vw, 25vw"
                     className="h-full w-full object-cover transition group-hover:scale-105"

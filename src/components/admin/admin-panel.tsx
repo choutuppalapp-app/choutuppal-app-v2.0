@@ -163,7 +163,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           <Link href="/" className="hidden md:grid h-9 w-9 place-items-center rounded-lg border border-slate-200" title="Back to home">
             <ChevronLeft className="h-4 w-4" />
           </Link>
-          <Image width={800} height={800} loading="lazy" decoding="async" src="/logo.png" alt="Choutuppal App" className="h-8 w-auto" />
+          <Image width={800} height={800} loading="lazy" decoding="async" src="/logo.webp" alt="Choutuppal App" className="h-8 w-auto" />
           <span className="font-bold text-slate-900 text-sm sm:text-base">Admin Panel</span>
           <div className="ml-auto flex items-center gap-2">
             <Link
@@ -195,7 +195,7 @@ export function AdminPanel({ adminName }: { adminName: string }) {
           >
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-center gap-2">
-                <Image width={800} height={800} loading="lazy" decoding="async" src="/logo.png" alt="Logo" className="h-7 w-auto" />
+                <Image width={800} height={800} loading="lazy" decoding="async" src="/logo.webp" alt="Logo" className="h-7 w-auto" />
                 <span className="font-bold text-sm text-slate-900">Admin Navigation</span>
               </div>
               <button onClick={() => setDrawerOpen(false)} aria-label="Close">
@@ -1153,7 +1153,7 @@ function SettingsTab() {
             <Input
               value={settings.hero_bg_image ?? ''}
               onChange={(e) => update('hero_bg_image', e.target.value)}
-              placeholder="/images/hero-banner.png"
+              placeholder="/images/hero-banner.webp"
             />
             <input 
               type="file" 

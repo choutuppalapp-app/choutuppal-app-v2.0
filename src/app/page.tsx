@@ -65,7 +65,7 @@ export default async function Home() {
         {/* 1. Hero Section */}
         <section 
           className="relative w-full overflow-hidden gradient-brand bg-cover bg-center pt-12 pb-8 sm:pt-20 sm:pb-12 px-4 text-center text-white"
-          style={{ backgroundImage: appSettings.hero_bg_image ? `url('${appSettings.hero_bg_image}')` : "url('/images/hero-banner.png')" }}
+          style={{ backgroundImage: appSettings.hero_bg_image ? `url('${appSettings.hero_bg_image}')` : "url('/images/hero-banner.webp')" }}
         >
           {/* Dark Overlay for Readability */}
           <div className="absolute inset-0 bg-black/60 sm:bg-gradient-to-t sm:from-black/80 sm:to-black/30" />

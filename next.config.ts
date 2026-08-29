@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     ],
   },
   images: {
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       { protocol: "https", hostname: "images.choutuppal.in" },
       { protocol: "https", hostname: "*.r2.dev text/html" },

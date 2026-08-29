@@ -155,7 +155,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           <Image
             src={current.imageUrl}
             alt={current.title ?? 'Banner Ad'}
-            fill
+            width={800} height={500}
             priority
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
             className="absolute inset-0 h-full w-full object-contain bg-slate-100"
@@ -336,7 +336,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
                 <Send className="h-5 w-5" />
               </button>
               <button onClick={() => setIsLiked(!isLiked)} className="text-white shrink-0">
-                <Heart className={cn('h-7 w-7 transition', isLiked && 'fill-red-500 text-red-500')} />
+                <Heart className={cn('h-7 w-7 transition', isLiked && 'width={800} height={500}-red-500 text-red-500')} />
               </button>
             </div>
           </div>
