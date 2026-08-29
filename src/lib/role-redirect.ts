@@ -9,7 +9,7 @@
  * the NextAuth session via the JWT/session callbacks in auth.config.ts.
  */
 export function roleRedirectPath(role: string | undefined | null): string {
-  if (role === 'ADMIN' || role === 'SUPER_ADMIN') return '/admin'
+  if (role === 'ADMIN' || role === 'SUPER_ADMIN') return '/crm'
   if (role === 'AGENT') return '/agent'
   return '/dashboard'
 }
