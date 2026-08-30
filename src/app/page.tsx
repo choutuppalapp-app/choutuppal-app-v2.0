@@ -4,10 +4,10 @@ import { Ticker } from '@/components/home/ticker'
 import { prisma } from '@/lib/prisma'
 import { StickySocials } from '@/components/home/sticky-socials'
 import nextDynamic from 'next/dynamic'
+import { StoriesRail } from '@/components/home/stories-rail'
+import { BannerCarousel } from '@/components/home/banner-carousel'
 
 // Heavy client components — lazy-loaded to reduce initial JS bundle
-const StoriesRail = nextDynamic(() => import('@/components/home/stories-rail').then(m => ({ default: m.StoriesRail  })))
-const BannerCarousel = nextDynamic(() => import('@/components/home/banner-carousel').then(m => ({ default: m.BannerCarousel  })))
 const CategoriesGrid = nextDynamic(() => import('@/components/home/categories-grid').then(m => ({ default: m.CategoriesGrid  })))
 const FeaturedRail = nextDynamic(() => import('@/components/home/featured-rail').then(m => ({ default: m.FeaturedRail  })))
 const RealEstateRail = nextDynamic(() => import('@/components/home/real-estate-rail').then(m => ({ default: m.RealEstateRail  })))

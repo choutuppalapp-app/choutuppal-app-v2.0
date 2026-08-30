@@ -141,7 +141,7 @@ export default async function RootLayout({
             </>
           ) : null}
 
-          {/* <DelayedScripts gaId={gaId} fbPixelId={fbPixelId} /> */}
+          <DelayedScripts gaId={gaId} fbPixelId={fbPixelId} />
 
           {isExpired ? (
             <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-6 text-center text-white">

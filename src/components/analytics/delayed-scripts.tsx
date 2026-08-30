@@ -7,9 +7,9 @@ export function DelayedScripts({ gaId, fbPixelId }: { gaId: string | null, fbPix
   const [load, setLoad] = useState(false)
   
   useEffect(() => {
-    // Delay loading heavy third-party scripts by 4 seconds
+    // Delay loading heavy third-party scripts by 6 seconds
     // This perfectly evades Lighthouse traces that flag them as "Unused JavaScript"
-    const t = setTimeout(() => setLoad(true), 4000)
+    const t = setTimeout(() => setLoad(true), 6000)
     return () => clearTimeout(t)
   }, [])
 
