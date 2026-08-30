@@ -22,6 +22,8 @@ const CommunityHub = nextDynamic(() => import('@/components/home/community-hub')
 export const revalidate = 3600
 export const dynamic = 'force-static'
 
+import { preload } from 'react-dom'
+
 export default async function Home() {
   const data = await getHomePageData()
   let viewer: any = null
@@ -44,6 +46,9 @@ export default async function Home() {
     console.error('[Home] settings query error:', err)
   }
 
+  const heroImage = appSettings.hero_bg_image || '/images/hero-banner.webp'
+  preload(heroImage, { as: 'image', fetchPriority: 'high' })
+
   const viewerInfo = viewer
     ? {
         isLoggedIn: true,
@@ -57,15 +62,17 @@ export default async function Home() {
     : { isLoggedIn: false, isPremium: false }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Ticker />
-      <StickySocials />
+    <>
+      <link rel="preload" as="image" href={heroImage} fetchPriority="high" />
+      <div className="flex min-h-screen flex-col">
+        <Ticker />
+        <StickySocials />
 
       <main className="flex-1">
         {/* 1. Hero Section */}
         <section 
           className="relative w-full overflow-hidden gradient-brand bg-cover bg-center pt-12 pb-8 sm:pt-20 sm:pb-12 px-4 text-center text-white"
-          style={{ backgroundImage: appSettings.hero_bg_image ? `url('${appSettings.hero_bg_image}')` : "url('/images/hero-banner.webp')" }}
+          style={{ backgroundImage: `url('${heroImage}')` }}
         >
           {/* Dark Overlay for Readability */}
           <div className="absolute inset-0 bg-black/60 sm:bg-gradient-to-t sm:from-black/80 sm:to-black/30" />
@@ -132,7 +139,8 @@ export default async function Home() {
 
       {/* Bottom padding so content isn't hidden behind the mobile bottom nav */}
       <div className="h-20 md:hidden" aria-hidden />
-    </div>
+      </div>
+    </>
   )
 }
 
