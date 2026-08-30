@@ -8,7 +8,7 @@ import Script from 'next/script'
 import { Suspense } from 'react'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
-import { Toaster as SonnerToaster } from '@/components/ui/sonner'
+import { Toaster as SonnerToaster } from 'sonner'
 import { Providers } from '@/components/providers'
 import { PwaInstallPrompt } from '@/components/home/pwa-install-prompt'
 import { SiteHeader } from '@/components/home/site-header'
@@ -112,8 +112,6 @@ export default async function RootLayout({
 
   const hideGlobalChrome =
     isFranchise ||
-    pathname.startsWith('/crm') ||
-    pathname.startsWith('/admin') ||
     pathname.startsWith('/franchise')
 
   const tenant = await getCurrentTenant()

@@ -100,7 +100,11 @@ function LoginInner() {
         if (!active) return
         if (data?.user) {
           const dest = await fetchRoleRedirect()
-          router.replace(dest)
+          if (dest.startsWith('http')) {
+            window.location.href = dest
+          } else {
+            router.replace(dest)
+          }
         }
       })
       .catch(() => {})
@@ -181,7 +185,11 @@ function LoginInner() {
         toast.success('Logged in! Redirecting…')
         try {
           const dest = await fetchRoleRedirect()
-          router.replace(dest || '/dashboard')
+          if (dest.startsWith('http')) {
+            window.location.href = dest
+          } else {
+            router.replace(dest || '/dashboard')
+          }
         } catch {
           router.replace('/dashboard')
         }
@@ -260,7 +268,11 @@ function LoginInner() {
         toast.success('Account created! Redirecting…')
         try {
           const dest = await fetchRoleRedirect()
-          router.replace(dest || '/dashboard')
+          if (dest.startsWith('http')) {
+            window.location.href = dest
+          } else {
+            router.replace(dest || '/dashboard')
+          }
         } catch {
           router.replace('/dashboard')
         }
