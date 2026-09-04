@@ -158,7 +158,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             width={800} height={500}
             priority
             fetchPriority="high"
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, 1200px"
+            quality={60}
             className="absolute inset-0 h-full w-full object-contain bg-slate-100"
           />
         ) : null}

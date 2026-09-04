@@ -3,27 +3,25 @@ import { getCurrentUser } from '@/lib/session'
 import { Ticker } from '@/components/home/ticker'
 import { prisma } from '@/lib/prisma'
 import { StickySocials } from '@/components/home/sticky-socials'
-import nextDynamic from 'next/dynamic'
+import {
+  StoriesRail,
+  BannerCarousel,
+  CategoriesGrid,
+  FeaturedRail,
+  RealEstateRail,
+  SendNewsCTA,
+  BlogGrid,
+  SpinWin,
+  Testimonials,
+  PricingPlans,
+  CommunityHub
+} from '@/components/home/dynamic-wrappers'
 import Image from 'next/image'
-import { StoriesRail } from '@/components/home/stories-rail'
-import { BannerCarousel } from '@/components/home/banner-carousel'
-
-// Heavy client components — lazy-loaded to reduce initial JS bundle
-const CategoriesGrid = nextDynamic(() => import('@/components/home/categories-grid').then(m => ({ default: m.CategoriesGrid  })))
-const FeaturedRail = nextDynamic(() => import('@/components/home/featured-rail').then(m => ({ default: m.FeaturedRail  })))
-const RealEstateRail = nextDynamic(() => import('@/components/home/real-estate-rail').then(m => ({ default: m.RealEstateRail  })))
-const SendNewsCTA = nextDynamic(() => import('@/components/home/send-news-cta').then(m => ({ default: m.SendNewsCTA  })))
-const BlogGrid = nextDynamic(() => import('@/components/home/blog-grid').then(m => ({ default: m.BlogGrid  })))
-const SpinWin = nextDynamic(() => import('@/components/home/spin-win').then(m => ({ default: m.SpinWin  })))
-const Testimonials = nextDynamic(() => import('@/components/home/testimonials').then(m => ({ default: m.Testimonials  })))
-const PricingPlans = nextDynamic(() => import('@/components/home/pricing-plans').then(m => ({ default: m.PricingPlans  })))
-const CommunityHub = nextDynamic(() => import('@/components/home/community-hub').then(m => ({ default: m.CommunityHub  })))
 
 // Home page using ISR 1-hour revalidation & force-static for instant Edge caching
 export const revalidate = 3600
 export const dynamic = 'force-static'
 
-import { preload } from 'react-dom'
 
 export default async function Home() {
   const data = await getHomePageData()
@@ -48,7 +46,6 @@ export default async function Home() {
   }
 
   const heroImage = appSettings.hero_bg_image || '/images/hero-banner.webp'
-  preload(heroImage, { as: 'image', fetchPriority: 'high' })
 
   const viewerInfo = viewer
     ? {
@@ -64,7 +61,6 @@ export default async function Home() {
 
   return (
     <>
-      <link rel="preload" as="image" href={heroImage} fetchPriority="high" />
       <div className="flex min-h-screen flex-col">
         <Ticker />
         <StickySocials />
@@ -80,7 +76,8 @@ export default async function Home() {
             fill
             priority
             fetchPriority="high"
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, 1200px"
+            quality={60}
             className="object-cover absolute inset-0 z-0"
           />
           {/* Dark Overlay for Readability */}

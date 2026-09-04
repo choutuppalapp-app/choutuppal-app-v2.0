@@ -12,7 +12,26 @@ export function DynamicDelayedScriptsWrapper({ gaId, fbPixelId }: { gaId: string
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    let timeoutId: NodeJS.Timeout
+    const loadScripts = () => {
+      setMounted(true)
+      window.removeEventListener('scroll', loadScripts)
+      window.removeEventListener('mousemove', loadScripts)
+      window.removeEventListener('touchstart', loadScripts)
+    }
+
+    timeoutId = setTimeout(loadScripts, 5000)
+
+    window.addEventListener('scroll', loadScripts, { once: true, passive: true })
+    window.addEventListener('mousemove', loadScripts, { once: true, passive: true })
+    window.addEventListener('touchstart', loadScripts, { once: true, passive: true })
+
+    return () => {
+      clearTimeout(timeoutId)
+      window.removeEventListener('scroll', loadScripts)
+      window.removeEventListener('mousemove', loadScripts)
+      window.removeEventListener('touchstart', loadScripts)
+    }
   }, [])
 
   if (!mounted) return null

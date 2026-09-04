@@ -4,34 +4,6 @@ import { useState, useEffect } from 'react'
 import Script from 'next/script'
 
 export function DelayedScripts({ gaId, fbPixelId }: { gaId: string | null, fbPixelId: string | null }) {
-  const [load, setLoad] = useState(false)
-  
-  useEffect(() => {
-    // Load heavy third-party scripts ONLY on user interaction
-    // This perfectly evades Lighthouse traces (which don't interact) while ensuring scripts load for real users
-    const loadScripts = () => {
-      setLoad(true)
-      window.removeEventListener('scroll', loadScripts)
-      window.removeEventListener('mousemove', loadScripts)
-      window.removeEventListener('touchstart', loadScripts)
-      window.removeEventListener('keydown', loadScripts)
-    }
-
-    window.addEventListener('scroll', loadScripts, { once: true, passive: true })
-    window.addEventListener('mousemove', loadScripts, { once: true, passive: true })
-    window.addEventListener('touchstart', loadScripts, { once: true, passive: true })
-    window.addEventListener('keydown', loadScripts, { once: true, passive: true })
-
-    return () => {
-      window.removeEventListener('scroll', loadScripts)
-      window.removeEventListener('mousemove', loadScripts)
-      window.removeEventListener('touchstart', loadScripts)
-      window.removeEventListener('keydown', loadScripts)
-    }
-  }, [])
-
-  if (!load) return null
-
   return (
     <>
       <Script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1914892456105863" strategy="lazyOnload" crossOrigin="anonymous" />
