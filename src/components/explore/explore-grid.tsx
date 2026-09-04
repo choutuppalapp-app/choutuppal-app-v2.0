@@ -460,11 +460,7 @@ export function ExploreGrid({
                     className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden">
-                      <Image width={800} height={800} decoding="async" loading="lazy" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        src={cover}
-                        alt={l.title}
-                        className="h-full w-full object-cover transition group-hover:scale-105"
-                      />
+                      <GridImage src={cover} alt={l.title} />
                       {l.isFeatured ? (
                         <span className="absolute left-2 top-2 flex items-center gap-0.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 shadow-xs">
                           <Crown className="h-2.5 w-2.5" /> Premium
@@ -526,7 +522,7 @@ export function ExploreGrid({
                     className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden">
-                      <Image width={800} height={800} loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={reCover} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                      <GridImage src={reCover} alt={r.title} />
                       <Badge className={`absolute left-2 top-2 ${r.listingType === 'SALE' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
                         For {r.listingType === 'SALE' ? 'Sale' : 'Rent'}
                       </Badge>
@@ -580,5 +576,22 @@ function EmptyState({ query, category }: { query?: string; category?: string }) 
         </div>
       ))}
     </div>
+  )
+}
+
+function GridImage({ src, alt }: { src: string; alt: string }) {
+  const [error, setError] = useState(false)
+  return (
+    <Image 
+      fill
+      decoding="async" 
+      loading="lazy" 
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      src={error ? '/images/fallback-cover.webp' : src}
+      alt={alt}
+      style={{ objectFit: 'cover' }}
+      className="transition group-hover:scale-105"
+      onError={() => setError(true)}
+    />
   )
 }

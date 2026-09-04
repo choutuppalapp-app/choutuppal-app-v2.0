@@ -59,6 +59,8 @@ export function ListingDetailView({
   const { listing, isOwner, isAdmin } = data
   const router = useRouter()
   const [claiming, setClaiming] = useState(false)
+  const [coverError, setCoverError] = useState(false)
+  const [logoError, setLogoError] = useState(false)
 
   async function handleClaim() {
     setClaiming(true)
@@ -140,10 +142,15 @@ export function ListingDetailView({
           <div className="relative">
             {/* Cover Image (16:9 aspect ratio) */}
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-              <Image width={800} height={800} loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                src={getCoverUrl(listing)}
+              <Image 
+                fill
+                loading="lazy" 
+                decoding="async" 
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                src={coverError ? '/images/fallback-cover.webp' : getCoverUrl(listing)}
                 alt={`${listing.title} cover`}
-                className="h-full w-full object-cover"
+                style={{ objectFit: 'cover' }}
+                onError={() => setCoverError(true)}
               />
               {/* Gradient overlay only visible on md and up */}
               <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -151,13 +158,15 @@ export function ListingDetailView({
               {/* Title Overlay for Desktop */}
               <div className="hidden md:flex absolute bottom-0 left-0 w-full p-6 items-end gap-5">
                 <div className="h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white/20 bg-white shadow-2xl relative z-10">
-                  <Image width={800} height={800}
+                  <Image 
+                    fill
                     loading="lazy"
                     decoding="async"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    src={getLogoUrl(listing)}
+                    src={logoError ? '/images/fallback-logo.webp' : getLogoUrl(listing)}
                     alt={listing.title}
-                    className="h-full w-full object-cover"
+                    style={{ objectFit: 'cover' }}
+                    onError={() => setLogoError(true)}
                   />
                 </div>
 
@@ -196,14 +205,16 @@ export function ListingDetailView({
             {/* Mobile Title block (hidden on md) */}
             <div className="px-4 pb-5 md:hidden">
               <div className="-mt-12 relative z-10 flex flex-col items-center text-center gap-3">
-                <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg mx-auto">
-                  <Image width={800} height={800}
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg mx-auto">
+                  <Image 
+                    fill
                     loading="lazy"
                     decoding="async"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    src={getLogoUrl(listing)}
+                    src={logoError ? '/images/fallback-logo.webp' : getLogoUrl(listing)}
                     alt={listing.title}
-                    className="h-full w-full object-cover"
+                    style={{ objectFit: 'cover' }}
+                    onError={() => setLogoError(true)}
                   />
                 </div>
 
