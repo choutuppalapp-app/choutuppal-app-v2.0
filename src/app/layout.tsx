@@ -130,8 +130,6 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}
       >
-        {/* @ts-ignore */}
-        <amp-auto-ads type="adsense" data-ad-client="ca-pub-1914892456105863"></amp-auto-ads>
         <Providers>
           {gaId ? (
             <>

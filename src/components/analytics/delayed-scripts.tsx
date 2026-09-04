@@ -37,6 +37,8 @@ export function DelayedScripts({ gaId, fbPixelId }: { gaId: string | null, fbPix
       <Script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1914892456105863" strategy="lazyOnload" crossOrigin="anonymous" />
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <Script src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js" strategy="lazyOnload" />
+      {/* @ts-ignore */}
+      <amp-auto-ads type="adsense" data-ad-client="ca-pub-1914892456105863"></amp-auto-ads>
 
       {gaId && (
         <>

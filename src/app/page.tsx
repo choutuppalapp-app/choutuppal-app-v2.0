@@ -4,6 +4,7 @@ import { Ticker } from '@/components/home/ticker'
 import { prisma } from '@/lib/prisma'
 import { StickySocials } from '@/components/home/sticky-socials'
 import nextDynamic from 'next/dynamic'
+import Image from 'next/image'
 import { StoriesRail } from '@/components/home/stories-rail'
 import { BannerCarousel } from '@/components/home/banner-carousel'
 
@@ -71,11 +72,19 @@ export default async function Home() {
       <main className="flex-1">
         {/* 1. Hero Section */}
         <section 
-          className="relative w-full overflow-hidden gradient-brand bg-cover bg-center pt-12 pb-8 sm:pt-20 sm:pb-12 px-4 text-center text-white"
-          style={{ backgroundImage: `url('${heroImage}')` }}
+          className="relative w-full overflow-hidden gradient-brand pt-12 pb-8 sm:pt-20 sm:pb-12 px-4 text-center text-white"
         >
+          <Image
+            src={heroImage}
+            alt="Hero Background"
+            fill
+            priority
+            fetchPriority="high"
+            sizes="100vw"
+            className="object-cover absolute inset-0 z-0"
+          />
           {/* Dark Overlay for Readability */}
-          <div className="absolute inset-0 bg-black/60 sm:bg-gradient-to-t sm:from-black/80 sm:to-black/30" />
+          <div className="absolute inset-0 bg-black/60 sm:bg-gradient-to-t sm:from-black/80 sm:to-black/30 z-0" />
           
           <div className="relative z-10 mx-auto max-w-3xl">
             <h1 className="text-4xl font-black tracking-tight sm:text-6xl md:text-7xl mb-4 text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
