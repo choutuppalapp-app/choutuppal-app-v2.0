@@ -93,7 +93,7 @@ export const metadata: Metadata = {
 
 import { getCurrentTenant, DEFAULT_TENANT } from '@/lib/tenant'
 import { Phone, AlertTriangle } from 'lucide-react'
-import { DelayedScripts } from '@/components/analytics/delayed-scripts'
+import { DynamicDelayedScriptsWrapper } from '@/components/analytics/dynamic-delayed-scripts'
 
 export const viewport: Viewport = {
   themeColor: '#1d4ed8',
@@ -141,7 +141,7 @@ export default async function RootLayout({
             </>
           ) : null}
 
-          <DelayedScripts gaId={gaId} fbPixelId={fbPixelId} />
+          <DynamicDelayedScriptsWrapper gaId={gaId} fbPixelId={fbPixelId} />
 
           {isExpired ? (
             <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-6 text-center text-white">

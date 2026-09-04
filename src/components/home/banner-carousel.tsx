@@ -157,7 +157,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             alt={current.title ?? 'Banner Ad'}
             width={800} height={500}
             priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+            fetchPriority="high"
+            sizes="100vw"
             className="absolute inset-0 h-full w-full object-contain bg-slate-100"
           />
         ) : null}
