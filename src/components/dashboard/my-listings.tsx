@@ -61,8 +61,7 @@ export function MyListings({
             <div key={l.id} className="hover-lift overflow-hidden rounded-2xl glass">
               <div className="relative aspect-[16/9]">
                 {l.coverImage ? (
-                   
-                  <Image width={800} height={800} loading="lazy" decoding="async" src={l.coverImage} alt={l.title} className="h-full w-full object-cover" />
+                  <Image width={800} height={800} loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={l.coverImage} alt={l.title} className="h-full w-full object-cover" />
                 ) : (
                   <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white">
                     {l.title.charAt(0)}

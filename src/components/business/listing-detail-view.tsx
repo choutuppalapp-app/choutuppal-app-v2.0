@@ -140,7 +140,7 @@ export function ListingDetailView({
           <div className="relative">
             {/* Cover Image (16:9 aspect ratio) */}
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-              <Image width={800} height={800} loading="lazy" decoding="async"
+              <Image width={800} height={800} loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 src={getCoverUrl(listing)}
                 alt={`${listing.title} cover`}
                 className="h-full w-full object-cover"
@@ -154,6 +154,7 @@ export function ListingDetailView({
                   <Image width={800} height={800}
                     loading="lazy"
                     decoding="async"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     src={getLogoUrl(listing)}
                     alt={listing.title}
                     className="h-full w-full object-cover"
@@ -199,6 +200,7 @@ export function ListingDetailView({
                   <Image width={800} height={800}
                     loading="lazy"
                     decoding="async"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     src={getLogoUrl(listing)}
                     alt={listing.title}
                     className="h-full w-full object-cover"
@@ -545,7 +547,7 @@ export function ListingDetailView({
               >
                 <div className="relative aspect-[16/9] overflow-hidden">
                   {r.coverImage || r.logo ? (
-                    <Image width={800} height={800} loading="lazy" decoding="async" src={(r.coverImage || r.logo)!} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                    <Image width={800} height={800} loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={(r.coverImage || r.logo)!} alt={r.title} className="h-full w-full object-cover transition group-hover:scale-105" />
                   ) : (
                     <div className="grid h-full w-full place-items-center gradient-brand text-2xl font-black text-white">
                       {r.title.charAt(0)}
