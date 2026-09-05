@@ -55,7 +55,7 @@ const nextConfig: NextConfig = {
           },
         ],
         destination: 'https://www.choutuppal.in/:path*',
-        permanent: true,
+        permanent: false,
       },
     ];
   },
