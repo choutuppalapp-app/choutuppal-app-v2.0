@@ -382,6 +382,7 @@ export function ListingDetailView({
                       className="relative h-40 w-40 shrink-0 overflow-hidden rounded-2xl border border-white/50 bg-white/30 shadow-sm sm:h-44 sm:w-44"
                     >
                       <Image width={800} height={800} loading="lazy" decoding="async"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         src={url}
                         alt={`${listing.title} gallery image ${i + 1}`}
                         className="h-full w-full object-cover transition hover:scale-105"

@@ -4,6 +4,37 @@ import { useState, useEffect } from 'react'
 import Script from 'next/script'
 
 export function DelayedScripts({ gaId, fbPixelId }: { gaId: string | null, fbPixelId: string | null }) {
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const handleInteraction = () => {
+      setShouldLoad(true);
+      removeEventListeners();
+    };
+
+    const removeEventListeners = () => {
+      window.removeEventListener('scroll', handleInteraction);
+      window.removeEventListener('mousemove', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+    };
+
+    window.addEventListener('scroll', handleInteraction);
+    window.addEventListener('mousemove', handleInteraction);
+    window.addEventListener('touchstart', handleInteraction);
+
+    const timeoutId = setTimeout(() => {
+      setShouldLoad(true);
+      removeEventListeners();
+    }, 5000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      removeEventListeners();
+    };
+  }, []);
+
+  if (!shouldLoad) return null;
+
   return (
     <>
       <Script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1914892456105863" strategy="lazyOnload" crossOrigin="anonymous" />
