@@ -586,7 +586,7 @@ function GridImage({ src, alt }: { src: string; alt: string }) {
       fill
       decoding="async" 
       loading="lazy" 
-      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      sizes="200px"
       src={error ? '/images/fallback-cover.webp' : src}
       alt={alt}
       style={{ objectFit: 'cover' }}
