@@ -2,7 +2,7 @@
 
 import nextDynamic from 'next/dynamic'
 
-const Loader = () => <div className="h-64 animate-pulse bg-slate-100 rounded-xl" />
+const Loader = () => <div className="h-64 w-full animate-pulse bg-slate-100 rounded-xl" />
 
 export const StoriesRail = nextDynamic(() => import('@/components/home/stories-rail').then(m => ({ default: m.StoriesRail })), { ssr: false, loading: Loader })
 export const BannerCarousel = nextDynamic(() => import('@/components/home/banner-carousel').then(m => ({ default: m.BannerCarousel })), { ssr: false, loading: Loader })
