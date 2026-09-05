@@ -66,9 +66,9 @@ export function SiteHeader({ tenant = DEFAULT_TENANT }: SiteHeaderProps) {
         {/* Left: Logo */}
         <Link href="/" className="flex shrink-0 items-center gap-2">
           {tenant.logoUrl ? (
-            <Image width={70} height={70} src={tenant.logoUrl} alt={tenant.name} className="h-10 w-auto object-contain" loading="lazy" decoding="async" unoptimized />
+            <Image width={70} height={70} src={tenant.logoUrl} alt={tenant.name} className="h-10 w-auto object-contain" loading="lazy" decoding="async" />
           ) : isDefault ? (
-            <Image width={70} height={70} src="/logo.webp" alt="Choutuppal App" className="h-10 w-auto" loading="lazy" decoding="async" unoptimized />
+            <Image width={70} height={70} src="/logo.webp" alt="Choutuppal App" className="h-10 w-auto" loading="lazy" decoding="async" />
           ) : (
             <div className="flex items-center gap-2">
               <div

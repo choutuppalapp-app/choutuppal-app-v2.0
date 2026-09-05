@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Script from 'next/script'
 import { Button } from '@/components/ui/button'
 
 interface RazorpayCheckoutProps {
@@ -103,8 +104,11 @@ export function RazorpayCheckout({ amount, planName, onSuccess, disabled, classN
   }
 
   return (
-    <Button onClick={handlePayment} disabled={loading || disabled} className={className || "w-full"}>
-      {loading ? 'Processing...' : children ? children : `Pay ₹${amount}`}
-    </Button>
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <Button onClick={handlePayment} disabled={loading || disabled} className={className || "w-full"}>
+        {loading ? 'Processing...' : children ? children : `Pay ₹${amount}`}
+      </Button>
+    </>
   )
 }

@@ -56,9 +56,7 @@ export function DelayedScripts({ gaId, fbPixelId }: { gaId: string | null, fbPix
     // Google Ads
     injectScript('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1914892456105863', true, 'anonymous');
     
-    // Razorpay
-    injectScript('https://checkout.razorpay.com/v1/checkout.js', true);
-    
+
     // AMP Ads
     injectScript('https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js', true);
 
