@@ -56,3 +56,9 @@ server.log
 db/
 .verify/
 tool-results/
+
+# User requested entries
+.next/
+node_modules/.cache/
+tsconfig.tsbuildinfo
+*.log
