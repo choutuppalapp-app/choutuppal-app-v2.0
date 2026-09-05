@@ -76,7 +76,7 @@ export async function getFeaturedListings() {
           OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         orderBy: { createdAt: 'desc' },
-        take: 12,
+        take: 6,
         select: {
           id: true,
             title: true,
@@ -178,7 +178,7 @@ export async function getLatestBlogs() {
       prisma.blog.findMany({
         where: { ...tenantFilter, isPublished: true },
         orderBy: { createdAt: 'desc' },
-        take: 6,
+        take: 4,
         select: {
           id: true,
           title: true,
