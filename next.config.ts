@@ -44,6 +44,21 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'choutuppal.in',
+          },
+        ],
+        destination: 'https://www.choutuppal.in/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 import bundleAnalyzer from '@next/bundle-analyzer';
