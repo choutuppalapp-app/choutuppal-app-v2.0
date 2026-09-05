@@ -155,12 +155,12 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           <Image
             src={current.imageUrl}
             alt={current.title ?? 'Banner Ad'}
-            width={800} height={500}
+            fill
             priority
             fetchPriority="high"
             sizes="(max-width: 768px) 100vw, 1200px"
             quality={60}
-            className="absolute inset-0 h-full w-full object-contain bg-slate-100"
+            className="object-contain bg-slate-100"
           />
         ) : null}
         {/* Gloss overlay */}
@@ -287,7 +287,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             {/* Media Container */}
             <div className="relative w-full h-full flex flex-col items-center justify-center pointer-events-none z-[9999]">
               {current?.imageUrl ? (
-                <Image width={800} height={800} src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="max-h-full max-w-full object-contain pointer-events-auto" loading="lazy" decoding="async" />
+                <Image fill src={current.imageUrl} alt={current.title ?? 'Banner Ad'} className="object-contain pointer-events-auto" loading="lazy" decoding="async" />
               ) : null}
 
               <div className="absolute bottom-24 left-4 right-4 bg-black/80 backdrop-blur-md p-5 rounded-2xl pointer-events-auto z-[10001]">
