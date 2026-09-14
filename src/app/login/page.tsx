@@ -90,7 +90,7 @@ function LoginInner() {
   // ---- Google OAuth callback redirect ---------------------------------------
   // When Google OAuth completes, NextAuth sends the browser to /login?google=1.
   // Detect that, read the now-active session, and redirect to the role-
-  // appropriate destination (admin -> /admin, agent -> /agent, user -> /dashboard).
+  // appropriate destination (admin -> /admin, user -> /dashboard).
   useEffect(() => {
     if (searchParams.get('google') !== '1') return
     let active = true

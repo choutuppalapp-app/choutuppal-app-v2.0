@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
   compress: true,
   typescript: {
@@ -14,6 +15,7 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ['image/avif', 'image/webp'],
+    qualities: [60, 75, 80, 100],
     remotePatterns: [
       { protocol: "https", hostname: "**" },
     ],

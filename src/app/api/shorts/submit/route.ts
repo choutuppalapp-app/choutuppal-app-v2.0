@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Log notification in WhatsApp CRM
+    // Log notification in WhatsApp message history
     if (phone) {
       const cleanPhone = phone.replace(/\D/g, '')
       if (cleanPhone) {

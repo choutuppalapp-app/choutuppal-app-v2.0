@@ -24,7 +24,7 @@ interface SiteHeaderProps {
 
 /**
  * Global site header — renders on every page via layout.tsx.
- * Hidden on /admin, /agent, and /dashboard (those have dedicated panel headers).
+ * Hidden on /admin and /dashboard (those have dedicated panel headers).
  */
 export function SiteHeader({ tenant = DEFAULT_TENANT }: SiteHeaderProps) {
   const pathname = usePathname()
@@ -53,9 +53,9 @@ export function SiteHeader({ tenant = DEFAULT_TENANT }: SiteHeaderProps) {
     }
   }
 
-  // Hide on admin/agent/franchise routes or franchise subdomain — they have dedicated panel headers or landing layouts
+  // Hide on admin/franchise routes or franchise subdomain — they have dedicated panel headers or landing layouts
   const isFranchiseSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('franchise.choutuppal.in')
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
+  if (pathname.startsWith('/admin') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
 
   const isLoggedIn = !!session?.user
   const isDefault = tenant.id === DEFAULT_TENANT.id

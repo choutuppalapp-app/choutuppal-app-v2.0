@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 import { prisma } from '@/lib/prisma'
 
 const SYSTEM_PROMPT = `You are the Choutuppal App AI Assistant. Answer user queries about local businesses, real estate, and news in Choutuppal town based on the provided database context. Be polite and answer in Telugu or English based on the user's language. Keep answers short.`
@@ -149,18 +149,19 @@ export async function getAIResponse(
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      systemInstruction,
-    })
-
+    const ai = new GoogleGenAI({ apiKey })
     const prompt = `Database Context:\n${
       dbContext || 'No specific database records found for this query.'
     }\n\nUser Query: ${userMessage}`
 
-    const result = await model.generateContent(prompt)
-    const replyText = result.response.text()
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        systemInstruction,
+      },
+    })
+    const replyText = response.text || ''
 
     return replyText.trim() || 'నమస్తే! వివరాల కోసం చౌటుప్పల్ యాప్ choutuppal.in విజిట్ చేయండి.'
   } catch (err) {

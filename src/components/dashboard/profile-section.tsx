@@ -302,9 +302,6 @@ export function ProfileSection({
               {upgrading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Crown className="h-3.5 w-3.5" />}
               {user.planTier === 'PREMIUM' ? 'PREMIUM Active' : 'Upgrade to Premium'}
             </Button>
-            <Button size="sm" variant="outline" className="gap-1.5 border-blue-300 text-blue-700 hover:bg-blue-50">
-              Become Agent
-            </Button>
           </div>
         </div>
       </div>

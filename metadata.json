@@ -1,0 +1,6 @@
+{
+  "name": "Choutuppal App",
+  "description": "Local marketplace, business directory, real estate, and community platform for Choutuppal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

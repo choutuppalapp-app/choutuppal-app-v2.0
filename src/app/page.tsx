@@ -1,7 +1,7 @@
 import { getHomePageData } from '@/lib/home-data'
 import { getCurrentUser } from '@/lib/session'
 import { Ticker } from '@/components/home/ticker'
-import { prisma } from '@/lib/prisma'
+import { prisma, safeDbQuery } from '@/lib/prisma'
 import { StickySocials } from '@/components/home/sticky-socials'
 import {
   StoriesRail,
@@ -35,8 +35,8 @@ export default async function Home() {
   let spinEnabled = true
   let appSettings: Record<string, string> = {}
   try {
-    const settingsList = await prisma.setting.findMany()
-    appSettings = settingsList.reduce((acc, row) => {
+    const settingsList = await safeDbQuery(() => prisma.setting.findMany(), [])
+    appSettings = (settingsList || []).reduce((acc, row) => {
       acc[row.key] = row.value
       return acc
     }, {} as Record<string, string>)
@@ -54,8 +54,7 @@ export default async function Home() {
           viewer.planTier === 'PREMIUM' ||
           viewer.planTier === 'PRO' ||
           viewer.role === 'ADMIN' ||
-          viewer.role === 'SUPER_ADMIN' ||
-          viewer.role === 'AGENT',
+          viewer.role === 'SUPER_ADMIN',
       }
     : { isLoggedIn: false, isPremium: false }
 

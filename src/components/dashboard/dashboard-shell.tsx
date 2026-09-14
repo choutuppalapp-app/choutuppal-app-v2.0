@@ -241,9 +241,8 @@ export function DashboardShell({ data }: DashboardShellProps) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Role-based navigation links to the Admin and Agent panels.
+ * Role-based navigation links to the Admin panel.
  * - Admin Panel (/admin): visible to ADMIN + SUPER_ADMIN
- * - Agent Panel (/agent): visible to AGENT + ADMIN (SUPER_ADMIN)
  *
  * `onNavigate` is called after a click (used by the mobile drawer to close).
  */
@@ -255,7 +254,6 @@ function RoleLinks({
   onNavigate?: () => void
 }) {
   const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
-  const isAgent = role === 'AGENT' || isAdmin
   const links: { href: string; label: string; icon: typeof ShieldCheck; accent: string }[] = []
 
   if (isAdmin) {
@@ -264,14 +262,6 @@ function RoleLinks({
       label: 'Admin Panel',
       icon: ShieldCheck,
       accent: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
-    })
-  }
-  if (isAgent) {
-    links.push({
-      href: '/agent',
-      label: 'Agent Panel',
-      icon: Briefcase,
-      accent: 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100',
     })
   }
 

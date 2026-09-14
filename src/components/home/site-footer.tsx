@@ -20,7 +20,7 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
   const displayPhone = formatPhoneNumber(rawCall)
 
   const isFranchiseSubdomain = typeof window !== 'undefined' && window.location.hostname.includes('franchise.choutuppal.in')
-  if (pathname.startsWith('/admin') || pathname.startsWith('/agent') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
+  if (pathname.startsWith('/admin') || pathname.startsWith('/franchise') || isFranchiseSubdomain) return null
 
   return (
     <footer

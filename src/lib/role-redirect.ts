@@ -2,7 +2,6 @@
  * Role-based redirect destination after authentication.
  *
  *   ADMIN / SUPER_ADMIN  -> /admin
- *   AGENT                -> /agent
  *   USER (default)       -> /dashboard
  *
  * The role strings match the values stored in the User table and surfaced on
@@ -10,7 +9,6 @@
  */
 export function roleRedirectPath(role: string | undefined | null): string {
   if (role === 'ADMIN' || role === 'SUPER_ADMIN') return 'https://admin.choutuppal.in'
-  if (role === 'AGENT') return 'https://agent.choutuppal.in'
   return '/dashboard'
 }
 

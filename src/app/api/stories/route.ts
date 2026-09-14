@@ -26,13 +26,12 @@ export async function POST(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  // Premium gate — only PREMIUM users (or admins/agents) can post stories.
+  // Premium gate — only PREMIUM users (or admins) can post stories.
   const isPremium =
     auth.user.planTier === 'PREMIUM' ||
     auth.user.planTier === 'PRO' ||
     auth.user.role === 'ADMIN' ||
-    auth.user.role === 'SUPER_ADMIN' ||
-    auth.user.role === 'AGENT'
+    auth.user.role === 'SUPER_ADMIN'
   if (!isPremium) {
     return NextResponse.json(
       { error: 'PREMIUM_REQUIRED', message: 'స్టోరీలు పోస్ట్ చేయడం కేవలం ప్రీమియం యూజర్లకే. ఇప్పుడే అప్‌గ్రేడ్ చేయండి!' },

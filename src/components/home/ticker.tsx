@@ -9,7 +9,7 @@ const DEFAULT_ANNOUNCEMENTS = [
   '📅 Spin & Win daily rewards — 1 free spin every day for early users.',
   '🏠 List your property for sale or rent at zero cost.',
   '📣 Banner ads from just ₹99/day — reach 10,000+ local customers.',
-  '📰 Read local news & blogs updated daily by our agents.',
+  '📰 Read local news & blogs updated daily.',
   '🤝 Community is now open — post & connect with your village.',
 ]
 
