@@ -100,6 +100,11 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
                 </Link>
               </li>
               <li>
+                <Link href="/cookies" className="text-sm text-slate-600 transition hover:text-blue-600">
+                  Cookie Policy
+                </Link>
+              </li>
+              <li>
                 <Link href="/login" className="text-sm text-slate-600 transition hover:text-blue-600">
                   Login / Sign Up
                 </Link>

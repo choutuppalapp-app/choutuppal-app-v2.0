@@ -456,7 +456,7 @@ export function ExploreGrid({
                   <Link
                     key={l.id}
                     href={`/business/${l.slug}`}
-                    prefetch={false}
+                    prefetch={true}
                     className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden">
@@ -518,7 +518,7 @@ export function ExploreGrid({
                   <Link
                     key={r.id}
                     href={`/business/${r.slug}`}
-                    prefetch={false}
+                    prefetch={true}
                     className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
                   >
                     <div className="relative aspect-[16/9] overflow-hidden">

@@ -16,6 +16,7 @@ import { SiteFooter } from '@/components/home/site-footer'
 import { BottomNav } from '@/components/home/bottom-nav'
 import { WhatsAppFloat } from '@/components/home/whatsapp-float'
 import { MetaPixel } from '@/components/analytics/meta-pixel'
+import { ServiceWorkerRegister } from '@/components/service-worker-register'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -184,6 +185,7 @@ export default async function RootLayout({
 
           <Toaster />
           <SonnerToaster position="top-center" richColors closeButton />
+          <ServiceWorkerRegister />
         </Providers>
       </body>
     </html>

@@ -23,6 +23,8 @@ interface OfflineListing {
 }
 
 let cachedListings: OfflineListing[] | null = null
+let listingsByIdMap: Map<string, OfflineListing> | null = null
+let listingsBySlugMap: Map<string, OfflineListing> | null = null
 let cachedCategories: any[] | null = null
 let cachedVillages: any[] | null = null
 
@@ -32,13 +34,29 @@ export function getOfflineListings(): OfflineListing[] {
     const filePath = path.join(process.cwd(), 'listings-backup.json')
     if (fs.existsSync(filePath)) {
       const data = fs.readFileSync(filePath, 'utf-8')
-      cachedListings = JSON.parse(data)
+      cachedListings = JSON.parse(data) || []
+      listingsByIdMap = new Map()
+      listingsBySlugMap = new Map()
+      for (const item of cachedListings!) {
+        if (item.id) listingsByIdMap.set(item.id, item)
+        if (item.slug) listingsBySlugMap.set(item.slug, item)
+      }
       return cachedListings || []
     }
   } catch (err) {
     console.warn('[OfflineData] Failed to load listings-backup.json:', err)
   }
   return []
+}
+
+export function getOfflineListingById(id: string): OfflineListing | null {
+  if (!listingsByIdMap) getOfflineListings()
+  return listingsByIdMap?.get(id) || null
+}
+
+export function getOfflineListingBySlug(slug: string): OfflineListing | null {
+  if (!listingsBySlugMap) getOfflineListings()
+  return listingsBySlugMap?.get(slug) || null
 }
 
 export function getOfflineCategories(): any[] {

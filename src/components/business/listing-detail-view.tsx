@@ -144,9 +144,9 @@ export function ListingDetailView({
             <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
               <Image 
                 fill
-                loading="lazy" 
+                priority
                 decoding="async" 
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 60vw"
                 src={coverError ? '/images/fallback-cover.webp' : getCoverUrl(listing)}
                 alt={`${listing.title} cover`}
                 style={{ objectFit: 'cover' }}
@@ -208,9 +208,9 @@ export function ListingDetailView({
                 <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg mx-auto">
                   <Image 
                     fill
-                    loading="lazy"
+                    loading="eager"
                     decoding="async"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="96px"
                     src={logoError ? '/images/fallback-logo.webp' : getLogoUrl(listing)}
                     alt={listing.title}
                     style={{ objectFit: 'cover' }}

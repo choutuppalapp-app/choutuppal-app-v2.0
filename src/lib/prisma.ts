@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import {
   getOfflineListings,
+  getOfflineListingById,
+  getOfflineListingBySlug,
   getOfflineCategories,
   getOfflineVillages,
   getOfflineSettings,
@@ -81,10 +83,10 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
       }
       if (method === 'findUnique' || method === 'findFirst') {
         if (queryArg.where?.id) {
-          return all.find((l) => l.id === queryArg.where.id) || all[0] || null
+          return getOfflineListingById(queryArg.where.id)
         }
         if (queryArg.where?.slug) {
-          return all.find((l) => l.slug === queryArg.where.slug) || all[0] || null
+          return getOfflineListingBySlug(queryArg.where.slug)
         }
         return all[0] || null
       }
