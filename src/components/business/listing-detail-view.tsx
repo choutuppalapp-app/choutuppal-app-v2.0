@@ -163,7 +163,7 @@ export function ListingDetailView({
                     loading="lazy"
                     decoding="async"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    src={logoError ? '/images/fallback-logo.webp' : getLogoUrl(listing)}
+                    src={logoError ? 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=150&h=150&q=80' : getLogoUrl(listing)}
                     alt={listing.title}
                     style={{ objectFit: 'cover' }}
                     onError={() => setLogoError(true)}
@@ -211,7 +211,7 @@ export function ListingDetailView({
                     loading="eager"
                     decoding="async"
                     sizes="96px"
-                    src={logoError ? '/images/fallback-logo.webp' : getLogoUrl(listing)}
+                    src={logoError ? 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=150&h=150&q=80' : getLogoUrl(listing)}
                     alt={listing.title}
                     style={{ objectFit: 'cover' }}
                     onError={() => setLogoError(true)}

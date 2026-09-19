@@ -402,7 +402,7 @@ function LoginInner() {
           className="flex items-center gap-3 hover-lift"
           aria-label="Choutuppal home"
         >
-          <Image width={800} height={800} loading="lazy" decoding="async" src="/logo.webp" alt="Choutuppal App" className="h-14 w-auto" />
+          <Image width={240} height={56} loading="lazy" decoding="async" src="https://i.ibb.co/BVdvN5rB/Untitled-design-removebg-preview.png" alt="Choutuppal App" className="h-14 w-auto object-contain" />
         </Link>
         <p className="max-w-[320px] text-sm text-slate-500">
           Sign in to manage your business, listings &amp; community.

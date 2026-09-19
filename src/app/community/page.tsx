@@ -3,7 +3,7 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/session'
 import { CommunityFeed } from '@/components/community/community-feed'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 

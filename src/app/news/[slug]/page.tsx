@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ChevronLeft, Calendar, User, MessageCircle } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 

@@ -18,9 +18,7 @@ import {
 } from '@/components/home/dynamic-wrappers'
 import Image from 'next/image'
 
-// Home page using ISR 1-hour revalidation & force-static for instant Edge caching
-export const revalidate = 3600
-export const dynamic = 'force-static'
+export const dynamic = 'force-dynamic'
 
 
 export default async function Home() {

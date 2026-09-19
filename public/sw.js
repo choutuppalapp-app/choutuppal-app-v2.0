@@ -1,15 +1,10 @@
 // Choutuppal App Service Worker (v2.0)
 // High-performance caching for mobile phones & offline resilience
 
-const CACHE_NAME = 'choutuppal-cache-v2'
+const CACHE_NAME = 'choutuppal-cache-v3'
 const STATIC_ASSETS = [
   '/',
   '/manifest.webmanifest',
-  '/logo-pwa.webp',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/icon.svg',
-  '/favicon.ico',
 ]
 
 // 1. Install: Pre-cache critical core shell assets

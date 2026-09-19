@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 /** POST /api/listings/claim — claim a business listing by phone match */
 export async function POST(request: NextRequest) {

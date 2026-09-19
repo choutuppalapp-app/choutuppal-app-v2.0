@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 /** POST /api/upgrade — upgrade user plan to PREMIUM */
 export async function POST() {

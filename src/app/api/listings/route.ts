@@ -6,7 +6,7 @@ import { requireApiUser, isAdminRole } from '@/lib/session'
 import { getCurrentTenant, getTenantWhereClause, getSafeTenantId } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 function slugify(s: string): string {
   return s

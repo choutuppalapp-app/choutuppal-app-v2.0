@@ -5,7 +5,7 @@ import { getDashboardData } from '@/lib/dashboard-data'
 import { DashboardShell } from '@/components/dashboard/dashboard-shell'
 import { Loader2 } from 'lucide-react'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   let user: any = null

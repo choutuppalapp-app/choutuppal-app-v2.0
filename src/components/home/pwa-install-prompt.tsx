@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { Download, X } from 'lucide-react'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -60,11 +61,22 @@ export function PwaInstallPrompt() {
   if (!visible || !promptEvent) return null
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center justify-between rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 p-4 text-white shadow-lg">
-      <span className="font-telugu text-sm font-semibold">
-        📱 చౌటుప్పల్ యాప్ ని ఇన్‌స్టాల్ చేయండి
-      </span>
-      <div className="flex items-center gap-2">
+    <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 p-3.5 text-white shadow-lg">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <Image
+          src="https://i.ibb.co/NgtRxPLw/Untitled-design.jpg"
+          alt="Choutuppal App Icon"
+          width={40}
+          height={40}
+          className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-sm ring-1 ring-white/30"
+          loading="lazy"
+          decoding="async"
+        />
+        <span className="font-telugu text-sm font-semibold truncate">
+          చౌటుప్పల్ యాప్ ని ఇన్‌స్టాల్ చేయండి
+        </span>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={install}
           className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:bg-amber-50"

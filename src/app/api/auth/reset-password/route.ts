@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { resetPassword } from '@/lib/auth-password-reset'
 
 export const runtime = 'nodejs'
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 const Schema = z.object({
   token: z.string().min(16),

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { ExploreGrid } from '@/components/explore/explore-grid'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 

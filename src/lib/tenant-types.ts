@@ -13,7 +13,7 @@ export const DEFAULT_TENANT: TenantConfig = {
   id: 'choutuppal-default',
   name: 'Choutuppal App',
   domain: 'choutuppal.in',
-  logoUrl: '/logo.webp',
+  logoUrl: 'https://i.ibb.co/BVdvN5rB/Untitled-design-removebg-preview.png',
   primaryColor: '#1d4ed8',
   adminPhone: '9494348175',
   subscriptionStatus: 'ACTIVE',

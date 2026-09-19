@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     qualities: [60, 75, 80, 100],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.ibb.co',
+        pathname: '/**',
+      },
       { protocol: "https", hostname: "**" },
     ],
   },

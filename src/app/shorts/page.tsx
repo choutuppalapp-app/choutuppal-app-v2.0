@@ -1,7 +1,7 @@
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { ShortsFeed } from '@/components/shorts/shorts-feed'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export default async function ShortsPage() {
   const shorts = await safeDbQuery(

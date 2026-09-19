@@ -4,8 +4,7 @@ import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import nextDynamic from 'next/dynamic'
 const ExploreGrid = nextDynamic(() => import('@/components/explore/explore-grid').then(m => ({ default: m.ExploreGrid })), { ssr: true, loading: () => null })
 
-export const revalidate = 3600
-export const dynamic = 'force-static'
+export const dynamic = 'force-dynamic'
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'https://choutuppal.in').replace(/\/$/, '')
 

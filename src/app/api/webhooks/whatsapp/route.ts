@@ -5,7 +5,7 @@ import { sendWhatsAppMessage } from '@/lib/whatsapp'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/webhooks/whatsapp — Meta Webhook Verification Handshake

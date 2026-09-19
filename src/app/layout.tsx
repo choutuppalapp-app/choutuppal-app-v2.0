@@ -1,5 +1,5 @@
 import Image from 'next/image';
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic'
 // AdSense Update Force
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
@@ -58,8 +58,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'Choutuppal App Team' }],
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/logo-pwa.webp',
-    apple: '/logo-pwa.webp',
+    icon: 'https://i.ibb.co/NgtRxPLw/Untitled-design.jpg',
+    apple: 'https://i.ibb.co/NgtRxPLw/Untitled-design.jpg',
   },
   openGraph: {
     title: 'Choutuppal App v2.0 — Business, Real Estate & Community',
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     siteName: 'Choutuppal App',
     images: [
       {
-        url: `${SITE_URL}/logo-pwa.webp`,
+        url: 'https://i.ibb.co/NgtRxPLw/Untitled-design.jpg',
         width: 1200,
         height: 630,
         alt: 'Choutuppal App v2.0',
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     title: 'Choutuppal App v2.0',
     description:
       'Businesses, services, real estate, news & community for Choutuppal, Yadadri, Telangana.',
-    images: [`${SITE_URL}/logo-pwa.webp`],
+    images: ['https://i.ibb.co/NgtRxPLw/Untitled-design.jpg'],
   },
   verification: {
     other: {

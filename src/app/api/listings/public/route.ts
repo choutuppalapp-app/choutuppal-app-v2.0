@@ -3,7 +3,7 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 
 export const runtime = 'nodejs'
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 /** GET /api/listings/public — Paginated public listings for infinite scroll grid */
 export async function GET(request: NextRequest) {
