@@ -8,7 +8,8 @@ import {
   Search, MapPin, Tag, SlidersHorizontal, X, Star,
   MessageCircle, Home as HomeIcon, IndianRupee, BedDouble, Maximize, Crown,
   UtensilsCrossed, HeartPulse, Car, GraduationCap, ShoppingBag, Wrench,
-  Sprout, Truck, Smartphone, Store, Layers, Loader2,
+  Sprout, Truck, Smartphone, Store, Layers, Loader2, Globe, Flame, Armchair,
+  Zap, BrickWall, Paintbrush, Shirt, Briefcase, Building2,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -71,11 +72,20 @@ const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   'automobile': Car,
   'education': GraduationCap,
   'retail-shopping': ShoppingBag,
+  'retail-fashion': Shirt,
   'services': Wrench,
-  'real-estate': HomeIcon,
+  'real-estate': Building2,
   'agriculture': Sprout,
+  'agriculture-seeds': Sprout,
   'transport': Truck,
   'electronics': Smartphone,
+  'internet-cyber-cafe': Globe,
+  'engineering-welding': Flame,
+  'furniture-home': Armchair,
+  'electrical-hardware': Zap,
+  'building-materials': BrickWall,
+  'interior-decor': Paintbrush,
+  'agencies-distributors': Briefcase,
 }
 
 export function ExploreGrid({
