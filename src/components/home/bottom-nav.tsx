@@ -17,7 +17,7 @@ export function BottomNav() {
     if (href === '/shorts') return pathname === '/shorts'
     if (href === '/explore') return pathname === '/explore'
     if (href === '/community') return pathname === '/community'
-    if (href === '/news') return pathname === '/news'
+    if (href === '/news') return pathname.startsWith('/news') || pathname.startsWith('/blog')
     if (href === '/dashboard') return pathname.startsWith('/dashboard')
     return false
   }
@@ -63,10 +63,10 @@ export function BottomNav() {
         <span className={cn('text-[9px] font-medium', isActive('/community') ? 'text-blue-600' : 'text-gray-500')}>Community</span>
       </Link>
 
-      {/* News */}
-      <Link href="/blog" className="flex flex-col items-center justify-center gap-0.5">
-        <Newspaper className={cn('h-5 w-5', isActive('/blog') ? 'text-blue-600' : 'text-gray-500')} />
-        <span className={cn('text-[9px] font-medium', isActive('/blog') ? 'text-blue-600' : 'text-gray-500')}>News</span>
+      {/* News & Blog */}
+      <Link href="/news" className="flex flex-col items-center justify-center gap-0.5">
+        <Newspaper className={cn('h-5 w-5', isActive('/news') ? 'text-blue-600' : 'text-gray-500')} />
+        <span className={cn('text-[9px] font-medium', isActive('/news') ? 'text-blue-600' : 'text-gray-500')}>News</span>
       </Link>
 
       {/* You */}

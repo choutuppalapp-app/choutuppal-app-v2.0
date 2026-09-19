@@ -105,10 +105,7 @@ export function SiteHeader({ tenant = DEFAULT_TENANT }: SiteHeaderProps) {
             Listings
           </Link>
           <Link href="/news" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
-            News
-          </Link>
-          <Link href="/blog" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
-            Blog
+            News &amp; Blog
           </Link>
           <Link href="/community" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
             Community
@@ -178,8 +175,7 @@ export function SiteHeader({ tenant = DEFAULT_TENANT }: SiteHeaderProps) {
         <nav className="grid grid-cols-2 gap-2">
           <MobileLink href="/" icon={Home} label="హోమ్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/listings" icon={Building2} label="లిస్టింగ్స్" onClick={() => setMobileOpen(false)} />
-          <MobileLink href="/news" icon={Newspaper} label="న్యూస్" onClick={() => setMobileOpen(false)} />
-          <MobileLink href="/blog" icon={BookOpen} label="బ్లాగ్స్" onClick={() => setMobileOpen(false)} />
+          <MobileLink href="/news" icon={Newspaper} label="న్యూస్ &amp; బ్లాగ్స్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/community" icon={Users} label="కమ్యూనిటీ" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/about" icon={Info} label="అబౌట్ అస్" onClick={() => setMobileOpen(false)} />
           <MobileLink href="/terms" icon={FileText} label="టర్మ్స్" onClick={() => setMobileOpen(false)} />

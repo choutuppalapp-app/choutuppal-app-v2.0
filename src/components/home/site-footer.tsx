@@ -64,12 +64,7 @@ export function SiteFooter({ tenant = DEFAULT_TENANT }: SiteFooterProps) {
               </li>
               <li>
                 <Link href="/news" className="text-sm text-slate-600 transition hover:text-blue-600">
-                  News
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-sm text-slate-600 transition hover:text-blue-600">
-                  Blog
+                  News &amp; Blog
                 </Link>
               </li>
               <li>
