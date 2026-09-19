@@ -1,10 +1,6 @@
-import Image from 'next/image';
-export const dynamic = 'force-dynamic'
-// AdSense Update Force
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
 import { Geist, Geist_Mono, Noto_Sans_Telugu } from 'next/font/google'
-import Script from 'next/script'
 import { Suspense } from 'react'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
@@ -17,6 +13,11 @@ import { BottomNav } from '@/components/home/bottom-nav'
 import { WhatsAppFloat } from '@/components/home/whatsapp-float'
 import { MetaPixel } from '@/components/analytics/meta-pixel'
 import { ServiceWorkerRegister } from '@/components/service-worker-register'
+import { getCurrentTenant, DEFAULT_TENANT } from '@/lib/tenant'
+import { Phone, AlertTriangle } from 'lucide-react'
+import { DynamicDelayedScriptsWrapper } from '@/components/analytics/dynamic-delayed-scripts'
+
+export const dynamic = 'force-dynamic'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -91,10 +92,6 @@ export const metadata: Metadata = {
     },
   },
 }
-
-import { getCurrentTenant, DEFAULT_TENANT } from '@/lib/tenant'
-import { Phone, AlertTriangle } from 'lucide-react'
-import { DynamicDelayedScriptsWrapper } from '@/components/analytics/dynamic-delayed-scripts'
 
 export const viewport: Viewport = {
   themeColor: '#1d4ed8',

@@ -36,7 +36,7 @@ const CreateSchema = z.object({
 async function uniqueSlug(base: string): Promise<string> {
   let slug = slugify(base) || `property-${Date.now()}`
   let i = 1
-  while (await prisma.realEstate.findUnique({ where: { slug } })) {
+  while (await prisma.realEstate.findUnique({ where: { slug }, select: { id: true } })) {
     slug = `${slugify(base)}-${i++}`
   }
   return slug
@@ -103,10 +103,14 @@ export async function GET(request: NextRequest) {
     targetUserId = queryUserId
   }
 
-  const realEstates = (await (async () => { try { return await prisma.realEstate.findMany({
-    where: { ownerId: targetUserId, ...tenantFilter },
-    orderBy: { createdAt: 'desc' },
-    include: { village: true },
-  }); } catch(e) { return [] as any; } })())
+  const realEstates = await safeDbQuery(
+    () =>
+      prisma.realEstate.findMany({
+        where: { ownerId: targetUserId, ...tenantFilter },
+        orderBy: { createdAt: 'desc' },
+        include: { village: true },
+      }),
+    [],
+  )
   return NextResponse.json({ ok: true, realEstates })
 }

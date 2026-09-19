@@ -17,22 +17,29 @@ export async function GET(request: NextRequest) {
   const tag = request.nextUrl.searchParams.get('tag') // optional filter
   const viewer = await getCurrentUser()
 
-  const posts = (await (async () => { try { return await prisma.communityPost.findMany({
-    where: {
-      author: { isPublic: true, isBanned: false },
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-    include: {
-      author: {
-        select: {
-          id: true, name: true, username: true, image: true,
+  const posts = await safeDbQuery(
+    () =>
+      prisma.communityPost.findMany({
+        where: {
+          author: { isPublic: true, isBanned: false },
         },
-      },
-      _count: { select: { comments: true } },
-      likesRel: viewer ? { where: { userId: viewer.id }, select: { id: true } } : false,
-    },
-  }); } catch(e) { return [] as any; } })())
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              image: true,
+            },
+          },
+          _count: { select: { comments: true } },
+          likesRel: viewer ? { where: { userId: viewer.id }, select: { id: true } } : false,
+        },
+      }),
+    [],
+  )
 
   const serialised = posts.map((p) => ({
     id: p.id,

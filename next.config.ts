@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
+import bundleAnalyzer from "@next/bundle-analyzer";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  output: "standalone",
   reactStrictMode: true,
   compress: true,
   typescript: {
@@ -10,17 +11,17 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: [
       "lucide-react",
-      "@radix-ui/react-icons"
+      "@radix-ui/react-icons",
     ],
   },
   images: {
-    formats: ['image/avif', 'image/webp'],
+    formats: ["image/avif", "image/webp"],
     qualities: [60, 75, 80, 100],
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'i.ibb.co',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "i.ibb.co",
+        pathname: "/**",
       },
       { protocol: "https", hostname: "**" },
     ],
@@ -54,24 +55,22 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/:path*',
+        source: "/:path*",
         has: [
           {
-            type: 'host',
-            value: 'choutuppal.in',
+            type: "host",
+            value: "choutuppal.in",
           },
         ],
-        destination: 'https://www.choutuppal.in/:path*',
+        destination: "https://www.choutuppal.in/:path*",
         permanent: false,
       },
     ];
   },
 };
 
-import bundleAnalyzer from '@next/bundle-analyzer';
-
 const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
+  enabled: process.env.ANALYZE === "true",
 });
 
 export default withBundleAnalyzer(nextConfig);
