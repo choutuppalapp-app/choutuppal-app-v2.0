@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  serverExternalPackages: [
+    "@prisma/client",
+    "prisma",
+    "sharp",
+    "bcryptjs",
+    "@aws-sdk/client-s3",
+    "pdf-parse",
+  ],
   experimental: {
     optimizePackageImports: [
       "lucide-react",
@@ -20,6 +28,21 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     qualities: [60, 75, 80, 100],
     remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.vercel-storage.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "public.blob.vercel-storage.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
       {
         protocol: "https",
         hostname: "i.ibb.co",

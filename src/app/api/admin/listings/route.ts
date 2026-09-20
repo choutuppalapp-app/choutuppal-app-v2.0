@@ -2,18 +2,11 @@ import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getOfflineListings, getOfflineCategories, getOfflineVillages } from '@/lib/offline-data'
-import fs from 'fs'
-import path from 'path'
 
 export const dynamic = 'force-dynamic'
 
-function persistOfflineListings(listings: any[]) {
-  try {
-    const filePath = path.join(process.cwd(), 'listings-backup.json')
-    fs.writeFileSync(filePath, JSON.stringify(listings, null, 2), 'utf-8')
-  } catch (err) {
-    console.error('[Admin Listings] Failed to save offline listings backup:', err)
-  }
+function persistOfflineListings(_listings: any[]) {
+  // In-memory or database persistence only in serverless environment
 }
 
 /** GET /api/admin/listings - List all shops/listings with filters */

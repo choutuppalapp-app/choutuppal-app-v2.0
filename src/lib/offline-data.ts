@@ -1,6 +1,3 @@
-import fs from 'fs'
-import path from 'path'
-
 export interface OfflineListing {
   id: string
   slug: string
@@ -66,93 +63,81 @@ let listingsBySlugMap: Map<string, OfflineListing> | null = null
 let cachedCategories: ServiceCategory[] | null = null
 let cachedVillages: any[] | null = null
 
+const DEFAULT_OFFLINE_LISTINGS: OfflineListing[] = [
+  {
+    id: 'list-sairam-elec',
+    slug: 'sri-sai-ram-electricals-choutuppal',
+    title: 'Sri Sai Ram Electricals & Plumber Works',
+    description: 'Expert residential & commercial wiring, motor rewinding, switchboard repairs, and plumbing pipe fittings.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: true,
+    coverImage: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&auto=format&fit=crop&q=80',
+    phone: '9494348175',
+    whatsapp: '9494348175',
+    address: 'Main Road, Near Bus Stand, Choutuppal',
+    avgRating: 4.8,
+    views: 142,
+    categoryId: 'cat-electrical',
+    villageId: 'cmsepb40r0000jv04tdwwd5cw',
+    category: { id: 'cat-electrical', name: 'Electrical & Hardware', slug: 'electrical-hardware', icon: 'Zap', telugu: 'ఎలక్ట్రికల్ & హార్డ్‌వేర్' },
+    village: { id: 'cmsepb40r0000jv04tdwwd5cw', name: 'Choutuppal', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Sai Ram', phone: '9494348175' }
+  },
+  {
+    id: 'list-venkat-med',
+    slug: 'venkateshwara-medical-choutuppal',
+    title: 'Venkateshwara Medical & General Stores',
+    description: '24/7 all prescription medicines, surgical supplies, baby care products, and wellness essentials.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: false,
+    coverImage: 'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=800&auto=format&fit=crop&q=80',
+    phone: '9849123456',
+    whatsapp: '9849123456',
+    address: 'Opp. Community Hospital, Choutuppal',
+    avgRating: 4.6,
+    views: 98,
+    categoryId: 'cat-medical',
+    villageId: 'cmsepb40r0000jv04tdwwd5cw',
+    category: { id: 'cat-medical', name: 'Health & Medical', slug: 'health-medical', icon: 'HeartPulse', telugu: 'వైద్యం & ఫార్మసీ' },
+    village: { id: 'cmsepb40r0000jv04tdwwd5cw', name: 'Choutuppal', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Venkateshwara', phone: '9849123456' }
+  },
+  {
+    id: 'list-chout-realestate',
+    slug: 'choutuppal-real-estate-lands',
+    title: 'Choutuppal Real Estate & Land Developers',
+    description: 'HMDA & DTCP approved open plots, residential house ventures, industrial lands along NH-65 corridor.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: true,
+    coverImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&auto=format&fit=crop&q=80',
+    phone: '9440123456',
+    whatsapp: '9440123456',
+    address: 'NH-65 Highway Junction, Choutuppal',
+    avgRating: 4.9,
+    views: 230,
+    categoryId: 'cat-realestate',
+    villageId: 'cmsepb40r0000jv04tdwwd5cw',
+    category: { id: 'cat-realestate', name: 'Real Estate & Lands', slug: 'real-estate', icon: 'Building2', telugu: 'రియల్ ఎస్టేట్ & ప్లాట్లు' },
+    village: { id: 'cmsepb40r0000jv04tdwwd5cw', name: 'Choutuppal', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Real Estate Office', phone: '9440123456' }
+  }
+]
+
 export function getOfflineListings(): OfflineListing[] {
   if (cachedListings) return cachedListings
-  try {
-    const filePath = path.join(process.cwd(), 'listings-backup.json')
-    if (fs.existsSync(filePath)) {
-      const data = fs.readFileSync(filePath, 'utf-8')
-      const rawList: OfflineListing[] = JSON.parse(data) || []
-      
-      // Deduplicate by Normalized Title + Phone and Unique Slug
-      const seenTitles = new Set<string>()
-      const seenSlugs = new Set<string>()
-      const uniqueListings: OfflineListing[] = []
+  cachedListings = [...DEFAULT_OFFLINE_LISTINGS]
+  listingsByIdMap = new Map()
+  listingsBySlugMap = new Map()
 
-      for (const item of rawList) {
-        if (!item || !item.title) continue
-        const cleanTitle = item.title.trim().toLowerCase().replace(/\s+/g, ' ')
-        const cleanPhone = (item.phone || '').replace(/\D/g, '')
-        const dedupeKey = `${cleanTitle}|${cleanPhone}`
-
-        if (seenTitles.has(dedupeKey)) {
-          continue // skip duplicate
-        }
-        seenTitles.add(dedupeKey)
-
-        // Ensure unique slug
-        let slug = item.slug || cleanTitle.replace(/[^a-z0-9]+/g, '-').slice(0, 30)
-        if (seenSlugs.has(slug)) {
-          slug = `${slug}-${Math.random().toString(36).substring(2, 6)}`
-        }
-        seenSlugs.add(slug)
-
-        // Enrich category data
-        const catSlug = item.category?.slug || 'services'
-        const stdCat = CATEGORY_MAP_BY_SLUG.get(catSlug) || {
-          id: item.category?.id || `cat-${catSlug}`,
-          name: item.category?.name || 'Local Service',
-          slug: catSlug,
-          icon: item.category?.icon || 'Store',
-          telugu: item.category?.name || 'సేవలు',
-          description: '',
-        }
-
-        const normalizedItem: OfflineListing = {
-          ...item,
-          slug,
-          status: item.status || 'APPROVED',
-          avgRating: item.avgRating ?? (4.0 + (Math.abs(item.title.length * 7) % 10) / 10),
-          views: typeof item.views === 'number' ? item.views : 15,
-          category: {
-            id: stdCat.id,
-            name: stdCat.name,
-            slug: stdCat.slug,
-            icon: stdCat.icon,
-            telugu: stdCat.telugu,
-          },
-          village: item.village || {
-            id: 'cmsepb40r0000jv04tdwwd5cw',
-            name: 'Choutuppal',
-            slug: 'choutuppal',
-          },
-          owner: item.owner || {
-            id: item.ownerId || 'cms0du1m40000v32slild2p1s',
-            name: 'Business Owner',
-            username: 'owner',
-            phone: item.phone,
-            image: null,
-          },
-        }
-
-        uniqueListings.push(normalizedItem)
-      }
-
-      cachedListings = uniqueListings
-      listingsByIdMap = new Map()
-      listingsBySlugMap = new Map()
-
-      for (const item of cachedListings) {
-        if (item.id) listingsByIdMap.set(item.id, item)
-        if (item.slug) listingsBySlugMap.set(item.slug, item)
-      }
-
-      return cachedListings
-    }
-  } catch (err) {
-    console.warn('[OfflineData] Failed to load listings-backup.json:', err)
+  for (const item of cachedListings) {
+    if (item.id) listingsByIdMap.set(item.id, item)
+    if (item.slug) listingsBySlugMap.set(item.slug, item)
   }
-  return []
+
+  return cachedListings
 }
 
 export function getOfflineListingById(id: string): OfflineListing | null {
@@ -429,6 +414,25 @@ export interface OfflineUser {
 const DEFAULT_DEMO_USERS: OfflineUser[] = [
   {
     id: 'cms0du1m40000v32slild2p1s',
+    name: 'Super Admin',
+    email: 'admin@choutuppal.in',
+    username: 'admin',
+    phone: '9494348175',
+    passwordHash: '$2b$10$eKgBR72xp3KfFQMMGtD/1edRXRft8EmWoxePGQ1ukYtpabWVBneoO', // Admin@123 / 123456
+    role: 'ADMIN',
+    planTier: 'PREMIUM',
+    planExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    villageId: 'cmsepb40r0000jv04tdwwd5cw',
+    bio: 'Official administrator and community lead for Choutuppal App.',
+    image: 'https://i.ibb.co/BVdvN5rB/Untitled-design-removebg-preview.png',
+    coverImage: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&auto=format&fit=crop&q=80',
+    isPublic: true,
+    isBanned: false,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date(),
+  },
+  {
+    id: 'cms0du1m40000v32slild2p1s_alt',
     name: 'Choutuppal Admin',
     email: 'choutuppalapp@gmail.com',
     username: 'choutuppalapp',
@@ -471,24 +475,6 @@ let offlineUsersStore: OfflineUser[] | null = null
 
 export function getOfflineUsers(): OfflineUser[] {
   if (offlineUsersStore) return offlineUsersStore
-  try {
-    const filePath = path.join(process.cwd(), 'users-backup.json')
-    if (fs.existsSync(filePath)) {
-      const data = fs.readFileSync(filePath, 'utf-8')
-      const parsed = JSON.parse(data)
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        offlineUsersStore = parsed.map((u: any) => ({
-          ...u,
-          planExpiresAt: u.planExpiresAt ? new Date(u.planExpiresAt) : null,
-          createdAt: u.createdAt ? new Date(u.createdAt) : new Date(),
-          updatedAt: u.updatedAt ? new Date(u.updatedAt) : new Date(),
-        }))
-        return offlineUsersStore
-      }
-    }
-  } catch (err) {
-    console.error('[getOfflineUsers] read error:', err)
-  }
   offlineUsersStore = [...DEFAULT_DEMO_USERS]
   return offlineUsersStore
 }
@@ -511,7 +497,6 @@ export function saveOfflineUser(user: Partial<OfflineUser> & { id?: string }): O
       updatedAt: now,
     }
     users[existingIdx] = updated as OfflineUser
-    persistUsersToFile(users)
     return updated as OfflineUser
   }
 
@@ -540,17 +525,7 @@ export function saveOfflineUser(user: Partial<OfflineUser> & { id?: string }): O
   }
 
   users.push(newUser)
-  persistUsersToFile(users)
   return newUser
-}
-
-function persistUsersToFile(users: OfflineUser[]) {
-  try {
-    const filePath = path.join(process.cwd(), 'users-backup.json')
-    fs.writeFileSync(filePath, JSON.stringify(users, null, 2), 'utf-8')
-  } catch (err) {
-    console.error('[persistUsersToFile] write error:', err)
-  }
 }
 
 
