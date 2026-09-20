@@ -24,17 +24,33 @@ export function Ticker({ initialAnnouncements }: TickerProps) {
 
   useEffect(() => {
     let active = true
-    fetch('/api/settings')
+    fetch('/api/settings', { cache: 'no-store' })
       .then((r) => r.json())
       .then((j) => {
-        if (active && j.ok && j.settings?.announcement_ticker) {
-          const split = j.settings.announcement_ticker
+        if (!active || !j.ok || !j.settings) return
+        
+        let loadedItems: string[] = []
+        if (j.settings.ticker_items_json) {
+          try {
+            const parsed = JSON.parse(j.settings.ticker_items_json)
+            if (Array.isArray(parsed)) {
+              loadedItems = parsed
+                .filter((t: any) => t.isActive !== false)
+                .map((t: any) => t.text)
+                .filter(Boolean)
+            }
+          } catch {}
+        }
+        
+        if (loadedItems.length === 0 && j.settings.announcement_ticker) {
+          loadedItems = j.settings.announcement_ticker
             .split('|')
             .map((s: string) => s.trim())
             .filter(Boolean)
-          if (split.length > 0) {
-            setAnnouncements(split)
-          }
+        }
+
+        if (loadedItems.length > 0) {
+          setAnnouncements(loadedItems)
         }
       })
       .catch(() => {})

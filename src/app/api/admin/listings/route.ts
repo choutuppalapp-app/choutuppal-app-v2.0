@@ -2,6 +2,8 @@ import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getOfflineListings, getOfflineCategories, getOfflineVillages } from '@/lib/offline-data'
+import { invalidateHomeDataCache } from '@/lib/home-data'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -160,6 +162,9 @@ export async function POST(req: NextRequest) {
     offlineList.unshift(newOfflineItem)
     persistOfflineListings(offlineList)
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
+
     return NextResponse.json({ ok: true, listing: createdDb || newOfflineItem })
   } catch (error: any) {
     console.error('[Admin Listings POST] Error:', error)
@@ -209,6 +214,9 @@ export async function PATCH(req: NextRequest) {
       persistOfflineListings(offlineList)
     }
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
+
     return NextResponse.json({ ok: true, message: 'Listing updated successfully' })
   } catch (error: any) {
     console.error('[Admin Listings PATCH] Error:', error)
@@ -236,6 +244,9 @@ export async function DELETE(req: NextRequest) {
     const offlineList = getOfflineListings()
     const filtered = offlineList.filter((l: any) => l.id !== id)
     persistOfflineListings(filtered)
+
+    invalidateHomeDataCache()
+    try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Listing deleted' })
   } catch (error: any) {

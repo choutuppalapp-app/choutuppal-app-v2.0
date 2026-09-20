@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser, isAdminRole } from '@/lib/session'
 import { getCurrentTenant, getTenantWhereClause, getSafeTenantId } from '@/lib/tenant'
+import { invalidateHomeDataCache } from '@/lib/home-data'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -101,6 +103,8 @@ export async function POST(request: NextRequest) {
         status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING',
       },
     })
+    invalidateHomeDataCache()
+    try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
     return NextResponse.json({ ok: true, listing }, { status: 201 })
   } catch (err: any) {
     console.error('[API Listings POST] Error creating listing:', err)

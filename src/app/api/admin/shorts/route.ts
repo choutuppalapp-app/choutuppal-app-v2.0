@@ -1,6 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { invalidateHomeDataCache } from '@/lib/home-data'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,6 +77,9 @@ export async function POST(req: NextRequest) {
       null
     )
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
+
     return NextResponse.json({ ok: true, short, message: 'Short added successfully' })
   } catch (error: any) {
     console.error('[Admin Shorts POST] Error:', error)
@@ -110,6 +115,9 @@ export async function PATCH(req: NextRequest) {
       null
     )
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
+
     return NextResponse.json({ ok: true, message: 'Short updated' })
   } catch (error: any) {
     console.error('[Admin Shorts PATCH] Error:', error)
@@ -132,6 +140,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     await safeDbQuery(() => prisma.short.delete({ where: { id } }), null)
+
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Short deleted' })
   } catch (error: any) {

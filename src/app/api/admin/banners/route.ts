@@ -2,6 +2,8 @@ import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getOfflineBanners } from '@/lib/offline-data'
+import { invalidateHomeDataCache } from '@/lib/home-data'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +25,7 @@ export async function GET() {
       null
     )
 
-    const banners = dbBanners && dbBanners.length > 0 ? dbBanners : getOfflineBanners()
+    const banners = dbBanners !== null && dbBanners !== undefined ? dbBanners : getOfflineBanners()
     return NextResponse.json({ ok: true, banners })
   } catch (error: any) {
     console.error('[Admin Banners GET] Error:', error)
@@ -63,6 +65,9 @@ export async function POST(req: NextRequest) {
         }),
       null
     )
+
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, banner, message: 'Banner created successfully' })
   } catch (error: any) {
@@ -104,6 +109,9 @@ export async function PATCH(req: NextRequest) {
       null
     )
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
+
     return NextResponse.json({ ok: true, message: 'Banner updated' })
   } catch (error: any) {
     console.error('[Admin Banners PATCH] Error:', error)
@@ -126,6 +134,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     await safeDbQuery(() => prisma.banner.delete({ where: { id } }), null)
+
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Banner deleted' })
   } catch (error: any) {

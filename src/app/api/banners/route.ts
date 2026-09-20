@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiUser } from '@/lib/session'
 import { getSafeTenantId } from '@/lib/tenant'
 import { revalidatePath } from 'next/cache'
+import { invalidateHomeDataCache } from '@/lib/home-data'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -44,7 +45,8 @@ export async function POST(request: NextRequest) {
     const banner = await prisma.banner.create({
       data: { ...parsed.data, expiresAt, ownerId: auth.user.id, tenantId },
     })
-    revalidatePath('/')
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
     return NextResponse.json({ ok: true, banner }, { status: 201 })
   } catch (err: any) {
     console.error('Banner Creation Error:', err)

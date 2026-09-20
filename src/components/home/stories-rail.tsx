@@ -83,21 +83,34 @@ export function StoriesRail({ stories, viewer }: StoriesRailProps) {
     }
   }, [viewerIndex])
 
-  const storyItems = stories.map((s) => ({
-    id: s.id,
-    mediaUrl: s.mediaUrl,
-    mediaType: s.mediaType,
-    caption: s.caption,
-    views: s.views,
-    expiresAt: s.expiresAt ? s.expiresAt.toISOString() : new Date().toISOString(),
-    createdAt: s.createdAt.toISOString(),
-    owner: {
-      id: '',
-      name: s.owner.name,
-      username: s.owner.username,
-      image: s.owner.image,
-    },
-  }))
+  const storyItems = (stories || []).map((s) => {
+    const expiresStr = s.expiresAt
+      ? typeof s.expiresAt === 'string'
+        ? s.expiresAt
+        : s.expiresAt.toISOString?.() || new Date().toISOString()
+      : new Date().toISOString()
+    const createdStr = s.createdAt
+      ? typeof s.createdAt === 'string'
+        ? s.createdAt
+        : s.createdAt.toISOString?.() || new Date().toISOString()
+      : new Date().toISOString()
+
+    return {
+      id: s.id,
+      mediaUrl: s.mediaUrl,
+      mediaType: s.mediaType || 'IMAGE',
+      caption: s.caption,
+      views: s.views || 0,
+      expiresAt: expiresStr,
+      createdAt: createdStr,
+      owner: {
+        id: '',
+        name: s.owner?.name || s.owner?.username || 'User',
+        username: s.owner?.username || 'user',
+        image: s.owner?.image || null,
+      },
+    }
+  })
 
   function handleAddClick() {
     if (!viewer.isLoggedIn) {

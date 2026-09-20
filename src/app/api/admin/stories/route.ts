@@ -1,6 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { invalidateHomeDataCache } from '@/lib/home-data'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,6 +64,9 @@ export async function POST(req: NextRequest) {
       null
     )
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
+
     return NextResponse.json({ ok: true, story, message: 'Story created' })
   } catch (error: any) {
     console.error('[Admin Stories POST] Error:', error)
@@ -97,6 +102,9 @@ export async function PATCH(req: NextRequest) {
       null
     )
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
+
     return NextResponse.json({ ok: true, message: 'Story updated' })
   } catch (error: any) {
     console.error('[Admin Stories PATCH] Error:', error)
@@ -119,6 +127,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     await safeDbQuery(() => prisma.story.delete({ where: { id } }), null)
+
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Story deleted' })
   } catch (error: any) {

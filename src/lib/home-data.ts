@@ -10,7 +10,10 @@ export async function getActiveStories() {
   return safeDbQuery(
     () =>
       prisma.story.findMany({
-        where: { expiresAt: { gt: new Date() }, isActive: true },
+        where: {
+          isActive: true,
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
         orderBy: { createdAt: 'desc' },
         take: 12,
         select: {
@@ -32,7 +35,11 @@ export async function getActiveBanners() {
   return safeDbQuery(
     () =>
       prisma.banner.findMany({
-        where: { expiresAt: { gt: new Date() }, status: 'APPROVED', isActive: true },
+        where: {
+          isActive: true,
+          status: 'APPROVED',
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
         orderBy: { createdAt: 'desc' },
         take: 6,
         select: {
@@ -200,7 +207,11 @@ export async function getVillages() {
 }
 
 let homeDataCache: { data: any; timestamp: number; tenantId?: string } | null = null
-const CACHE_TTL_MS = 30 * 1000 // 30 seconds high-speed memory cache
+const CACHE_TTL_MS = 5 * 1000 // 5 seconds high-speed memory cache for real-time reactivity
+
+export function invalidateHomeDataCache() {
+  homeDataCache = null
+}
 
 export async function getHomePageData(forceRefresh = false) {
   let tenantId = 'default'

@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       null
     )
 
-    let users = dbUsers && dbUsers.length > 0 ? dbUsers : getOfflineUsers()
+    let users = dbUsers !== null && dbUsers !== undefined ? dbUsers : getOfflineUsers()
 
     if (search) {
       users = users.filter(

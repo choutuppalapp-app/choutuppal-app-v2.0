@@ -1,6 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { invalidateHomeDataCache } from '@/lib/home-data'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -147,6 +149,9 @@ export async function POST(req: NextRequest) {
       null
     )
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
+
     return NextResponse.json({ ok: true, tickers, item: newItem, message: 'Ticker item added' })
   } catch (error: any) {
     console.error('[Admin Ticker POST] Error:', error)
@@ -221,6 +226,9 @@ export async function PATCH(req: NextRequest) {
       null
     )
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
+
     return NextResponse.json({ ok: true, tickers, message: 'Ticker updated' })
   } catch (error: any) {
     console.error('[Admin Ticker PATCH] Error:', error)
@@ -282,6 +290,9 @@ export async function DELETE(req: NextRequest) {
         }),
       null
     )
+
+    invalidateHomeDataCache()
+    try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, tickers, message: 'Ticker deleted' })
   } catch (error: any) {

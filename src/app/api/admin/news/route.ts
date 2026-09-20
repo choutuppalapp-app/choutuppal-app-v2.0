@@ -2,6 +2,8 @@ import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getOfflineNews, getOfflineBlogs } from '@/lib/offline-data'
+import { invalidateHomeDataCache } from '@/lib/home-data'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,8 +36,8 @@ export async function GET(req: NextRequest) {
       ),
     ])
 
-    const newsList = dbNews && dbNews.length > 0 ? dbNews : getOfflineNews()
-    const blogsList = dbBlogs && dbBlogs.length > 0 ? dbBlogs : getOfflineBlogs()
+    const newsList = dbNews !== null && dbNews !== undefined ? dbNews : getOfflineNews()
+    const blogsList = dbBlogs !== null && dbBlogs !== undefined ? dbBlogs : getOfflineBlogs()
 
     return NextResponse.json({
       ok: true,
@@ -87,6 +89,8 @@ export async function POST(req: NextRequest) {
           }),
         null
       )
+      invalidateHomeDataCache()
+      try { revalidatePath('/news'); revalidatePath('/') } catch {}
       return NextResponse.json({ ok: true, item: createdBlog, message: 'Blog created' })
     } else {
       const createdNews = await safeDbQuery(
@@ -106,6 +110,8 @@ export async function POST(req: NextRequest) {
           }),
         null
       )
+      invalidateHomeDataCache()
+      try { revalidatePath('/news'); revalidatePath('/') } catch {}
       return NextResponse.json({ ok: true, item: createdNews, message: 'News article created' })
     }
   } catch (error: any) {
@@ -147,6 +153,9 @@ export async function PATCH(req: NextRequest) {
       await safeDbQuery(() => prisma.news.update({ where: { id }, data: updateData }), null)
     }
 
+    invalidateHomeDataCache()
+    try { revalidatePath('/news'); revalidatePath('/') } catch {}
+
     return NextResponse.json({ ok: true, message: 'Updated successfully' })
   } catch (error: any) {
     console.error('[Admin News PATCH] Error:', error)
@@ -174,6 +183,9 @@ export async function DELETE(req: NextRequest) {
     } else {
       await safeDbQuery(() => prisma.news.delete({ where: { id } }), null)
     }
+
+    invalidateHomeDataCache()
+    try { revalidatePath('/news'); revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Deleted successfully' })
   } catch (error: any) {

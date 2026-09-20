@@ -32,11 +32,11 @@ if (isKnownDeadTenant) {
   dbUrl = ''
 }
 
-if (dbUrl && !dbUrl.includes('pgbouncer=true')) {
-  dbUrl += dbUrl.includes('?') ? '&pgbouncer=true&connection_limit=1' : '?pgbouncer=true&connection_limit=1'
+if (dbUrl && !dbUrl.includes('connection_limit=')) {
+  dbUrl += dbUrl.includes('?') ? '&pgbouncer=true&connection_limit=10' : '?pgbouncer=true&connection_limit=10'
 }
 
-let isDbAvailable = globalForPrisma.isDbAvailable ?? (Boolean(dbUrl) && !isKnownDeadTenant)
+let isDbAvailable = Boolean(dbUrl) && !isKnownDeadTenant
 
 function isConnectionOrInitError(err: any): boolean {
   if (!err) return false
@@ -234,6 +234,18 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
       break
     }
 
+    case 'story': {
+      return []
+    }
+
+    case 'short': {
+      return []
+    }
+
+    case 'realEstate': {
+      return []
+    }
+
     case 'news': {
       const all = getOfflineNews()
       if (method === 'findMany') {
@@ -392,23 +404,18 @@ function createModelProxy(realModel: any, modelName: string) {
         if (!isDbAvailable || !realModel) {
           return handleOfflineQuery(modelName, method, args)
         }
+        let timer: NodeJS.Timeout | undefined
         try {
-          let timer: NodeJS.Timeout | undefined
           const timeoutPromise = new Promise<never>((_, reject) => {
             timer = setTimeout(() => {
               const timeoutErr = new Error(`Database query ${modelName}.${method} timed out`)
               timeoutErr.name = 'TimeoutError'
               reject(timeoutErr)
-            }, 2000)
+            }, 8000)
           })
 
           const queryPromise = Promise.resolve().then(() => target[method](...args))
-          queryPromise.catch((err) => {
-            if (isConnectionOrInitError(err)) {
-              isDbAvailable = false
-              globalForPrisma.isDbAvailable = false
-            }
-          })
+          queryPromise.catch(() => {})
 
           try {
             return await Promise.race([queryPromise, timeoutPromise])
@@ -417,9 +424,7 @@ function createModelProxy(realModel: any, modelName: string) {
           }
         } catch (err: any) {
           if (isConnectionOrInitError(err)) {
-            isDbAvailable = false
-            globalForPrisma.isDbAvailable = false
-            console.warn(`[Prisma] Database offline/timeout (${err.name || err.message}). Using offline fallback dataset.`)
+            console.warn(`[Prisma] Database query issue on ${modelName}.${method} (${err.name || err.message}). Fallback used.`)
             return handleOfflineQuery(modelName, method, args)
           }
           throw err
@@ -453,12 +458,7 @@ export const prisma = new Proxy((realClient || {}) as PrismaClient, {
         if (!isDbAvailable || !target.$connect) return
         try {
           await target.$connect()
-        } catch (err: any) {
-          if (isConnectionOrInitError(err)) {
-            isDbAvailable = false
-            globalForPrisma.isDbAvailable = false
-          }
-        }
+        } catch {}
       }
     }
     if (prop === '$disconnect') {
@@ -499,7 +499,7 @@ export async function safeDbQuery<T>(
   fallback: T,
   maxRetries = 1,
   delayMs = 150,
-  timeoutMs = 2000
+  timeoutMs = 8000
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let timer: NodeJS.Timeout | undefined
@@ -513,19 +513,13 @@ export async function safeDbQuery<T>(
       })
 
       const queryPromise = Promise.resolve().then(() => queryFn())
-      queryPromise.catch((err) => {
-        if (isConnectionOrInitError(err)) {
-          isDbAvailable = false
-          globalForPrisma.isDbAvailable = false
-        }
-      })
+      queryPromise.catch(() => {})
 
       const result = await Promise.race([queryPromise, timeoutPromise])
       return (result !== undefined && result !== null) ? result : fallback
     } catch (err: any) {
       if (isConnectionOrInitError(err)) {
-        isDbAvailable = false
-        globalForPrisma.isDbAvailable = false
+        console.warn(`[Prisma safeDbQuery] Query error (${err.name || err.message}). Returning fallback.`)
         return fallback
       }
       if (attempt === maxRetries) {
