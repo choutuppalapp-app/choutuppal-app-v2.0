@@ -40,18 +40,30 @@ function isConnectionOrInitError(err: any): boolean {
   return (
     name === 'PrismaClientInitializationError' ||
     name === 'PrismaClientRustPanicError' ||
+    name === 'PrismaClientKnownRequestError' && (code === 'P1000' || code === 'P1001' || code === 'P1002' || code === 'P1003' || code === 'P1017' || code === 'P2024') ||
+    name === 'TimeoutError' ||
+    name === 'AbortError' ||
     code === 'P1000' ||
     code === 'P1001' ||
     code === 'P1002' ||
     code === 'P1003' ||
     code === 'P1017' ||
+    code === 'P2024' ||
+    code === 'ETIMEDOUT' ||
+    code === 'ECONNREFUSED' ||
+    code === 'ENOTFOUND' ||
     msg.includes('tenant') ||
     msg.includes('enotfound') ||
     msg.includes('econnrefused') ||
     msg.includes('etimedout') ||
     msg.includes('connection closed') ||
     msg.includes("can't reach database") ||
-    msg.includes('authentication failed')
+    msg.includes('authentication failed') ||
+    msg.includes('timeout') ||
+    msg.includes('timed out') ||
+    msg.includes('aborted') ||
+    msg.includes('abort') ||
+    msg.includes('pool')
   )
 }
 
@@ -59,6 +71,24 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
   const queryArg = args[0] || {}
 
   switch (model) {
+    case 'tenant': {
+      const defaultTenantObj = {
+        id: 'choutuppal-default',
+        name: 'Choutuppal App',
+        domain: 'choutuppal.in',
+        logoUrl: 'https://i.ibb.co/BVdvN5rB/Untitled-design-removebg-preview.png',
+        primaryColor: '#1d4ed8',
+        adminPhone: '9494348175',
+        subscriptionStatus: 'ACTIVE',
+        subscriptionExpiresAt: null,
+      }
+      if (method === 'findMany') return [defaultTenantObj]
+      if (method === 'findUnique' || method === 'findFirst') return defaultTenantObj
+      if (method === 'count') return 1
+      if (method === 'create' || method === 'update' || method === 'upsert') return defaultTenantObj
+      break
+    }
+
     case 'listing': {
       const all = getOfflineListings()
       if (method === 'findMany') {
@@ -92,6 +122,9 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
           if (Array.isArray(w.OR) && w.OR.length > 0) {
             results = results.filter((l) => {
               return w.OR.some((cond: any) => {
+                // If it's a tenant or expiresAt condition, pass it
+                if ('expiresAt' in cond) return true
+                if ('tenantId' in cond) return true
                 if (cond.title?.contains) {
                   const term = String(cond.title.contains).toLowerCase()
                   if (l.title && l.title.toLowerCase().includes(term)) return true
@@ -217,12 +250,24 @@ function createModelProxy(realModel: any, modelName: string) {
           return handleOfflineQuery(modelName, method, args)
         }
         try {
-          return await target[method](...args)
+          let timer: NodeJS.Timeout | undefined
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            timer = setTimeout(() => {
+              const timeoutErr = new Error(`Database query ${modelName}.${method} timed out`)
+              timeoutErr.name = 'TimeoutError'
+              reject(timeoutErr)
+            }, 3500)
+          })
+          try {
+            return await Promise.race([target[method](...args), timeoutPromise])
+          } finally {
+            if (timer) clearTimeout(timer)
+          }
         } catch (err: any) {
           if (isConnectionOrInitError(err)) {
             isDbAvailable = false
             globalForPrisma.isDbAvailable = false
-            console.warn(`[Prisma] Database offline (${err.name}). Using offline fallback dataset.`)
+            console.warn(`[Prisma] Database offline/timeout (${err.name || err.message}). Using offline fallback dataset.`)
             return handleOfflineQuery(modelName, method, args)
           }
           throw err
@@ -301,11 +346,20 @@ export async function safeDbQuery<T>(
   queryFn: () => Promise<T>,
   fallback: T,
   maxRetries = 1,
-  delayMs = 200
+  delayMs = 200,
+  timeoutMs = 3500
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    let timer: NodeJS.Timeout | undefined
     try {
-      const result = await queryFn()
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          const timeoutErr = new Error('Database query timed out')
+          timeoutErr.name = 'TimeoutError'
+          reject(timeoutErr)
+        }, timeoutMs)
+      })
+      const result = await Promise.race([queryFn(), timeoutPromise])
       return (result !== undefined && result !== null) ? result : fallback
     } catch (err: any) {
       if (isConnectionOrInitError(err)) {
@@ -317,6 +371,8 @@ export async function safeDbQuery<T>(
         return fallback
       }
       await new Promise((resolve) => setTimeout(resolve, delayMs))
+    } finally {
+      if (timer) clearTimeout(timer)
     }
   }
   return fallback

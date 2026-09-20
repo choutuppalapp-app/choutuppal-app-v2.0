@@ -17,13 +17,16 @@ export const getTenantFromHost = cache(async (hostHeader?: string | null): Promi
 
   const cleanHost = hostHeader.split(':')[0].toLowerCase().trim()
 
-  // FAST PATH: Immediately return default tenant for Choutuppal domains, localhost, or Vercel previews without hitting DB
+  // FAST PATH: Immediately return default tenant for Choutuppal domains, localhost, or preview environments without hitting DB
   if (
     !cleanHost ||
     cleanHost === 'localhost' ||
     cleanHost === '127.0.0.1' ||
     cleanHost.endsWith('.vercel.app') ||
-    cleanHost.includes('choutuppal')
+    cleanHost.includes('choutuppal') ||
+    cleanHost.includes('.run.app') ||
+    cleanHost.includes('googleusercontent.com') ||
+    cleanHost.includes('cloudworkstations.dev')
   ) {
     return DEFAULT_TENANT
   }
@@ -85,34 +88,17 @@ export const getCurrentTenant = cache(async (): Promise<TenantConfig> => {
 })
 
 /**
- * Bulletproof helper to always return a valid tenant ID,
- * creating a default tenant if the database is completely empty.
+ * Bulletproof helper to always return a valid tenant ID quickly and safely.
  */
 export async function getSafeTenantId(): Promise<string | null> {
   try {
-    // 1. Try to get current tenant
     const tenant = await getCurrentTenant()
     if (tenant && tenant.id) {
-      // Make sure this tenant actually exists in the DB (getCurrentTenant might return default config without DB ID)
-      const exists = await prisma.tenant.findUnique({ where: { id: tenant.id } })
-      if (exists) return exists.id
+      return tenant.id
     }
-
-    // 2. Fallback: find any first tenant
-    const firstTenant = await prisma.tenant.findFirst()
-    if (firstTenant) return firstTenant.id
-
-    // 3. Fallback: completely empty DB, create a default
-    const newTenant = await prisma.tenant.create({
-      data: {
-        name: 'Choutuppal',
-        domain: 'choutuppal.in',
-        adminPhone: '0000000000',
-      }
-    })
-    return newTenant.id
+    return DEFAULT_TENANT.id
   } catch (err) {
     console.error('[getSafeTenantId] Error resolving tenant ID:', err)
-    return null
+    return DEFAULT_TENANT.id
   }
 }

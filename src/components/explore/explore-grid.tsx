@@ -115,7 +115,8 @@ export function ExploreGrid({
   useEffect(() => {
     setItems(initialListings)
     setPage(1)
-    setHasMore(initialListings.length >= 24)
+    // If pre-fetched batch is large (>= 150), all items are already in memory
+    setHasMore(initialListings.length >= 24 && initialListings.length < 150)
   }, [initialListings])
 
   const fetchNextPage = useCallback(async () => {
@@ -132,7 +133,16 @@ export function ExploreGrid({
     if (query.trim()) params.set('q', query.trim())
 
     try {
-      const res = await fetch(`/api/listings/public?${params.toString()}`)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 6000)
+      const res = await fetch(`/api/listings/public?${params.toString()}`, {
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+      if (!res.ok) {
+        setHasMore(false)
+        return
+      }
       const j = await res.json()
       if (j.ok && Array.isArray(j.listings) && j.listings.length > 0) {
         setItems((prev) => {
@@ -145,8 +155,7 @@ export function ExploreGrid({
       } else {
         setHasMore(false)
       }
-    } catch (err) {
-      console.error('Failed to fetch next page:', err)
+    } catch {
       setHasMore(false)
     } finally {
       setLoadingMore(false)
