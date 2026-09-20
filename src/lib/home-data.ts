@@ -37,11 +37,11 @@ export async function getActiveBanners() {
       prisma.banner.findMany({
         where: {
           isActive: true,
-          status: 'APPROVED',
+          NOT: { status: 'REJECTED' },
           OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         orderBy: { createdAt: 'desc' },
-        take: 6,
+        take: 8,
         select: {
           id: true,
           title: true,

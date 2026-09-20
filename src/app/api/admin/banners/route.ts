@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { invalidateHomeDataCache } from '@/lib/home-data'
+import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
@@ -66,6 +67,8 @@ export async function POST(req: NextRequest) {
     )
 
     invalidateHomeDataCache()
+    invalidateCache('home_')
+    invalidateCache('banners')
     try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, banner, message: 'Banner created successfully' })
@@ -109,6 +112,8 @@ export async function PATCH(req: NextRequest) {
     )
 
     invalidateHomeDataCache()
+    invalidateCache('home_')
+    invalidateCache('banners')
     try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Banner updated' })
@@ -135,6 +140,8 @@ export async function DELETE(req: NextRequest) {
     await safeDbQuery(() => prisma.banner.delete({ where: { id } }), null)
 
     invalidateHomeDataCache()
+    invalidateCache('home_')
+    invalidateCache('banners')
     try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Banner deleted' })
