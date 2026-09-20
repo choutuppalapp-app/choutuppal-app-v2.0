@@ -535,6 +535,36 @@ function LoginInner() {
                   )}
                   Continue with Google
                 </Button>
+
+                {/* Quick login demo helpers */}
+                <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/70 p-3 text-xs">
+                  <p className="font-semibold text-blue-900 mb-1.5 flex items-center justify-between">
+                    <span>Quick Demo Login:</span>
+                    <span className="text-[10px] text-blue-600 font-normal">Tap to fill</span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoginIdentifier('choutuppal_user')
+                        setLoginPassword('User@123')
+                      }}
+                      className="rounded-lg border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 transition shadow-xs"
+                    >
+                      👤 Citizen: <span className="font-semibold">choutuppal_user</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoginIdentifier('choutuppalapp@gmail.com')
+                        setLoginPassword('123456')
+                      }}
+                      className="rounded-lg border border-amber-200 bg-white px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50 transition shadow-xs"
+                    >
+                      🛡️ Admin: <span className="font-semibold">choutuppalapp</span>
+                    </button>
+                  </div>
+                </div>
               </form>
             </TabsContent>
 

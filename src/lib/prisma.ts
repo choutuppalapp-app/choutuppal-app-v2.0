@@ -7,6 +7,12 @@ import {
   getOfflineVillages,
   getOfflineSettings,
   getOfflineBanners,
+  getOfflineNews,
+  getOfflineBlogs,
+  getOfflineNewsBySlug,
+  getOfflineBlogBySlug,
+  getOfflineUsers,
+  saveOfflineUser,
 } from './offline-data'
 
 /**
@@ -222,6 +228,140 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
       const all = getOfflineBanners()
       if (method === 'findMany') return all
       if (method === 'findUnique' || method === 'findFirst') return all[0] || null
+      break
+    }
+
+    case 'news': {
+      const all = getOfflineNews()
+      if (method === 'findMany') {
+        let results = [...all]
+        if (queryArg.where) {
+          const w = queryArg.where
+          if (w.isPublished !== undefined) {
+            results = results.filter((n) => Boolean(n.isPublished) === Boolean(w.isPublished))
+          }
+          if (w.NOT?.id) {
+            results = results.filter((n) => n.id !== w.NOT.id)
+          }
+        }
+        if (typeof queryArg.skip === 'number') {
+          results = results.slice(queryArg.skip)
+        }
+        if (typeof queryArg.take === 'number') {
+          results = results.slice(0, queryArg.take)
+        }
+        return results
+      }
+      if (method === 'findUnique' || method === 'findFirst') {
+        if (queryArg.where?.slug) return getOfflineNewsBySlug(queryArg.where.slug)
+        if (queryArg.where?.id) return getOfflineNewsBySlug(queryArg.where.id)
+        return all[0] || null
+      }
+      if (method === 'count') return all.length
+      break
+    }
+
+    case 'blog': {
+      const all = getOfflineBlogs()
+      if (method === 'findMany') {
+        let results = [...all]
+        if (queryArg.where) {
+          const w = queryArg.where
+          if (w.isPublished !== undefined) {
+            results = results.filter((b) => Boolean(b.isPublished) === Boolean(w.isPublished))
+          }
+          if (w.category && w.category !== 'all') {
+            results = results.filter((b) => b.category === w.category)
+          }
+          if (w.NOT?.id) {
+            results = results.filter((b) => b.id !== w.NOT.id)
+          }
+        }
+        if (typeof queryArg.skip === 'number') {
+          results = results.slice(queryArg.skip)
+        }
+        if (typeof queryArg.take === 'number') {
+          results = results.slice(0, queryArg.take)
+        }
+        return results
+      }
+      if (method === 'findUnique' || method === 'findFirst') {
+        if (queryArg.where?.slug) return getOfflineBlogBySlug(queryArg.where.slug)
+        if (queryArg.where?.id) return getOfflineBlogBySlug(queryArg.where.id)
+        return all[0] || null
+      }
+      if (method === 'count') return all.length
+      break
+    }
+
+    case 'user': {
+      const all = getOfflineUsers()
+      if (method === 'findMany') {
+        let results = [...all]
+        if (queryArg.where) {
+          const w = queryArg.where
+          if (w.role) results = results.filter((u) => u.role === w.role)
+          if (w.isBanned !== undefined) results = results.filter((u) => u.isBanned === w.isBanned)
+        }
+        if (typeof queryArg.take === 'number') results = results.slice(0, queryArg.take)
+        return results
+      }
+      if (method === 'findUnique' || method === 'findFirst') {
+        if (queryArg.where) {
+          const w = queryArg.where
+          if (w.id) {
+            const found = all.find((u) => u.id === w.id)
+            if (found) return found
+          }
+          if (w.email) {
+            const emailVal = typeof w.email === 'string' ? w.email.toLowerCase() : w.email.equals?.toLowerCase()
+            const found = all.find((u) => u.email?.toLowerCase() === emailVal)
+            if (found) return found
+          }
+          if (w.username) {
+            const userVal = typeof w.username === 'string' ? w.username.toLowerCase() : w.username.equals?.toLowerCase()
+            const found = all.find((u) => u.username?.toLowerCase() === userVal)
+            if (found) return found
+          }
+          if (w.phone) {
+            const found = all.find((u) => u.phone === w.phone || (u.phone && w.phone && u.phone.replace(/\D/g, '') === w.phone.replace(/\D/g, '')))
+            if (found) return found
+          }
+          if (w.OR && Array.isArray(w.OR)) {
+            for (const cond of w.OR) {
+              if (cond.email) {
+                const em = typeof cond.email === 'string' ? cond.email.toLowerCase() : cond.email.equals?.toLowerCase()
+                const found = all.find((u) => u.email?.toLowerCase() === em)
+                if (found) return found
+              }
+              if (cond.username) {
+                const un = typeof cond.username === 'string' ? cond.username.toLowerCase() : cond.username.equals?.toLowerCase()
+                const found = all.find((u) => u.username?.toLowerCase() === un)
+                if (found) return found
+              }
+              if (cond.phone) {
+                const p = cond.phone
+                const found = all.find((u) => u.phone === p || (u.phone && p && u.phone.replace(/\D/g, '') === p.replace(/\D/g, '')))
+                if (found) return found
+              }
+            }
+          }
+        }
+        return all[0] || null
+      }
+      if (method === 'create') {
+        const created = saveOfflineUser(queryArg.data || {})
+        return created
+      }
+      if (method === 'update') {
+        const updated = saveOfflineUser({ id: queryArg.where?.id, ...queryArg.data })
+        return updated
+      }
+      if (method === 'upsert') {
+        const target = saveOfflineUser({ id: queryArg.where?.id, ...(queryArg.update || queryArg.create || {}) })
+        return target
+      }
+      if (method === 'count') return all.length
       break
     }
 

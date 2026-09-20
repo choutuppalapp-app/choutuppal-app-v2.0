@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getOfflineUsers } from '@/lib/offline-data'
 import type { User } from '@prisma/client'
 
 /**
@@ -14,8 +15,55 @@ export async function getSession() {
 /** Returns the full DB User row for the current session, or null. */
 export async function getCurrentUser(): Promise<User | null> {
   const session = await getSession()
-  if (!session?.user?.id) return null
-  return safeDbQuery(() => prisma.user.findUnique({ where: { id: session.user.id } }), null)
+  if (!session?.user) return null
+
+  // 1. Try DB lookup by user.id, email, or username
+  let dbUser: any = null
+  if (session.user.id) {
+    dbUser = await safeDbQuery(() => prisma.user.findUnique({ where: { id: session.user.id } }), null)
+  }
+  if (!dbUser && session.user.email) {
+    dbUser = await safeDbQuery(() => prisma.user.findFirst({ where: { email: session.user.email! } }), null)
+  }
+  if (!dbUser && session.user.username) {
+    dbUser = await safeDbQuery(() => prisma.user.findFirst({ where: { username: session.user.username! } }), null)
+  }
+
+  // 2. Fallback to offline users store
+  if (!dbUser) {
+    const offlineList = getOfflineUsers()
+    dbUser = offlineList.find(
+      (u) =>
+        (session.user.id && u.id === session.user.id) ||
+        (session.user.email && u.email?.toLowerCase() === session.user.email.toLowerCase()) ||
+        (session.user.username && u.username?.toLowerCase() === session.user.username.toLowerCase())
+    )
+  }
+
+  // 3. If still null, synthesize the user directly from the valid session JWT token
+  if (!dbUser) {
+    dbUser = {
+      id: session.user.id || `user_${Date.now()}`,
+      name: session.user.name || session.user.username || 'User',
+      email: session.user.email || null,
+      username: session.user.username || 'user',
+      phone: null,
+      passwordHash: null,
+      role: session.user.role || 'USER',
+      planTier: 'FREE',
+      planExpiresAt: null,
+      villageId: 'cmsepb40r0000jv04tdwwd5cw',
+      bio: null,
+      image: session.user.image || null,
+      coverImage: null,
+      isPublic: session.user.isPublic ?? true,
+      isBanned: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+  }
+
+  return dbUser as User
 }
 
 /** Require auth in a Server Component — redirects to /login when unauthenticated. */
