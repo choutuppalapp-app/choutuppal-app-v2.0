@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
-import { getOfflineBanners } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { revalidatePath } from 'next/cache'
 
@@ -25,7 +24,7 @@ export async function GET() {
       null
     )
 
-    const banners = dbBanners !== null && dbBanners !== undefined ? dbBanners : getOfflineBanners()
+    const banners = dbBanners || []
     return NextResponse.json({ ok: true, banners })
   } catch (error: any) {
     console.error('[Admin Banners GET] Error:', error)

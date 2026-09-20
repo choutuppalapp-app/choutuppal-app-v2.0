@@ -3,8 +3,10 @@ import { cache } from 'react'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { ExploreGrid } from '@/components/explore/explore-grid'
+import { swrCache } from '@/lib/cache'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'https://choutuppal.in').replace(/\/$/, '')
 
@@ -15,96 +17,104 @@ export const metadata: Metadata = {
 }
 
 const getListingsPageData = cache(async (tenantId: string, category?: string, village?: string, q?: string) => {
-  const tenantFilter = getTenantWhereClause(tenantId)
+  const cacheKey = `listings_page_${tenantId}_${category || 'all'}_${village || 'all'}_${q || ''}`
 
-  const [listings, realEstates, villages, categories] = await Promise.all([
-    safeDbQuery(
-      () =>
-        prisma.listing.findMany({
-          where: {
-            ...tenantFilter,
-            status: 'APPROVED',
-            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-            ...(category && category !== 'all'
-              ? { category: { slug: category } }
-              : {}),
-            ...(village && village !== 'all'
-              ? { village: { slug: village } }
-              : {}),
-            ...(q && q.trim()
-              ? {
-                  OR: [
-                    { title: { contains: q.trim(), mode: 'insensitive' } },
-                    { phone: { contains: q.trim(), mode: 'insensitive' } },
-                    { secondaryPhone: { contains: q.trim(), mode: 'insensitive' } },
-                    { whatsapp: { contains: q.trim(), mode: 'insensitive' } },
-                    { village: { name: { contains: q.trim(), mode: 'insensitive' } } },
-                  ],
-                }
-              : {}),
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 300,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            coverImage: true,
-            logo: true,
-            avgRating: true,
-            views: true,
-            isFeatured: true,
-            phone: true,
-            secondaryPhone: true,
-            whatsapp: true,
-            categoryId: true,
-            villageId: true,
-            category: { select: { id: true, name: true, slug: true, icon: true } },
-            village: { select: { id: true, name: true, slug: true } },
-          },
-        }),
-      [],
-    ),
-    safeDbQuery(
-      () =>
-        prisma.realEstate.findMany({
-          where: {
-            ...tenantFilter,
-            status: 'APPROVED',
-            ...(village && village !== 'all'
-              ? { village: { slug: village } }
-              : {}),
-            ...(q && q.trim()
-              ? {
-                  OR: [
-                    { title: { contains: q.trim(), mode: 'insensitive' } },
-                    { village: { name: { contains: q.trim(), mode: 'insensitive' } } },
-                  ],
-                }
-              : {}),
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 24,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            coverImage: true,
-            price: true,
-            listingType: true,
-            bedrooms: true,
-            areaSqft: true,
-            villageId: true,
-            village: { select: { id: true, name: true, slug: true } },
-          },
-        }),
-      [],
-    ),
-    safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true } }), []),
-    safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), []),
-  ])
+  return swrCache(
+    cacheKey,
+    async () => {
+      const tenantFilter = getTenantWhereClause(tenantId)
 
-  return { listings, realEstates, villages, categories }
+      const [listings, realEstates, villages, categories] = await Promise.all([
+        safeDbQuery(
+          () =>
+            prisma.listing.findMany({
+              where: {
+                ...tenantFilter,
+                status: 'APPROVED',
+                OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+                ...(category && category !== 'all'
+                  ? { category: { slug: category } }
+                  : {}),
+                ...(village && village !== 'all'
+                  ? { village: { slug: village } }
+                  : {}),
+                ...(q && q.trim()
+                  ? {
+                      OR: [
+                        { title: { contains: q.trim(), mode: 'insensitive' } },
+                        { phone: { contains: q.trim(), mode: 'insensitive' } },
+                        { secondaryPhone: { contains: q.trim(), mode: 'insensitive' } },
+                        { whatsapp: { contains: q.trim(), mode: 'insensitive' } },
+                        { village: { name: { contains: q.trim(), mode: 'insensitive' } } },
+                      ],
+                    }
+                  : {}),
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 300,
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                coverImage: true,
+                logo: true,
+                avgRating: true,
+                views: true,
+                isFeatured: true,
+                phone: true,
+                secondaryPhone: true,
+                whatsapp: true,
+                categoryId: true,
+                villageId: true,
+                category: { select: { id: true, name: true, slug: true, icon: true } },
+                village: { select: { id: true, name: true, slug: true } },
+              },
+            }),
+          [],
+        ),
+        safeDbQuery(
+          () =>
+            prisma.realEstate.findMany({
+              where: {
+                ...tenantFilter,
+                status: 'APPROVED',
+                ...(village && village !== 'all'
+                  ? { village: { slug: village } }
+                  : {}),
+                ...(q && q.trim()
+                  ? {
+                      OR: [
+                        { title: { contains: q.trim(), mode: 'insensitive' } },
+                        { village: { name: { contains: q.trim(), mode: 'insensitive' } } },
+                      ],
+                    }
+                  : {}),
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 24,
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                coverImage: true,
+                price: true,
+                listingType: true,
+                bedrooms: true,
+                areaSqft: true,
+                villageId: true,
+                village: { select: { id: true, name: true, slug: true } },
+              },
+            }),
+          [],
+        ),
+        safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true } }), []),
+        safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), []),
+      ])
+
+      return { listings, realEstates, villages, categories }
+    },
+    { ttlMs: 60 * 1000, staleTtlMs: 20 * 60 * 1000 }
+  )
 })
 
 export default async function ListingsPage({

@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { invalidateHomeDataCache } from '@/lib/home-data'
+import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
@@ -16,44 +17,6 @@ export interface TickerItem {
   createdAt?: string
 }
 
-const DEFAULT_TICKERS: TickerItem[] = [
-  {
-    id: 'tick_1',
-    text: '🪔 చౌటుప్పల్ యాప్ 2.0 లైవ్ - మీ వ్యాపారాన్ని ఉచితంగా రిజిస్టర్ చేసుకోండి!',
-    link: '/business/register',
-    isActive: true,
-    isUrgent: true,
-  },
-  {
-    id: 'tick_2',
-    text: '📅 డైలీ స్పిన్ & విన్ బహుమతులు - ప్రతిరోజూ 1 ఉచిత స్పిన్ లభ్యం.',
-    link: '/',
-    isActive: true,
-    isUrgent: false,
-  },
-  {
-    id: 'tick_3',
-    text: '🏠 చౌటుప్పల్ & పరిసరాల్లో మీ ప్లాట్లు, ఇళ్లను జీరో బ్రోకరేజ్‌తో అమ్మండి/కొనండి.',
-    link: '/dashboard?tab=realestate',
-    isActive: true,
-    isUrgent: false,
-  },
-  {
-    id: 'tick_4',
-    text: '📣 హోమ్‌పేజీ బ్యానర్ యాడ్స్ కేవలం ₹99/రోజు నుండి ప్రారంభం - 10,000+ స్థానిక కస్టమర్లను చేరుకోండి.',
-    link: '/business/advertise',
-    isActive: true,
-    isUrgent: false,
-  },
-  {
-    id: 'tick_5',
-    text: '📰 స్థానిక వార్తలు మరియు వ్యాపార కథనాలు ప్రతిరోజూ తాజా అప్‌డేట్స్‌తో.',
-    link: '/news',
-    isActive: true,
-    isUrgent: false,
-  },
-]
-
 export async function GET() {
   const auth = await requireApiAdmin()
   if (!auth.ok) {
@@ -66,12 +29,12 @@ export async function GET() {
       null
     )
 
-    let tickers: TickerItem[] = DEFAULT_TICKERS
+    let tickers: TickerItem[] = []
     if (setting?.value) {
       try {
         tickers = JSON.parse(setting.value)
       } catch {
-        tickers = DEFAULT_TICKERS
+        tickers = []
       }
     }
 
@@ -182,10 +145,10 @@ export async function PATCH(req: NextRequest) {
         try {
           tickers = JSON.parse(setting.value)
         } catch {
-          tickers = DEFAULT_TICKERS
+          tickers = []
         }
       } else {
-        tickers = DEFAULT_TICKERS
+        tickers = []
       }
 
       if (id) {
@@ -227,6 +190,7 @@ export async function PATCH(req: NextRequest) {
     )
 
     invalidateHomeDataCache()
+    invalidateCache('app_settings_')
     try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, tickers, message: 'Ticker updated' })
@@ -255,12 +219,12 @@ export async function DELETE(req: NextRequest) {
       null
     )
 
-    let tickers: TickerItem[] = DEFAULT_TICKERS
+    let tickers: TickerItem[] = []
     if (setting?.value) {
       try {
         tickers = JSON.parse(setting.value)
       } catch {
-        tickers = DEFAULT_TICKERS
+        tickers = []
       }
     }
 
@@ -292,6 +256,7 @@ export async function DELETE(req: NextRequest) {
     )
 
     invalidateHomeDataCache()
+    invalidateCache('app_settings_')
     try { revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, tickers, message: 'Ticker deleted' })

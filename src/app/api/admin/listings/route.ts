@@ -1,8 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
-import { getOfflineListings, getOfflineCategories, getOfflineVillages } from '@/lib/offline-data'
+import { getOfflineCategories, getOfflineVillages } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
+import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
       null
     )
 
-    let listings = dbListings !== null && dbListings !== undefined ? dbListings : getOfflineListings()
+    let listings = dbListings || []
 
     // Apply Filters
     if (search) {
@@ -163,6 +164,8 @@ export async function POST(req: NextRequest) {
     persistOfflineListings(offlineList)
 
     invalidateHomeDataCache()
+    invalidateCache('listings_')
+    invalidateCache('listing_')
     try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
 
     return NextResponse.json({ ok: true, listing: createdDb || newOfflineItem })
@@ -206,15 +209,9 @@ export async function PATCH(req: NextRequest) {
       null
     )
 
-    // 2. Also update in offline store
-    const offlineList = getOfflineListings()
-    const index = offlineList.findIndex((l: any) => l.id === id)
-    if (index >= 0) {
-      offlineList[index] = { ...offlineList[index], ...updateData, updatedAt: new Date().toISOString() }
-      persistOfflineListings(offlineList)
-    }
-
     invalidateHomeDataCache()
+    invalidateCache('listings_')
+    invalidateCache('listing_')
     try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Listing updated successfully' })
@@ -241,11 +238,9 @@ export async function DELETE(req: NextRequest) {
 
     await safeDbQuery(() => prisma.listing.delete({ where: { id } }), null)
 
-    const offlineList = getOfflineListings()
-    const filtered = offlineList.filter((l: any) => l.id !== id)
-    persistOfflineListings(filtered)
-
     invalidateHomeDataCache()
+    invalidateCache('listings_')
+    invalidateCache('listing_')
     try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Listing deleted' })

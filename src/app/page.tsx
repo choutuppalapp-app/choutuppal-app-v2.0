@@ -2,6 +2,7 @@ import { getHomePageData } from '@/lib/home-data'
 import { getCurrentUser } from '@/lib/session'
 import { Ticker } from '@/components/home/ticker'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { swrCache } from '@/lib/cache'
 import { StickySocials } from '@/components/home/sticky-socials'
 import {
   StoriesRail,
@@ -18,8 +19,15 @@ import {
 } from '@/components/home/dynamic-wrappers'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
+export const revalidate = 60
+
+async function getCachedSettings() {
+  return swrCache(
+    'app_settings_global',
+    () => safeDbQuery(() => prisma.setting.findMany(), []),
+    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
+  )
+}
 
 export default async function Home() {
   const [data, viewerResult, settingsList] = await Promise.all([
@@ -28,7 +36,7 @@ export default async function Home() {
       console.error('[Home] getCurrentUser error:', err)
       return null
     }),
-    safeDbQuery(() => prisma.setting.findMany(), []),
+    getCachedSettings(),
   ])
 
   const viewer = viewerResult

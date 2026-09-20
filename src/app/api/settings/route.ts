@@ -5,16 +5,13 @@ import { prisma } from '@/lib/prisma'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const DEFAULT_TELUGU_TICKER =
-  '🪔 చౌటుప్పల్ యాప్ 2.0 లైవ్ - మీ వ్యాపారాన్ని ఉచితంగా రిజిస్టర్ చేసుకోండి! | 📅 డైలీ స్పిన్ & విన్ బహుమతులు - ప్రతిరోజూ 1 ఉచిత స్పిన్ లభ్యం | 🏠 చౌటుప్పల్ & పరిసరాల్లో మీ ప్లాట్లు, ఇళ్లను జీరో బ్రోకరేజ్‌తో అమ్మండి/కొనండి | 📣 హోమ్‌పేజీ బ్యానర్ యాడ్స్ కేవలం ₹99/రోజు నుండి ప్రారంభం | 📰 స్థానిక వార్తలు మరియు వ్యాపార కథనాలు ప్రతిరోజూ తాజా అప్‌డేట్స్‌తో'
-
 const DEFAULTS: Record<string, string> = {
   spin_enabled: 'true',
   pricing_free: 'true',
   banner_free: 'true',
   ads_paid: 'false',
   banner_price: '99',
-  announcement_ticker: DEFAULT_TELUGU_TICKER,
+  announcement_ticker: '',
   social_instagram: 'https://www.instagram.com/choutuppalapp/',
   social_facebook: 'https://www.facebook.com/Choutuppalapp/',
   social_youtube: 'https://www.youtube.com/@choutuppalapp',

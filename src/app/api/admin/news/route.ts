@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
-import { getOfflineNews, getOfflineBlogs } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
+import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
@@ -36,8 +36,8 @@ export async function GET(req: NextRequest) {
       ),
     ])
 
-    const newsList = dbNews !== null && dbNews !== undefined ? dbNews : getOfflineNews()
-    const blogsList = dbBlogs !== null && dbBlogs !== undefined ? dbBlogs : getOfflineBlogs()
+    const newsList = dbNews || []
+    const blogsList = dbBlogs || []
 
     return NextResponse.json({
       ok: true,
@@ -90,7 +90,8 @@ export async function POST(req: NextRequest) {
         null
       )
       invalidateHomeDataCache()
-      try { revalidatePath('/news'); revalidatePath('/') } catch {}
+      invalidateCache('blog_')
+      try { revalidatePath('/blog'); revalidatePath('/news'); revalidatePath('/') } catch {}
       return NextResponse.json({ ok: true, item: createdBlog, message: 'Blog created' })
     } else {
       const createdNews = await safeDbQuery(
@@ -111,7 +112,8 @@ export async function POST(req: NextRequest) {
         null
       )
       invalidateHomeDataCache()
-      try { revalidatePath('/news'); revalidatePath('/') } catch {}
+      invalidateCache('news_')
+      try { revalidatePath('/news'); revalidatePath('/blog'); revalidatePath('/') } catch {}
       return NextResponse.json({ ok: true, item: createdNews, message: 'News article created' })
     }
   } catch (error: any) {
@@ -154,7 +156,9 @@ export async function PATCH(req: NextRequest) {
     }
 
     invalidateHomeDataCache()
-    try { revalidatePath('/news'); revalidatePath('/') } catch {}
+    invalidateCache('news_')
+    invalidateCache('blog_')
+    try { revalidatePath('/news'); revalidatePath('/blog'); revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Updated successfully' })
   } catch (error: any) {
@@ -185,7 +189,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     invalidateHomeDataCache()
-    try { revalidatePath('/news'); revalidatePath('/') } catch {}
+    invalidateCache('news_')
+    invalidateCache('blog_')
+    try { revalidatePath('/news'); revalidatePath('/blog'); revalidatePath('/') } catch {}
 
     return NextResponse.json({ ok: true, message: 'Deleted successfully' })
   } catch (error: any) {

@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { NewsList } from '@/components/content/news-list'
+import { swrCache } from '@/lib/cache'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
@@ -17,34 +19,41 @@ export default async function NewsPage() {
   const tenant = await getCurrentTenant()
   const tenantFilter = getTenantWhereClause(tenant.id)
 
-  const [news, blogs] = await Promise.all([
-    safeDbQuery(
-      () =>
-        prisma.news.findMany({
-          where: { ...tenantFilter, isPublished: true },
-          orderBy: { createdAt: 'desc' },
-          take: 24,
-          select: {
-            id: true, slug: true, title: true, summary: true, image: true,
-            createdAt: true,
-          },
-        }),
-      [],
-    ),
-    safeDbQuery(
-      () =>
-        prisma.blog.findMany({
-          where: { ...tenantFilter, isPublished: true },
-          orderBy: { createdAt: 'desc' },
-          take: 24,
-          select: {
-            id: true, slug: true, title: true, excerpt: true, coverImage: true,
-            createdAt: true,
-          },
-        }),
-      [],
-    ),
-  ])
+  const { news, blogs } = await swrCache(
+    `news_page_${tenant.id}`,
+    async () => {
+      const [n, b] = await Promise.all([
+        safeDbQuery(
+          () =>
+            prisma.news.findMany({
+              where: { ...tenantFilter, isPublished: true },
+              orderBy: { createdAt: 'desc' },
+              take: 24,
+              select: {
+                id: true, slug: true, title: true, summary: true, image: true,
+                createdAt: true,
+              },
+            }),
+          [],
+        ),
+        safeDbQuery(
+          () =>
+            prisma.blog.findMany({
+              where: { ...tenantFilter, isPublished: true },
+              orderBy: { createdAt: 'desc' },
+              take: 24,
+              select: {
+                id: true, slug: true, title: true, excerpt: true, coverImage: true,
+                createdAt: true,
+              },
+            }),
+          [],
+        ),
+      ])
+      return { news: n, blogs: b }
+    },
+    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
+  )
 
   const combined = [
     ...news.map((n) => ({

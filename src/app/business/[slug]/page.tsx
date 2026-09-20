@@ -4,25 +4,33 @@ import { cache } from 'react'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { ListingDetailView } from '@/components/business/listing-detail-view'
+import { swrCache } from '@/lib/cache'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
-/** Fetch + access-control a listing by slug with React cache to eliminate duplicate queries between metadata and page */
+/** Fetch + access-control a listing by slug with React cache & in-memory SWR cache */
 const getListingCached = cache(async (slug: string) => {
-  const listing = await safeDbQuery(
+  const listing = await swrCache(
+    `listing_${slug}`,
     () =>
-      prisma.listing.findUnique({
-        where: { slug },
-        include: {
-          category: true,
-          village: true,
-          owner: { select: { id: true, name: true, username: true, phone: true, image: true, facebookUrl: true, instagramUrl: true, youtubeUrl: true, twitterUrl: true } },
-        },
-      }),
-    null,
+      safeDbQuery(
+        () =>
+          prisma.listing.findUnique({
+            where: { slug },
+            include: {
+              category: true,
+              village: true,
+              owner: { select: { id: true, name: true, username: true, phone: true, image: true, facebookUrl: true, instagramUrl: true, youtubeUrl: true, twitterUrl: true } },
+            },
+          }),
+        null,
+      ),
+    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
   )
+
   if (!listing) return null
 
   // Access control: non-APPROVED listings are only visible to the owner or an admin.

@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
-import {
-  getOfflineListings,
-  getOfflineUsers,
-  getOfflineNews,
-  getOfflineBlogs,
-  getOfflineBanners,
-} from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,15 +44,8 @@ export async function GET() {
       safeDbQuery(() => prisma.short.count(), 0),
     ])
 
-    // Fallbacks if DB is empty or during offline fallback
-    const offlineListings = getOfflineListings()
-    const offlineUsers = getOfflineUsers()
-    const offlineNews = getOfflineNews()
-    const offlineBlogs = getOfflineBlogs()
-    const offlineBanners = getOfflineBanners()
-
-    const totalUsers = dbUsersCount !== null && dbUsersCount !== undefined ? dbUsersCount : offlineUsers.length
-    const allListings = dbListings !== null && dbListings !== undefined ? dbListings : offlineListings
+    const totalUsers = dbUsersCount ?? 0
+    const allListings = dbListings || []
 
     const totalListings = allListings.length
     const pendingListings = allListings.filter((l) => l.status === 'PENDING').length
@@ -67,7 +53,7 @@ export async function GET() {
     const premiumListings = allListings.filter((l) => l.isPremium).length
     const featuredListings = allListings.filter((l) => l.isFeatured).length
 
-    const allBanners = dbBanners !== null && dbBanners !== undefined ? dbBanners : offlineBanners
+    const allBanners = dbBanners || []
     const activeBanners = allBanners.filter((b) => b.isActive !== false).length
 
     const totalViews = allListings.reduce((sum, l) => sum + (l.views || 0), 0)

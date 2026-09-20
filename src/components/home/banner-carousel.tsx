@@ -19,12 +19,6 @@ interface BannerCarouselProps {
   }[]
 }
 
-const DEFAULT_BANNERS = [
-  { id: 'default-1', title: 'Choutuppal App v2.0 is Now Live!', imageUrl: null as string | null, link: '/login' },
-  { id: 'default-2', title: 'List Your Business FREE — Early Bird Offer', imageUrl: null as string | null, link: '/dashboard' },
-  { id: 'default-3', title: 'Spin & Win Daily Rewards', imageUrl: null as string | null, link: '/#spin' },
-]
-
 export function BannerCarousel({ banners }: BannerCarouselProps) {
   const [index, setIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
@@ -38,10 +32,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     setMounted(true)
   }, [])
 
-  const active = banners.length > 0 ? banners : DEFAULT_BANNERS
-  const count = active.length
-  const current = active[index]
-  const isUserBanner = banners.length > 0
+  const count = banners?.length || 0
+  const current = banners && banners.length > 0 ? banners[index] : null
 
   const go = useCallback((dir: number) => {
     if (count === 0) return
@@ -114,15 +106,17 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
   }
 
   const trackClick = useCallback(() => {
-    if (isUserBanner && current?.id) {
+    if (current?.id) {
       fetch(`/api/banners/${current.id}/click`, { method: 'POST' }).catch(() => {})
     }
-  }, [isUserBanner, current])
+  }, [current])
 
   function handleBannerClick() {
     trackClick()
     setModalOpen(true)
   }
+
+  if (!banners || banners.length === 0 || !current) return null
 
   return (
     <section className="mx-auto w-full max-w-7xl px-3 sm:px-4 lg:px-6">

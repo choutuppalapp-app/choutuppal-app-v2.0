@@ -91,21 +91,6 @@ export async function getDashboardData(user: User) {
     categories = getOfflineCategories()
   }
 
-  // If user has no listings from DB query, also check offline dataset matching their ownerId, username, or phone
-  if (listings.length === 0) {
-    const allOffline = getOfflineListings()
-    const owned = allOffline.filter(
-      (l) =>
-        (l.ownerId && l.ownerId === user.id) ||
-        (l.owner && l.owner.id === user.id) ||
-        (user.phone && l.phone === user.phone) ||
-        (user.role === 'ADMIN' && l.ownerId === 'cms0du1m40000v32slild2p1s')
-    )
-    if (owned.length > 0) {
-      listings = owned
-    }
-  }
-
   // Analytics (aggregated from the user's content)
   const totalViews = listings.reduce((s, l) => s + l.views, 0)
   const totalWhatsappClicks = listings.reduce((s, l) => s + l.whatsappClicks, 0)

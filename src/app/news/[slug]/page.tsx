@@ -1,23 +1,34 @@
+import { cache } from 'react'
 import Image from 'next/image';
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronLeft, Calendar, User, MessageCircle } from 'lucide-react'
-import { prisma } from '@/lib/prisma'
+import { prisma, safeDbQuery } from '@/lib/prisma'
+import { swrCache } from '@/lib/cache'
+import { applyAutoLinks } from '@/lib/autolinks'
+import { ArticleFooter } from '@/components/news/article-footer'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
-async function getArticle(slug: string) {
-  return prisma.news.findUnique({
-    where: { slug },
-    include: { author: { select: { name: true } } },
-  })
-}
-
-import { applyAutoLinks } from '@/lib/autolinks'
-import { ArticleFooter } from '@/components/news/article-footer'
+const getArticle = cache(async (slug: string) => {
+  return swrCache(
+    `news_article_${slug}`,
+    () =>
+      safeDbQuery(
+        () =>
+          prisma.news.findUnique({
+            where: { slug },
+            include: { author: { select: { name: true } } },
+          }),
+        null
+      ),
+    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
+  )
+})
 
 export async function generateMetadata({
   params,

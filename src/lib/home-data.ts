@@ -206,11 +206,10 @@ export async function getVillages() {
   )
 }
 
-let homeDataCache: { data: any; timestamp: number; tenantId?: string } | null = null
-const CACHE_TTL_MS = 5 * 1000 // 5 seconds high-speed memory cache for real-time reactivity
+import { swrCache, invalidateCache } from '@/lib/cache'
 
 export function invalidateHomeDataCache() {
-  homeDataCache = null
+  invalidateCache('home_data_')
 }
 
 export async function getHomePageData(forceRefresh = false) {
@@ -222,41 +221,43 @@ export async function getHomePageData(forceRefresh = false) {
     // fallback to default
   }
 
-  const now = Date.now()
-  if (!forceRefresh && homeDataCache && homeDataCache.tenantId === tenantId && (now - homeDataCache.timestamp < CACHE_TTL_MS)) {
-    return homeDataCache.data
+  const cacheKey = `home_data_${tenantId}`
+
+  if (forceRefresh) {
+    invalidateCache(cacheKey)
   }
 
-  try {
-    const [
-      stories,
-      banners,
-      categories,
-      featured,
-      realEstate,
-      shorts,
-      villages,
-      latestNews,
-      latestBlogs,
-    ] = await Promise.all([
-      getActiveStories(),
-      getActiveBanners(),
-      getCategories(),
-      getFeaturedListings(),
-      getPremiumRealEstate(),
-      getShorts(),
-      getVillages(),
-      getLatestNews(),
-      getLatestBlogs(),
-    ])
-    const result = { stories, banners, categories, featured, realEstate, shorts, villages, latestNews, latestBlogs }
-    homeDataCache = { data: result, timestamp: now, tenantId }
-    return result
-  } catch (err) {
-    console.error('[HomeData] getHomePageData failed:', err)
-    if (homeDataCache?.data) return homeDataCache.data
-    return { stories: [], banners: [], categories: [], featured: [], realEstate: [], shorts: [], villages: [], latestNews: [], latestBlogs: [] }
-  }
+  return swrCache(
+    cacheKey,
+    async () => {
+      const [
+        stories,
+        banners,
+        categories,
+        featured,
+        realEstate,
+        shorts,
+        villages,
+        latestNews,
+        latestBlogs,
+      ] = await Promise.all([
+        getActiveStories(),
+        getActiveBanners(),
+        getCategories(),
+        getFeaturedListings(),
+        getPremiumRealEstate(),
+        getShorts(),
+        getVillages(),
+        getLatestNews(),
+        getLatestBlogs(),
+      ])
+      return { stories, banners, categories, featured, realEstate, shorts, villages, latestNews, latestBlogs }
+    },
+    {
+      ttlMs: 45 * 1000,          // 45 seconds fresh
+      staleTtlMs: 20 * 60 * 1000, // 20 mins stale window with background revalidation
+    }
+  )
 }
 
 export type HomePageData = Awaited<ReturnType<typeof getHomePageData>>
