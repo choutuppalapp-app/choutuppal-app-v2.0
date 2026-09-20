@@ -58,8 +58,8 @@ export async function GET() {
     const offlineBlogs = getOfflineBlogs()
     const offlineBanners = getOfflineBanners()
 
-    const totalUsers = dbUsersCount ?? offlineUsers.length
-    const allListings = dbListings && dbListings.length > 0 ? dbListings : offlineListings
+    const totalUsers = dbUsersCount !== null && dbUsersCount !== undefined ? dbUsersCount : offlineUsers.length
+    const allListings = dbListings !== null && dbListings !== undefined ? dbListings : offlineListings
 
     const totalListings = allListings.length
     const pendingListings = allListings.filter((l) => l.status === 'PENDING').length
@@ -67,7 +67,7 @@ export async function GET() {
     const premiumListings = allListings.filter((l) => l.isPremium).length
     const featuredListings = allListings.filter((l) => l.isFeatured).length
 
-    const allBanners = dbBanners && dbBanners.length > 0 ? dbBanners : offlineBanners
+    const allBanners = dbBanners !== null && dbBanners !== undefined ? dbBanners : offlineBanners
     const activeBanners = allBanners.filter((b) => b.isActive !== false).length
 
     const totalViews = allListings.reduce((sum, l) => sum + (l.views || 0), 0)
@@ -98,12 +98,12 @@ export async function GET() {
         approvedListings,
         premiumListings,
         featuredListings,
-        totalRealEstates: dbRealEstatesCount || 12,
+        totalRealEstates: dbRealEstatesCount ?? 0,
         activeBanners,
-        totalStories: dbStoriesCount || 4,
+        totalStories: dbStoriesCount ?? 0,
         totalNews: dbNewsCount ?? offlineNews.length,
         totalBlogs: dbBlogsCount ?? offlineBlogs.length,
-        totalShorts: dbShortsCount || 6,
+        totalShorts: dbShortsCount ?? 0,
         totalViews,
         totalClicks,
         totalWhatsappClicks,

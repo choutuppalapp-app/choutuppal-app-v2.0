@@ -37,6 +37,25 @@ export default async function Home() {
 
   const spinEnabled = appSettings.spin_enabled !== 'false'
 
+  let initialAnnouncements: string[] = []
+  if (appSettings.ticker_items_json) {
+    try {
+      const parsed = JSON.parse(appSettings.ticker_items_json)
+      if (Array.isArray(parsed)) {
+        initialAnnouncements = parsed
+          .filter((t: any) => t.isActive !== false)
+          .map((t: any) => t.text)
+          .filter(Boolean)
+      }
+    } catch {}
+  }
+  if (initialAnnouncements.length === 0 && appSettings.announcement_ticker) {
+    initialAnnouncements = appSettings.announcement_ticker
+      .split('|')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  }
+
   const viewerInfo = viewer
     ? {
         isLoggedIn: true,
@@ -50,7 +69,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Ticker />
+      <Ticker initialAnnouncements={initialAnnouncements} />
       <StickySocials />
 
       <main className="flex-1">

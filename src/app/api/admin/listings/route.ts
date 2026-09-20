@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       null
     )
 
-    let listings = dbListings && dbListings.length > 0 ? dbListings : getOfflineListings()
+    let listings = dbListings !== null && dbListings !== undefined ? dbListings : getOfflineListings()
 
     // Apply Filters
     if (search) {

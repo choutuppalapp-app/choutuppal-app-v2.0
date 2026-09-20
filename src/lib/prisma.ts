@@ -58,6 +58,8 @@ function isConnectionOrInitError(err: any): boolean {
     code === 'ETIMEDOUT' ||
     code === 'ECONNREFUSED' ||
     code === 'ENOTFOUND' ||
+    code === 'UND_ERR_CONNECT_TIMEOUT' ||
+    code === 'UND_ERR_SOCKET' ||
     msg.includes('tenant') ||
     msg.includes('enotfound') ||
     msg.includes('econnrefused') ||
@@ -69,6 +71,7 @@ function isConnectionOrInitError(err: any): boolean {
     msg.includes('timed out') ||
     msg.includes('aborted') ||
     msg.includes('abort') ||
+    msg.includes('operation was aborted') ||
     msg.includes('pool')
   )
 }
@@ -396,10 +399,19 @@ function createModelProxy(realModel: any, modelName: string) {
               const timeoutErr = new Error(`Database query ${modelName}.${method} timed out`)
               timeoutErr.name = 'TimeoutError'
               reject(timeoutErr)
-            }, 3500)
+            }, 2000)
           })
+
+          const queryPromise = Promise.resolve().then(() => target[method](...args))
+          queryPromise.catch((err) => {
+            if (isConnectionOrInitError(err)) {
+              isDbAvailable = false
+              globalForPrisma.isDbAvailable = false
+            }
+          })
+
           try {
-            return await Promise.race([target[method](...args), timeoutPromise])
+            return await Promise.race([queryPromise, timeoutPromise])
           } finally {
             if (timer) clearTimeout(timer)
           }
@@ -486,8 +498,8 @@ export async function safeDbQuery<T>(
   queryFn: () => Promise<T>,
   fallback: T,
   maxRetries = 1,
-  delayMs = 200,
-  timeoutMs = 3500
+  delayMs = 150,
+  timeoutMs = 2000
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let timer: NodeJS.Timeout | undefined
@@ -499,7 +511,16 @@ export async function safeDbQuery<T>(
           reject(timeoutErr)
         }, timeoutMs)
       })
-      const result = await Promise.race([queryFn(), timeoutPromise])
+
+      const queryPromise = Promise.resolve().then(() => queryFn())
+      queryPromise.catch((err) => {
+        if (isConnectionOrInitError(err)) {
+          isDbAvailable = false
+          globalForPrisma.isDbAvailable = false
+        }
+      })
+
+      const result = await Promise.race([queryPromise, timeoutPromise])
       return (result !== undefined && result !== null) ? result : fallback
     } catch (err: any) {
       if (isConnectionOrInitError(err)) {

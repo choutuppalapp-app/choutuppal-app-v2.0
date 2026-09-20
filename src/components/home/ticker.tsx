@@ -5,17 +5,22 @@ import { Megaphone, Pause, Play } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const DEFAULT_ANNOUNCEMENTS = [
-  '🪔 Choutuppal App v2.0 is now live — list your business FREE!',
-  '📅 Spin & Win daily rewards — 1 free spin every day for early users.',
-  '🏠 List your property for sale or rent at zero cost.',
-  '📣 Banner ads from just ₹99/day — reach 10,000+ local customers.',
-  '📰 Read local news & blogs updated daily.',
-  '🤝 Community is now open — post & connect with your village.',
+  '🪔 చౌటుప్పల్ యాప్ 2.0 లైవ్ - మీ వ్యాపారాన్ని ఉచితంగా రిజిస్టర్ చేసుకోండి!',
+  '📅 డైలీ స్పిన్ & విన్ బహుమతులు - ప్రతిరోజూ 1 ఉచిత స్పిన్ లభ్యం.',
+  '🏠 చౌటుప్పల్ & పరిసరాల్లో మీ ప్లాట్లు, ఇళ్లను జీరో బ్రోకరేజ్‌తో అమ్మండి/కొనండి.',
+  '📣 హోమ్‌పేజీ బ్యానర్ యాడ్స్ కేవలం ₹99/రోజు నుండి ప్రారంభం - 10,000+ స్థానిక కస్టమర్లను చేరుకోండి.',
+  '📰 స్థానిక వార్తలు మరియు వ్యాపార కథనాలు ప్రతిరోజూ తాజా అప్‌డేట్స్‌తో.',
 ]
 
-export function Ticker() {
+interface TickerProps {
+  initialAnnouncements?: string[]
+}
+
+export function Ticker({ initialAnnouncements }: TickerProps) {
   const [paused, setPaused] = useState(false)
-  const [announcements, setAnnouncements] = useState<string[]>(DEFAULT_ANNOUNCEMENTS)
+  const [announcements, setAnnouncements] = useState<string[]>(
+    initialAnnouncements && initialAnnouncements.length > 0 ? initialAnnouncements : DEFAULT_ANNOUNCEMENTS
+  )
 
   useEffect(() => {
     let active = true
