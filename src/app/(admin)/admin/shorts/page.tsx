@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Video,
   PlusCircle,
@@ -130,10 +131,14 @@ export default function AdminShortsPage() {
                 className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs flex flex-col justify-between"
               >
                 <div className="relative aspect-9/16 bg-slate-900 group">
-                  <img
+                  <Image
                     src={item.thumbnail || 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&auto=format&fit=crop&q=80'}
-                    alt={item.title}
-                    className="h-full w-full object-cover opacity-90 group-hover:opacity-100 transition"
+                    alt={item.title || 'Short Video'}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                    className="object-cover opacity-90 group-hover:opacity-100 transition"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30 p-3 flex flex-col justify-between">
                     <div className="flex justify-between items-center">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import NextImage from 'next/image'
 import {
   Image as ImageIcon,
   PlusCircle,
@@ -235,10 +236,14 @@ export default function AdminStoriesBannersPage() {
                 >
                   <div>
                     <div className="relative aspect-16/9 bg-slate-100 border-b border-slate-200">
-                      <img
+                      <NextImage
                         src={banner.imageUrl || '/images/hero-banner.webp'}
                         alt={banner.title || 'Banner Ad'}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
                       />
                       <span
                         className={`absolute top-2.5 right-2.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-xs ${
@@ -313,10 +318,14 @@ export default function AdminStoriesBannersPage() {
                   className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs flex flex-col justify-between"
                 >
                   <div className="relative aspect-9/16 bg-slate-100">
-                    <img
-                      src={story.mediaUrl}
+                    <NextImage
+                      src={story.mediaUrl || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&auto=format&fit=crop&q=80'}
                       alt={story.caption || 'Story'}
-                      className="h-full w-full object-cover"
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                      className="object-cover"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20 p-2.5 flex flex-col justify-between">
                       <div className="flex justify-between items-center">

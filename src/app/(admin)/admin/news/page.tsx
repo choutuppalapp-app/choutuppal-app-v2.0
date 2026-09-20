@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Newspaper,
   PlusCircle,
@@ -323,10 +324,14 @@ export default function AdminNewsPage() {
                     >
                       <td className="px-5 py-4 max-w-md">
                         <div className="flex items-start gap-3">
-                          <img
+                          <Image
                             src={item.image || item.coverImage || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=300&auto=format&fit=crop&q=80'}
                             alt=""
+                            width={64}
+                            height={48}
                             className="h-12 w-16 rounded-lg object-cover border border-slate-200 shrink-0"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
                           />
                           <div>
                             <p className="font-semibold text-slate-900 text-sm line-clamp-1">{item.title}</p>

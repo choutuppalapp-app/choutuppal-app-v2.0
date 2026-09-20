@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { SectionHeading } from './section-heading'
 import type { Short } from '@prisma/client'
+import Image from 'next/image'
 import Script from 'next/script'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -117,12 +118,14 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
                     <span className="text-[10px] font-bold tracking-wider uppercase bg-black/20 px-2 py-0.5 rounded-full">Reel</span>
                   </div>
                 ) : (
-                  <img
-                    src={thumbUrl(s.youtubeId, s.platform, s.thumbnail ?? '')}
+                  <Image
+                    src={thumbUrl(s.youtubeId, s.platform, s.thumbnail ?? '') || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&auto=format&fit=crop&q=80'}
                     alt={s.title ?? 'Short'}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 640px) 128px, 144px"
+                    className="object-cover transition duration-500 group-hover:scale-110"
                     loading="lazy"
-                    decoding="async"
+                    referrerPolicy="no-referrer"
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
