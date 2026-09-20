@@ -64,17 +64,68 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
       if (method === 'findMany') {
         let results = [...all]
         if (queryArg.where) {
-          const { isFeatured, categoryId, villageId } = queryArg.where
-          if (isFeatured) {
-            const featuredOnly = results.filter((l) => l.isFeatured)
-            results = featuredOnly.length > 0 ? featuredOnly : results.slice(0, 10)
+          const w = queryArg.where
+
+          if (w.status) {
+            results = results.filter((l) => l.status === w.status)
           }
-          if (categoryId) {
-            results = results.filter((l) => l.categoryId === categoryId)
+          if (w.isFeatured !== undefined) {
+            results = results.filter((l) => Boolean(l.isFeatured) === Boolean(w.isFeatured))
           }
-          if (villageId) {
-            results = results.filter((l) => l.villageId === villageId)
+          if (w.categoryId) {
+            results = results.filter((l) => l.categoryId === w.categoryId || l.category?.id === w.categoryId)
           }
+          if (w.category?.slug && w.category.slug !== 'all') {
+            results = results.filter((l) => l.category?.slug === w.category.slug)
+          }
+          if (w.villageId) {
+            results = results.filter((l) => l.villageId === w.villageId || l.village?.id === w.villageId)
+          }
+          if (w.village?.slug && w.village.slug !== 'all') {
+            results = results.filter((l) => l.village?.slug === w.village.slug)
+          }
+          if (w.id?.not) {
+            results = results.filter((l) => l.id !== w.id.not)
+          }
+
+          // Handle OR conditions (Search query matching title, phone, village name)
+          if (Array.isArray(w.OR) && w.OR.length > 0) {
+            results = results.filter((l) => {
+              return w.OR.some((cond: any) => {
+                if (cond.title?.contains) {
+                  const term = String(cond.title.contains).toLowerCase()
+                  if (l.title && l.title.toLowerCase().includes(term)) return true
+                }
+                if (cond.phone?.contains) {
+                  const term = String(cond.phone.contains).toLowerCase()
+                  if (l.phone && l.phone.includes(term)) return true
+                }
+                if (cond.secondaryPhone?.contains) {
+                  const term = String(cond.secondaryPhone.contains).toLowerCase()
+                  if (l.secondaryPhone && l.secondaryPhone.includes(term)) return true
+                }
+                if (cond.whatsapp?.contains) {
+                  const term = String(cond.whatsapp.contains).toLowerCase()
+                  if (l.whatsapp && l.whatsapp.includes(term)) return true
+                }
+                if (cond.village?.name?.contains) {
+                  const term = String(cond.village.name.contains).toLowerCase()
+                  if (l.village?.name && l.village.name.toLowerCase().includes(term)) return true
+                }
+                if (cond.categoryId && (l.categoryId === cond.categoryId || l.category?.id === cond.categoryId)) {
+                  return true
+                }
+                if (cond.villageId && (l.villageId === cond.villageId || l.village?.id === cond.villageId)) {
+                  return true
+                }
+                return false
+              })
+            })
+          }
+        }
+
+        if (typeof queryArg.skip === 'number') {
+          results = results.slice(queryArg.skip)
         }
         if (typeof queryArg.take === 'number') {
           results = results.slice(0, queryArg.take)

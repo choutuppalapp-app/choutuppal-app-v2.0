@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { ListingDetailView } from '@/components/business/listing-detail-view'
@@ -8,8 +9,8 @@ export const dynamic = 'force-dynamic'
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
-/** Fetch + access-control a listing by slug. Returns null for 404. */
-async function getListing(slug: string) {
+/** Fetch + access-control a listing by slug with React cache to eliminate duplicate queries between metadata and page */
+const getListingCached = cache(async (slug: string) => {
   const listing = await safeDbQuery(
     () =>
       prisma.listing.findUnique({
@@ -32,7 +33,7 @@ async function getListing(slug: string) {
     return null
   }
 
-  // Increment views (fire-and-forget; only for approved listings viewed by non-owners).
+  // Fire-and-forget view count increment for approved listings
   if (listing.status === 'APPROVED' && !isOwner) {
     void prisma.listing
       .update({ where: { id: listing.id }, data: { views: { increment: 1 } } })
@@ -40,7 +41,7 @@ async function getListing(slug: string) {
   }
 
   return { listing, isOwner, isAdmin }
-}
+})
 
 /** SEO / WhatsApp rich preview metadata. Absolute URLs required for OG. */
 export async function generateMetadata({
@@ -49,7 +50,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const data = await getListing(slug)
+  const data = await getListingCached(slug)
   if (!data) {
     return {
       title: 'Listing not found',
@@ -65,7 +66,7 @@ export async function generateMetadata({
     : undefined
   const url = `${SITE_URL}/business/${listing.slug}`
 
-  const description = listing.description.slice(0, 155)
+  const description = (listing.description || `${listing.title} in Choutuppal`).slice(0, 155)
   const title = `${listing.title}${listing.category ? ` · ${listing.category.name}` : ''}`
 
   return {
@@ -96,7 +97,7 @@ export default async function BusinessPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const data = await getListing(slug)
+  const data = await getListingCached(slug)
   if (!data) notFound()
 
   // Fetch up to 5 related listings from the same category or village (excluding current).
@@ -130,3 +131,4 @@ export default async function BusinessPage({
 
   return <ListingDetailView data={data} related={related} />
 }
+

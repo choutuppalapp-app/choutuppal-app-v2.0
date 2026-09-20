@@ -199,7 +199,23 @@ export async function getVillages() {
   )
 }
 
-export async function getHomePageData() {
+let homeDataCache: { data: any; timestamp: number; tenantId?: string } | null = null
+const CACHE_TTL_MS = 30 * 1000 // 30 seconds high-speed memory cache
+
+export async function getHomePageData(forceRefresh = false) {
+  let tenantId = 'default'
+  try {
+    const tenant = await getCurrentTenant()
+    if (tenant?.id) tenantId = tenant.id
+  } catch {
+    // fallback to default
+  }
+
+  const now = Date.now()
+  if (!forceRefresh && homeDataCache && homeDataCache.tenantId === tenantId && (now - homeDataCache.timestamp < CACHE_TTL_MS)) {
+    return homeDataCache.data
+  }
+
   try {
     const [
       stories,
@@ -222,9 +238,12 @@ export async function getHomePageData() {
       getLatestNews(),
       getLatestBlogs(),
     ])
-    return { stories, banners, categories, featured, realEstate, shorts, villages, latestNews, latestBlogs }
+    const result = { stories, banners, categories, featured, realEstate, shorts, villages, latestNews, latestBlogs }
+    homeDataCache = { data: result, timestamp: now, tenantId }
+    return result
   } catch (err) {
     console.error('[HomeData] getHomePageData failed:', err)
+    if (homeDataCache?.data) return homeDataCache.data
     return { stories: [], banners: [], categories: [], featured: [], realEstate: [], shorts: [], villages: [], latestNews: [], latestBlogs: [] }
   }
 }

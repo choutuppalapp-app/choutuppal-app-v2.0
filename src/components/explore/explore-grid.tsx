@@ -224,24 +224,35 @@ export function ExploreGrid({
     return result
   }, [realEstates, village, query])
 
-  function handleCategorySelect(slug: string) {
-    setCategory(slug)
+  const updateUrlParams = useCallback((newCat: string, newVill: string, newQ: string) => {
+    if (typeof window === 'undefined') return
     const params = new URLSearchParams()
-    if (slug !== 'all') params.set('category', slug)
-    if (village !== 'all') params.set('village', village)
-    if (query.trim()) params.set('q', query.trim())
+    if (newCat && newCat !== 'all') params.set('category', newCat)
+    if (newVill && newVill !== 'all') params.set('village', newVill)
+    if (newQ && newQ.trim()) params.set('q', newQ.trim())
     const queryString = params.toString()
     const basePath = pathname.startsWith('/listings') ? '/listings' : '/explore'
-    router.push(queryString ? `${basePath}?${queryString}` : basePath)
+    const newUrl = queryString ? `${basePath}?${queryString}` : basePath
+    window.history.replaceState(null, '', newUrl)
+  }, [pathname])
+
+  function handleCategorySelect(slug: string) {
+    setCategory(slug)
+    updateUrlParams(slug, village, query)
+  }
+
+  function handleVillageSelect(vSlug: string) {
+    setVillage(vSlug)
+    updateUrlParams(category, vSlug, query)
+  }
+
+  function handleQueryChange(newQ: string) {
+    setQuery(newQ)
+    updateUrlParams(category, village, newQ)
   }
 
   function applyFilters() {
-    const params = new URLSearchParams()
-    if (category !== 'all') params.set('category', category)
-    if (village !== 'all') params.set('village', village)
-    if (query.trim()) params.set('q', query.trim())
-    const basePath = pathname.startsWith('/listings') ? '/listings' : '/explore'
-    router.push(`${basePath}?${params.toString()}`)
+    updateUrlParams(category, village, query)
     setSheetOpen(false)
   }
 
@@ -254,13 +265,13 @@ export function ExploreGrid({
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => handleQueryChange(e.target.value)}
               placeholder="Search by business name, phone number, or village…"
               className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
             {query ? (
               <button
-                onClick={() => setQuery('')}
+                onClick={() => handleQueryChange('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 aria-label="Clear search"
               >
@@ -280,7 +291,7 @@ export function ExploreGrid({
               ))}
             </SelectContent>
           </Select>
-          <Select value={village} onValueChange={setVillage}>
+          <Select value={village} onValueChange={handleVillageSelect}>
             <SelectTrigger className="h-10 w-[160px] bg-white">
               <MapPin className="mr-1.5 h-3.5 w-3.5 text-blue-500" />
               <SelectValue placeholder="All Villages" />
@@ -304,13 +315,13 @@ export function ExploreGrid({
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Search name, phone, village…"
             className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-sm outline-none focus:border-blue-400"
           />
           {query ? (
             <button
-              onClick={() => setQuery('')}
+              onClick={() => handleQueryChange('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               aria-label="Clear search"
             >
@@ -340,7 +351,7 @@ export function ExploreGrid({
             <div className="space-y-3">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-slate-600">Category</label>
-                <Select value={category} onValueChange={(val) => { setCategory(val); setSheetOpen(false); handleCategorySelect(val); }}>
+                <Select value={category} onValueChange={(val) => { handleCategorySelect(val); setSheetOpen(false); }}>
                   <SelectTrigger className="h-10 w-full bg-white">
                     <Tag className="mr-1.5 h-3.5 w-3.5 text-amber-500" />
                     <SelectValue />
@@ -355,7 +366,7 @@ export function ExploreGrid({
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-slate-600">Village</label>
-                <Select value={village} onValueChange={setVillage}>
+                <Select value={village} onValueChange={(val) => handleVillageSelect(val)}>
                   <SelectTrigger className="h-10 w-full bg-white">
                     <MapPin className="mr-1.5 h-3.5 w-3.5 text-blue-500" />
                     <SelectValue />
@@ -596,9 +607,10 @@ function GridImage({ src, alt }: { src: string; alt: string }) {
       fill
       decoding="async" 
       loading="lazy" 
-      sizes="200px"
-      src={error ? '/images/fallback-cover.webp' : src}
+      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+      src={error ? '/images/fallback-cover.webp' : (src || '/images/fallback-cover.webp')}
       alt={alt}
+      referrerPolicy="no-referrer"
       style={{ objectFit: 'cover' }}
       className="transition group-hover:scale-105"
       onError={() => setError(true)}

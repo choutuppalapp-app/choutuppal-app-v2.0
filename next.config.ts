@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       "lucide-react",
       "@radix-ui/react-icons",
+      "motion",
+      "date-fns",
     ],
   },
   images: {

@@ -1,27 +1,21 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
-import nextDynamic from 'next/dynamic'
-const ExploreGrid = nextDynamic(() => import('@/components/explore/explore-grid').then(m => ({ default: m.ExploreGrid })), { ssr: true, loading: () => null })
+import { ExploreGrid } from '@/components/explore/explore-grid'
 
 export const dynamic = 'force-dynamic'
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'https://choutuppal.in').replace(/\/$/, '')
 
 export const metadata: Metadata = {
-  title: 'Listings | Choutuppal App',
+  title: 'Listings & Services | Choutuppal App',
   description: 'Explore all approved business listings, real estate properties, and services in Choutuppal.',
   alternates: { canonical: `${SITE_URL}/listings` },
 }
 
-export default async function ListingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ category?: string; village?: string; q?: string }>
-}) {
-  const params = await searchParams
-  const tenant = await getCurrentTenant()
-  const tenantFilter = getTenantWhereClause(tenant.id)
+const getListingsPageData = cache(async (tenantId: string, category?: string, village?: string, q?: string) => {
+  const tenantFilter = getTenantWhereClause(tenantId)
 
   const [listings, realEstates, villages, categories] = await Promise.all([
     safeDbQuery(
@@ -31,26 +25,26 @@ export default async function ListingsPage({
             ...tenantFilter,
             status: 'APPROVED',
             OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-            ...(params.category && params.category !== 'all'
-              ? { category: { slug: params.category } }
+            ...(category && category !== 'all'
+              ? { category: { slug: category } }
               : {}),
-            ...(params.village && params.village !== 'all'
-              ? { village: { slug: params.village } }
+            ...(village && village !== 'all'
+              ? { village: { slug: village } }
               : {}),
-            ...(params.q && params.q.trim()
+            ...(q && q.trim()
               ? {
                   OR: [
-                    { title: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { phone: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { secondaryPhone: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { whatsapp: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { village: { name: { contains: params.q.trim(), mode: 'insensitive' } } },
+                    { title: { contains: q.trim(), mode: 'insensitive' } },
+                    { phone: { contains: q.trim(), mode: 'insensitive' } },
+                    { secondaryPhone: { contains: q.trim(), mode: 'insensitive' } },
+                    { whatsapp: { contains: q.trim(), mode: 'insensitive' } },
+                    { village: { name: { contains: q.trim(), mode: 'insensitive' } } },
                   ],
                 }
               : {}),
           },
           orderBy: { createdAt: 'desc' },
-          take: 24,
+          take: 300,
           select: {
             id: true,
             title: true,
@@ -77,14 +71,14 @@ export default async function ListingsPage({
           where: {
             ...tenantFilter,
             status: 'APPROVED',
-            ...(params.village && params.village !== 'all'
-              ? { village: { slug: params.village } }
+            ...(village && village !== 'all'
+              ? { village: { slug: village } }
               : {}),
-            ...(params.q && params.q.trim()
+            ...(q && q.trim()
               ? {
                   OR: [
-                    { title: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { village: { name: { contains: params.q.trim(), mode: 'insensitive' } } },
+                    { title: { contains: q.trim(), mode: 'insensitive' } },
+                    { village: { name: { contains: q.trim(), mode: 'insensitive' } } },
                   ],
                 }
               : {}),
@@ -110,6 +104,23 @@ export default async function ListingsPage({
     safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), []),
   ])
 
+  return { listings, realEstates, villages, categories }
+})
+
+export default async function ListingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string; village?: string; q?: string }>
+}) {
+  const params = await searchParams
+  const tenant = await getCurrentTenant()
+  const { listings, realEstates, villages, categories } = await getListingsPageData(
+    tenant.id,
+    params.category,
+    params.village,
+    params.q,
+  )
+
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
       <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-amber-950 text-white py-10 px-4 text-center">
@@ -131,3 +142,5 @@ export default async function ListingsPage({
     </div>
   )
 }
+
+

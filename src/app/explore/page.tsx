@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cache } from 'react'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { ExploreGrid } from '@/components/explore/explore-grid'
 
@@ -12,38 +13,33 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/explore` },
 }
 
-export default async function ExplorePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ category?: string; village?: string; q?: string }>
-}) {
-  const params = await searchParams
-
+const getExplorePageData = cache(async (category?: string, village?: string, q?: string) => {
   const [listings, realEstates, villages, categories] = await Promise.all([
     safeDbQuery(
       () =>
         prisma.listing.findMany({
           where: {
             status: 'APPROVED',
-            ...(params.category && params.category !== 'all'
-              ? { category: { slug: params.category } }
+            ...(category && category !== 'all'
+              ? { category: { slug: category } }
               : {}),
-            ...(params.village && params.village !== 'all'
-              ? { village: { slug: params.village } }
+            ...(village && village !== 'all'
+              ? { village: { slug: village } }
               : {}),
-            ...(params.q && params.q.trim()
+            ...(q && q.trim()
               ? {
                   OR: [
-                    { title: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { phone: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { secondaryPhone: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { whatsapp: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { village: { name: { contains: params.q.trim(), mode: 'insensitive' } } },
+                    { title: { contains: q.trim(), mode: 'insensitive' } },
+                    { phone: { contains: q.trim(), mode: 'insensitive' } },
+                    { secondaryPhone: { contains: q.trim(), mode: 'insensitive' } },
+                    { whatsapp: { contains: q.trim(), mode: 'insensitive' } },
+                    { village: { name: { contains: q.trim(), mode: 'insensitive' } } },
                   ],
                 }
               : {}),
           },
           orderBy: { createdAt: 'desc' },
+          take: 300,
           select: {
             id: true,
             title: true,
@@ -69,19 +65,20 @@ export default async function ExplorePage({
         prisma.realEstate.findMany({
           where: {
             status: 'APPROVED',
-            ...(params.village && params.village !== 'all'
-              ? { village: { slug: params.village } }
+            ...(village && village !== 'all'
+              ? { village: { slug: village } }
               : {}),
-            ...(params.q && params.q.trim()
+            ...(q && q.trim()
               ? {
                   OR: [
-                    { title: { contains: params.q.trim(), mode: 'insensitive' } },
-                    { village: { name: { contains: params.q.trim(), mode: 'insensitive' } } },
+                    { title: { contains: q.trim(), mode: 'insensitive' } },
+                    { village: { name: { contains: q.trim(), mode: 'insensitive' } } },
                   ],
                 }
               : {}),
           },
           orderBy: { createdAt: 'desc' },
+          take: 24,
           select: {
             id: true,
             title: true,
@@ -101,6 +98,21 @@ export default async function ExplorePage({
     safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), []),
   ])
 
+  return { listings, realEstates, villages, categories }
+})
+
+export default async function ExplorePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string; village?: string; q?: string }>
+}) {
+  const params = await searchParams
+  const { listings, realEstates, villages, categories } = await getExplorePageData(
+    params.category,
+    params.village,
+    params.q,
+  )
+
   return (
     <ExploreGrid
       listings={listings}
@@ -113,3 +125,4 @@ export default async function ExplorePage({
     />
   )
 }
+
