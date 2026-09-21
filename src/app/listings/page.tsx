@@ -4,6 +4,8 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { ExploreGrid } from '@/components/explore/explore-grid'
 import { swrCache } from '@/lib/cache'
+import { FALLBACK_FEATURED_LISTINGS, FALLBACK_REAL_ESTATE } from '@/lib/home-data'
+import { getOfflineCategories, getOfflineVillages } from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 60
@@ -24,7 +26,7 @@ const getListingsPageData = cache(async (tenantId: string, category?: string, vi
     async () => {
       const tenantFilter = getTenantWhereClause(tenantId)
 
-      const [listings, realEstates, villages, categories] = await Promise.all([
+      const [dbListings, dbRealEstates, dbVillages, dbCategories] = await Promise.all([
         safeDbQuery(
           () =>
             prisma.listing.findMany({
@@ -71,6 +73,9 @@ const getListingsPageData = cache(async (tenantId: string, category?: string, vi
               },
             }),
           [],
+          1,
+          30,
+          1800
         ),
         safeDbQuery(
           () =>
@@ -106,14 +111,22 @@ const getListingsPageData = cache(async (tenantId: string, category?: string, vi
               },
             }),
           [],
+          1,
+          30,
+          1800
         ),
-        safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true } }), []),
-        safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), []),
+        safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true } }), [], 1, 30, 1500),
+        safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), [], 1, 30, 1500),
       ])
+
+      const listings = dbListings && dbListings.length > 0 ? dbListings : FALLBACK_FEATURED_LISTINGS
+      const realEstates = dbRealEstates && dbRealEstates.length > 0 ? dbRealEstates : FALLBACK_REAL_ESTATE
+      const villages = dbVillages && dbVillages.length > 0 ? dbVillages : getOfflineVillages()
+      const categories = dbCategories && dbCategories.length > 0 ? dbCategories : getOfflineCategories()
 
       return { listings, realEstates, villages, categories }
     },
-    { ttlMs: 60 * 1000, staleTtlMs: 20 * 60 * 1000 }
+    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
   )
 })
 

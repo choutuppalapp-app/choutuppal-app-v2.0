@@ -497,9 +497,9 @@ export const db = prisma
 export async function safeDbQuery<T>(
   queryFn: () => Promise<T>,
   fallback: T,
-  maxRetries = 2,
-  delayMs = 150,
-  timeoutMs = 8000
+  maxRetries = 1,
+  delayMs = 50,
+  timeoutMs = 2500
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let timer: NodeJS.Timeout | undefined

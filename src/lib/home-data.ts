@@ -689,8 +689,8 @@ export async function getHomePageData(forceRefresh = false) {
       return { stories, banners, categories, featured, realEstate, shorts, villages, latestNews, latestBlogs }
     },
     {
-      ttlMs: 10 * 1000,          // 10 seconds fresh
-      staleTtlMs: 5 * 60 * 1000,  // 5 mins stale window with background revalidation
+      ttlMs: 60 * 1000,           // 1 minute fresh
+      staleTtlMs: 30 * 60 * 1000, // 30 mins stale window with background revalidation
     }
   )
 }
