@@ -55,6 +55,7 @@ export function FeaturedRail({ listings }: FeaturedRailProps) {
             <Link
               key={l.id}
               href={`/business/${l.slug}`}
+              prefetch={true}
               className="hover-lift group flex w-full flex-col justify-between overflow-hidden rounded-2xl glass transition-all duration-300 hover:border-blue-400"
             >
               {/* cover */}

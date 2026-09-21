@@ -8,6 +8,7 @@ export { BannerCarousel } from '@/components/home/banner-carousel'
 export { CategoriesGrid } from '@/components/home/categories-grid'
 export { FeaturedRail } from '@/components/home/featured-rail'
 export { RealEstateRail } from '@/components/home/real-estate-rail'
+export { NewsGrid } from '@/components/home/news-grid'
 export { SendNewsCTA } from '@/components/home/send-news-cta'
 export { BlogGrid } from '@/components/home/blog-grid'
 

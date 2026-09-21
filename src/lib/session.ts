@@ -17,16 +17,34 @@ export async function getCurrentUser(): Promise<User | null> {
   const session = await getSession()
   if (!session?.user) return null
 
-  // 1. Try DB lookup by user.id, email, or username
+  // 1. Try DB lookup by user.id, email, or username (fast 1000ms max)
   let dbUser: any = null
   if (session.user.id) {
-    dbUser = await safeDbQuery(() => prisma.user.findUnique({ where: { id: session.user.id } }), null)
+    dbUser = await safeDbQuery(
+      () => prisma.user.findUnique({ where: { id: session.user.id } }),
+      null,
+      1,
+      50,
+      1000
+    )
   }
   if (!dbUser && session.user.email) {
-    dbUser = await safeDbQuery(() => prisma.user.findFirst({ where: { email: session.user.email! } }), null)
+    dbUser = await safeDbQuery(
+      () => prisma.user.findFirst({ where: { email: session.user.email! } }),
+      null,
+      1,
+      50,
+      1000
+    )
   }
   if (!dbUser && session.user.username) {
-    dbUser = await safeDbQuery(() => prisma.user.findFirst({ where: { username: session.user.username! } }), null)
+    dbUser = await safeDbQuery(
+      () => prisma.user.findFirst({ where: { username: session.user.username! } }),
+      null,
+      1,
+      50,
+      1000
+    )
   }
 
   // 2. Fallback to offline users store

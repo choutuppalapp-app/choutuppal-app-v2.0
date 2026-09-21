@@ -32,10 +32,14 @@ export async function getActiveStories() {
 }
 
 export async function getActiveBanners() {
+  const tenant = await getCurrentTenant()
+  const tenantFilter = getTenantWhereClause(tenant.id)
+
   return safeDbQuery(
-    () =>
-      prisma.banner.findMany({
+    async () => {
+      let banners = await prisma.banner.findMany({
         where: {
+          ...tenantFilter,
           isActive: true,
           NOT: { status: 'REJECTED' },
           OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
@@ -48,7 +52,28 @@ export async function getActiveBanners() {
           imageUrl: true,
           link: true,
         },
-      }),
+      })
+
+      if (!banners || banners.length === 0) {
+        banners = await prisma.banner.findMany({
+          where: {
+            isActive: true,
+            NOT: { status: 'REJECTED' },
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 8,
+          select: {
+            id: true,
+            title: true,
+            imageUrl: true,
+            link: true,
+          },
+        })
+      }
+
+      return banners || []
+    },
     [],
   )
 }
@@ -70,22 +95,249 @@ export async function getCategories() {
   )
 }
 
+export const FALLBACK_FEATURED_LISTINGS = [
+  {
+    id: 'ch-feat-1',
+    title: 'శ్రీ సాయి ఆటోమొబైల్ సర్వీసెస్ & గ్యారేజ్',
+    slug: 'sri-sai-automobile-choutuppal',
+    coverImage: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
+    logo: null,
+    phone: '9494348175',
+    whatsapp: '9494348175',
+    avgRating: 4.9,
+    views: 1420,
+    isFeatured: true,
+    categoryId: 'automobile',
+    villageId: 'choutuppal',
+    category: { id: 'cat-auto', name: 'Automobile', slug: 'automobile' },
+    village: { id: 'v-ch', name: 'Choutuppal', slug: 'choutuppal' },
+  },
+  {
+    id: 'ch-feat-2',
+    title: 'చౌటుప్పల్ డిజిటల్ మీసేవ & ఇంటర్నెట్ సెంటర్',
+    slug: 'choutuppal-meeseva-internet-center',
+    coverImage: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80',
+    logo: null,
+    phone: '9494348175',
+    whatsapp: '9494348175',
+    avgRating: 4.8,
+    views: 1180,
+    isFeatured: true,
+    categoryId: 'internet-cyber-cafe',
+    villageId: 'choutuppal',
+    category: { id: 'cat-meeseva', name: 'Internet & Cyber', slug: 'internet-cyber-cafe' },
+    village: { id: 'v-ch', name: 'Choutuppal', slug: 'choutuppal' },
+  },
+  {
+    id: 'ch-feat-3',
+    title: 'శ్రీ లక్ష్మి టిఫిన్స్ & ఫ్యామిలీ రెస్టారెంట్',
+    slug: 'sri-laxmi-tiffins-choutuppal',
+    coverImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    logo: null,
+    phone: '9494348175',
+    whatsapp: '9494348175',
+    avgRating: 4.9,
+    views: 2350,
+    isFeatured: true,
+    categoryId: 'food-dining',
+    villageId: 'choutuppal',
+    category: { id: 'cat-food', name: 'Food & Dining', slug: 'food-dining' },
+    village: { id: 'v-ch', name: 'Choutuppal', slug: 'choutuppal' },
+  },
+  {
+    id: 'ch-feat-4',
+    title: 'బాలాజీ ఎలక్ట్రికల్స్, మోటార్స్ & హార్డ్‌వేర్',
+    slug: 'balaji-electricals-choutuppal',
+    coverImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+    logo: null,
+    phone: '9494348175',
+    whatsapp: '9494348175',
+    avgRating: 4.7,
+    views: 940,
+    isFeatured: true,
+    categoryId: 'electrical-hardware',
+    villageId: 'choutuppal',
+    category: { id: 'cat-electrical', name: 'Electrical & Hardware', slug: 'electrical-hardware' },
+    village: { id: 'v-ch', name: 'Choutuppal', slug: 'choutuppal' },
+  },
+]
+
+export const FALLBACK_REAL_ESTATE = [
+  {
+    id: 're-1',
+    title: 'హైవే ఫేసింగ్ ఓపెన్ ప్లాట్లు (HMDA / DTCP Approved)',
+    slug: 'highway-facing-open-plots-choutuppal',
+    coverImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+    price: 1500000,
+    type: 'PLOT',
+    listingType: 'SALE',
+    bedrooms: null,
+    areaSqft: 1800,
+    villageId: 'v-ch',
+    village: { id: 'v-ch', name: 'Choutuppal (NH 65)', slug: 'choutuppal' },
+  },
+  {
+    id: 're-2',
+    title: '2BHK ఇండిపెండెంట్ లగ్జరీ హౌస్ అమ్మకానికి',
+    slug: '2bhk-independent-luxury-house-lingojiguda',
+    coverImage: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80',
+    price: 4200000,
+    type: 'HOUSE',
+    listingType: 'SALE',
+    bedrooms: 2,
+    areaSqft: 1350,
+    villageId: 'v-lingo',
+    village: { id: 'v-lingo', name: 'Lingojiguda', slug: 'lingojiguda' },
+  },
+  {
+    id: 're-3',
+    title: 'మెయిన్ రోడ్ కమర్షియల్ షాప్ స్పేస్ అద్దెకు',
+    slug: 'main-road-commercial-shop-space-choutuppal',
+    coverImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
+    price: 18000,
+    type: 'COMMERCIAL',
+    listingType: 'RENT',
+    bedrooms: null,
+    areaSqft: 650,
+    villageId: 'v-ch',
+    village: { id: 'v-ch', name: 'Choutuppal Main Road', slug: 'choutuppal' },
+  },
+  {
+    id: 're-4',
+    title: 'వ్యవసాయ భూమి & ఫామ్‌ల్యాండ్ వెంచర్ ప్లాట్లు',
+    slug: 'farmland-venture-plots-koyyalagudem',
+    coverImage: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80',
+    price: 2500000,
+    type: 'LAND',
+    listingType: 'SALE',
+    bedrooms: null,
+    areaSqft: 5400,
+    villageId: 'v-koyya',
+    village: { id: 'v-koyya', name: 'Koyyalagudem', slug: 'koyyalagudem' },
+  },
+]
+
+const FALLBACK_NEWS = [
+  {
+    id: 'news-1',
+    title: 'చౌటుప్పల్ - హైదరాబాద్ జాతీయ రహదారి 65 విస్తరణ పనులు ముమ్మరం',
+    slug: 'choutuppal-nh65-highway-expansion-update',
+    summary: 'హైదరాబాద్-విజయవాడ జాతీయ రహదారిపై ట్రాఫిక్ సమస్యల నివారణకు అండర్‌పాస్ మరియు ఫ్లైఓవర్ పనులు వేగవంతం చేశారు.',
+    image: 'https://images.unsplash.com/photo-1545459720-aac8509eb02c?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'news-2',
+    title: 'చౌటుప్పల్ మున్సిపాలిటీలో కొత్త తాగునీటి ప్రాజెక్ట్ ప్రారంభం',
+    slug: 'choutuppal-new-drinking-water-project',
+    summary: 'ప్రతి వార్డుకు నిరంతర శుద్ధ జలాల సరఫరా కోసం నూతన పైప్‌లైన్ మరియు స్టోరేజ్ ట్యాంక్ పనులు ప్రారంభమయ్యాయి.',
+    image: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'news-3',
+    title: 'యాదాద్రి భువనగిరి జిల్లా రైతులకు ఉచిత విత్తనాల పంపిణీ',
+    slug: 'yadadri-farmers-seeds-distribution',
+    summary: 'వ్యవసాయ శాఖ ఆధ్వర్యంలో రైతులకు రాయితీ ఎరువులు మరియు నాణ్యమైన విత్తనాల పంపిణీ కేంద్రాలను ఏర్పాటు చేశారు.',
+    image: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'news-4',
+    title: 'చౌటుప్పల్ స్థానిక వ్యాపారులకు డిజిటల్ రిజిస్ట్రేషన్ అవకాశం',
+    slug: 'choutuppal-digital-business-registration-launch',
+    summary: 'చౌటుప్పల్ యాప్ ద్వారా చిన్న, పెద్ద వ్యాపారాలు ఉచితంగా ఆన్‌లైన్‌లో లిస్టింగ్ చేసుకోవచ్చని నిర్వాహకులు తెలిపారు.',
+    image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
+  },
+]
+
+const FALLBACK_BLOGS = [
+  {
+    id: 'blog-1',
+    title: 'చౌటుప్పల్ పరిసరాల్లో ఓపెన్ ప్లాట్లు కొనేముందు తెలుసుకోవాల్సిన 5 విషయాలు',
+    slug: '5-things-to-know-before-buying-plots-in-choutuppal',
+    excerpt: 'హెచ్‌ఎండిఏ/డిటిసిపి లేఅవుట్ అనుమతులు, లింక్ డాక్యుమెంట్లు మరియు ఫ్యూచర్ గ్రోత్ విశ్లేషణ పూర్తి గైడ్.',
+    coverImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'blog-2',
+    title: 'స్థానిక దుకాణాన్ని డిజిటల్ బిజినెస్‌గా ఎలా మార్చాలి?',
+    slug: 'how-to-grow-local-business-digitally-in-choutuppal',
+    excerpt: 'వాట్సాప్ కాటలాగ్, ఆన్‌లైన్ లిస్టింగ్స్ మరియు సోషల్ మీడియా ద్వారా కస్టమర్లను ఎలా ఆకర్షించవచ్చో తెలుసుకోండి.',
+    coverImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'blog-3',
+    title: 'చౌటుప్పల్ సమీపంలోని ప్రముఖ ఆధ్యాత్మిక మరియు చారిత్రక ప్రదేశాలు',
+    slug: 'top-places-to-visit-near-choutuppal',
+    excerpt: 'యాదాద్రి శ్రీ లక్ష్మీ నరసింహ స్వామి క్షేత్రం, కొలనుపాక జైన మందిరం మరియు పర్యాటక విశేషాలు.',
+    coverImage: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'blog-4',
+    title: 'హైదరాబాద్ - విజయవాడ కారిడార్‌లో రియల్ ఎస్టేట్ గ్రోత్ భవిష్యత్తు',
+    slug: 'future-of-real-estate-in-hyderabad-vijayawada-corridor',
+    excerpt: 'రీజినల్ రింగ్ రోడ్ (RRR), ఇండస్ట్రియల్ హబ్స్ మరియు ఫార్మా సిటీ అనుసంధానంతో ప్రాపర్టీ విలువల పెరుగుదల.',
+    coverImage: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80',
+    createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
+  },
+]
+
 export async function getFeaturedListings() {
   const tenant = await getCurrentTenant()
   const tenantFilter = getTenantWhereClause(tenant.id)
-  return safeDbQuery(
-    () =>
-      prisma.listing.findMany({
+  const dbListings = await safeDbQuery(
+    async () => {
+      // 1. First try approved / active listings for this tenant
+      let results = await prisma.listing.findMany({
         where: {
           ...tenantFilter,
-          status: 'APPROVED',
-          isFeatured: true,
+          status: { in: ['APPROVED', 'ACTIVE'] },
           OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
-        orderBy: { createdAt: 'desc' },
-        take: 6,
+        orderBy: [
+          { isFeatured: 'desc' },
+          { isPremium: 'desc' },
+          { createdAt: 'desc' },
+        ],
+        take: 12,
         select: {
           id: true,
+          title: true,
+          slug: true,
+          coverImage: true,
+          logo: true,
+          phone: true,
+          whatsapp: true,
+          avgRating: true,
+          views: true,
+          isFeatured: true,
+          villageId: true,
+          categoryId: true,
+          category: { select: { id: true, name: true, slug: true } },
+          village: { select: { id: true, name: true, slug: true } },
+        },
+      })
+
+      // 2. If none with tenantFilter, try all active/approved listings in the DB
+      if (!results || results.length === 0) {
+        results = await prisma.listing.findMany({
+          where: {
+            status: { in: ['APPROVED', 'ACTIVE'] },
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+          },
+          orderBy: [
+            { isFeatured: 'desc' },
+            { isPremium: 'desc' },
+            { createdAt: 'desc' },
+          ],
+          take: 12,
+          select: {
+            id: true,
             title: true,
             slug: true,
             coverImage: true,
@@ -99,21 +351,55 @@ export async function getFeaturedListings() {
             categoryId: true,
             category: { select: { id: true, name: true, slug: true } },
             village: { select: { id: true, name: true, slug: true } },
-        },
-      }),
+          },
+        })
+      }
+
+      // 3. If still empty, try any listings regardless of status (e.g. newly created by admin)
+      if (!results || results.length === 0) {
+        results = await prisma.listing.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 12,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            coverImage: true,
+            logo: true,
+            phone: true,
+            whatsapp: true,
+            avgRating: true,
+            views: true,
+            isFeatured: true,
+            villageId: true,
+            categoryId: true,
+            category: { select: { id: true, name: true, slug: true } },
+            village: { select: { id: true, name: true, slug: true } },
+          },
+        })
+      }
+
+      return results || []
+    },
     [],
   )
+
+  if (dbListings && dbListings.length > 0) {
+    return dbListings
+  }
+  return FALLBACK_FEATURED_LISTINGS
 }
 
 export async function getPremiumRealEstate() {
   const tenant = await getCurrentTenant()
   const tenantFilter = getTenantWhereClause(tenant.id)
-  return safeDbQuery(
-    () =>
-      prisma.realEstate.findMany({
-        where: { ...tenantFilter, status: 'APPROVED' },
+  const dbProperties = await safeDbQuery(
+    async () => {
+      // 1. Try realEstate table with tenantFilter
+      let properties = await prisma.realEstate.findMany({
+        where: { ...tenantFilter, status: { in: ['APPROVED', 'ACTIVE'] } },
         orderBy: { createdAt: 'desc' },
-        take: 10,
+        take: 8,
         select: {
           id: true,
           title: true,
@@ -127,17 +413,68 @@ export async function getPremiumRealEstate() {
           villageId: true,
           village: { select: { id: true, name: true, slug: true } },
         },
-      }),
+      })
+
+      // 2. If none, try without tenant filter
+      if (!properties || properties.length === 0) {
+        properties = await prisma.realEstate.findMany({
+          where: { status: { in: ['APPROVED', 'ACTIVE'] } },
+          orderBy: { createdAt: 'desc' },
+          take: 8,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            coverImage: true,
+            price: true,
+            type: true,
+            listingType: true,
+            bedrooms: true,
+            areaSqft: true,
+            villageId: true,
+            village: { select: { id: true, name: true, slug: true } },
+          },
+        })
+      }
+
+      // 3. If still empty, try any real estate items in the DB
+      if (!properties || properties.length === 0) {
+        properties = await prisma.realEstate.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 8,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            coverImage: true,
+            price: true,
+            type: true,
+            listingType: true,
+            bedrooms: true,
+            areaSqft: true,
+            villageId: true,
+            village: { select: { id: true, name: true, slug: true } },
+          },
+        })
+      }
+
+      return properties || []
+    },
     [],
   )
+
+  if (dbProperties && dbProperties.length > 0) {
+    return dbProperties
+  }
+  return FALLBACK_REAL_ESTATE
 }
 
 export async function getShorts() {
   const tenant = await getCurrentTenant()
   const tenantFilter = getTenantWhereClause(tenant.id)
   return safeDbQuery(
-    () =>
-      prisma.short.findMany({
+    async () => {
+      let shorts = await prisma.short.findMany({
         where: tenantFilter,
         orderBy: { createdAt: 'desc' },
         take: 10,
@@ -150,7 +487,26 @@ export async function getShorts() {
           createdAt: true,
           owner: { select: { username: true, name: true } },
         },
-      }),
+      })
+
+      if (!shorts || shorts.length === 0) {
+        shorts = await prisma.short.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: {
+            id: true,
+            videoUrl: true,
+            thumbnail: true,
+            title: true,
+            views: true,
+            createdAt: true,
+            owner: { select: { username: true, name: true } },
+          },
+        })
+      }
+
+      return shorts || []
+    },
     [],
   )
 }
@@ -158,9 +514,9 @@ export async function getShorts() {
 export async function getLatestNews() {
   const tenant = await getCurrentTenant()
   const tenantFilter = getTenantWhereClause(tenant.id)
-  return safeDbQuery(
-    () =>
-      prisma.news.findMany({
+  const dbNews = await safeDbQuery(
+    async () => {
+      let articles = await prisma.news.findMany({
         where: { ...tenantFilter, isPublished: true },
         orderBy: { createdAt: 'desc' },
         take: 6,
@@ -172,17 +528,56 @@ export async function getLatestNews() {
           image: true,
           createdAt: true,
         },
-      }),
+      })
+
+      if (!articles || articles.length === 0) {
+        articles = await prisma.news.findMany({
+          where: { isPublished: true },
+          orderBy: { createdAt: 'desc' },
+          take: 6,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            summary: true,
+            image: true,
+            createdAt: true,
+          },
+        })
+      }
+
+      if (!articles || articles.length === 0) {
+        articles = await prisma.news.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 6,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            summary: true,
+            image: true,
+            createdAt: true,
+          },
+        })
+      }
+
+      return articles || []
+    },
     [],
   )
+
+  if (dbNews && dbNews.length > 0) {
+    return dbNews
+  }
+  return FALLBACK_NEWS
 }
 
 export async function getLatestBlogs() {
   const tenant = await getCurrentTenant()
   const tenantFilter = getTenantWhereClause(tenant.id)
-  return safeDbQuery(
-    () =>
-      prisma.blog.findMany({
+  const dbBlogs = await safeDbQuery(
+    async () => {
+      let blogs = await prisma.blog.findMany({
         where: { ...tenantFilter, isPublished: true },
         orderBy: { createdAt: 'desc' },
         take: 4,
@@ -194,9 +589,48 @@ export async function getLatestBlogs() {
           coverImage: true,
           createdAt: true,
         },
-      }),
+      })
+
+      if (!blogs || blogs.length === 0) {
+        blogs = await prisma.blog.findMany({
+          where: { isPublished: true },
+          orderBy: { createdAt: 'desc' },
+          take: 4,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            coverImage: true,
+            createdAt: true,
+          },
+        })
+      }
+
+      if (!blogs || blogs.length === 0) {
+        blogs = await prisma.blog.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 4,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            excerpt: true,
+            coverImage: true,
+            createdAt: true,
+          },
+        })
+      }
+
+      return blogs || []
+    },
     [],
   )
+
+  if (dbBlogs && dbBlogs.length > 0) {
+    return dbBlogs
+  }
+  return FALLBACK_BLOGS
 }
 
 export async function getVillages() {
@@ -210,6 +644,7 @@ import { swrCache, invalidateCache } from '@/lib/cache'
 
 export function invalidateHomeDataCache() {
   invalidateCache('home_data_')
+  invalidateCache('home_')
 }
 
 export async function getHomePageData(forceRefresh = false) {
@@ -254,8 +689,8 @@ export async function getHomePageData(forceRefresh = false) {
       return { stories, banners, categories, featured, realEstate, shorts, villages, latestNews, latestBlogs }
     },
     {
-      ttlMs: 45 * 1000,          // 45 seconds fresh
-      staleTtlMs: 20 * 60 * 1000, // 20 mins stale window with background revalidation
+      ttlMs: 10 * 1000,          // 10 seconds fresh
+      staleTtlMs: 5 * 60 * 1000,  // 5 mins stale window with background revalidation
     }
   )
 }

@@ -497,7 +497,7 @@ export const db = prisma
 export async function safeDbQuery<T>(
   queryFn: () => Promise<T>,
   fallback: T,
-  maxRetries = 1,
+  maxRetries = 2,
   delayMs = 150,
   timeoutMs = 8000
 ): Promise<T> {
@@ -519,8 +519,10 @@ export async function safeDbQuery<T>(
       return (result !== undefined && result !== null) ? result : fallback
     } catch (err: any) {
       if (isConnectionOrInitError(err)) {
-        console.warn(`[Prisma safeDbQuery] Query error (${err.name || err.message}). Returning fallback.`)
-        return fallback
+        console.warn(`[Prisma safeDbQuery] Query error (${err.name || err.message}). Attempt ${attempt}/${maxRetries}.`)
+        if (attempt === maxRetries) {
+          return fallback
+        }
       }
       if (attempt === maxRetries) {
         return fallback

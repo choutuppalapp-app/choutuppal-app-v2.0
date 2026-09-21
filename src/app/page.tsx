@@ -10,6 +10,7 @@ import {
   CategoriesGrid,
   FeaturedRail,
   RealEstateRail,
+  NewsGrid,
   SendNewsCTA,
   BlogGrid,
   SpinWin,
@@ -101,15 +102,18 @@ export default async function Home() {
           {/* 4. Premium Properties Grid */}
           <RealEstateRail properties={data.realEstate} />
 
-          {/* 5. Recent Blogs & News Section */}
-          <div className="mt-4 flex flex-col gap-6">
-            <BlogGrid blogs={data.latestBlogs} />
-            <SendNewsCTA />
-          </div>
+          {/* 5. Latest News Section */}
+          <NewsGrid articles={data.latestNews} />
 
-          {/* 6. Spin & Win */}
+          {/* 6. Recent Blogs & Guides Section */}
+          <BlogGrid blogs={data.latestBlogs} />
+
+          {/* 7. Send News CTA */}
+          <SendNewsCTA />
+
+          {/* 8. Spin & Win */}
           {spinEnabled ? (
-            <div className="mt-4">
+            <div className="mt-2">
               <SpinWin />
             </div>
           ) : null}

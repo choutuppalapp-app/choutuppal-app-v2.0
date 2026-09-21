@@ -555,6 +555,7 @@ export function ListingDetailView({
               <Link
                 key={r.id}
                 href={`/business/${r.slug}`}
+                prefetch={true}
                 className="hover-lift group w-[200px] shrink-0 overflow-hidden rounded-2xl glass"
               >
                 <div className="relative aspect-[16/9] overflow-hidden">
