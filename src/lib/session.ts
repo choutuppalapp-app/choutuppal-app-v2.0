@@ -81,6 +81,12 @@ export async function getCurrentUser(): Promise<User | null> {
     }
   }
 
+  // Guarantee Admin role for official admin emails
+  const userEmail = dbUser.email?.toLowerCase() || session.user.email?.toLowerCase()
+  if (userEmail === 'choutuppalapp@gmail.com' || userEmail === 'admin@choutuppal.in' || dbUser.username === 'admin') {
+    dbUser.role = 'ADMIN'
+  }
+
   return dbUser as User
 }
 

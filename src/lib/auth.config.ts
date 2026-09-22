@@ -26,13 +26,19 @@ export const authConfig = {
         token.username = (user as { username?: string | null }).username
         token.isPublic = (user as { isPublic?: boolean }).isPublic ?? false
       }
+      const email = token.email?.toLowerCase()
+      if (email === 'choutuppalapp@gmail.com' || email === 'admin@choutuppal.in' || token.username === 'admin') {
+        token.role = 'ADMIN'
+      }
       return token
     },
     /** Surface the JWT fields on the session object for client/server use. */
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.role = (token.role as string) ?? 'USER'
+        const email = session.user.email?.toLowerCase()
+        const isAdmin = email === 'choutuppalapp@gmail.com' || email === 'admin@choutuppal.in' || token.username === 'admin'
+        session.user.role = isAdmin ? 'ADMIN' : ((token.role as string) ?? 'USER')
         session.user.username = (token.username as string | null) ?? null
         session.user.isPublic = (token.isPublic as boolean) ?? false
       }

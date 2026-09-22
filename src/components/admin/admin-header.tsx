@@ -15,6 +15,11 @@ interface AdminHeaderProps {
   title: string
   teluguTitle?: string
   description?: string
+  secondaryActionButton?: {
+    label: string
+    onClick: () => void
+    icon?: React.ElementType
+  }
   actionButton?: {
     label: string
     onClick: () => void
@@ -26,6 +31,7 @@ export function AdminHeader({
   title,
   teluguTitle,
   description,
+  secondaryActionButton,
   actionButton,
 }: AdminHeaderProps) {
   return (
@@ -49,7 +55,7 @@ export function AdminHeader({
           )}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap sm:flex-nowrap">
           <div className="hidden lg:flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-800">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Live System</span>
@@ -63,6 +69,18 @@ export function AdminHeader({
             <span>View Website</span>
             <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
           </Link>
+
+          {secondaryActionButton && (
+            <button
+              onClick={secondaryActionButton.onClick}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition"
+            >
+              {secondaryActionButton.icon && (
+                <secondaryActionButton.icon className="h-4 w-4 text-slate-500" />
+              )}
+              <span>{secondaryActionButton.label}</span>
+            </button>
+          )}
 
           {actionButton && (
             <button

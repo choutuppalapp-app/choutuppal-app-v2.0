@@ -2,6 +2,8 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { ShortsFeed } from '@/components/shorts/shorts-feed'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const fetchCache = 'force-no-store'
 
 export default async function ShortsPage() {
   const shorts = await safeDbQuery(
@@ -15,6 +17,7 @@ export default async function ShortsPage() {
           platform: true,
           thumbnail: true,
           title: true,
+          description: true,
           views: true,
           likes: true,
           youtubeId: true,

@@ -477,30 +477,38 @@ export async function getShorts() {
       let shorts = await prisma.short.findMany({
         where: tenantFilter,
         orderBy: { createdAt: 'desc' },
-        take: 10,
+        take: 15,
         select: {
           id: true,
           videoUrl: true,
+          platform: true,
           thumbnail: true,
           title: true,
+          description: true,
           views: true,
+          likes: true,
+          youtubeId: true,
           createdAt: true,
-          owner: { select: { username: true, name: true } },
+          owner: { select: { id: true, username: true, name: true, image: true } },
         },
       })
 
       if (!shorts || shorts.length === 0) {
         shorts = await prisma.short.findMany({
           orderBy: { createdAt: 'desc' },
-          take: 10,
+          take: 15,
           select: {
             id: true,
             videoUrl: true,
+            platform: true,
             thumbnail: true,
             title: true,
+            description: true,
             views: true,
+            likes: true,
+            youtubeId: true,
             createdAt: true,
-            owner: { select: { username: true, name: true } },
+            owner: { select: { id: true, username: true, name: true, image: true } },
           },
         })
       }

@@ -13,9 +13,19 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 interface ShortsRailProps {
-  shorts: (Short & {
-    owner: { username: string | null; name: string | null }
-  })[]
+  shorts: Array<{
+    id: string
+    videoUrl: string
+    platform?: string
+    thumbnail?: string | null
+    title?: string | null
+    description?: string | null
+    views?: number
+    likes?: number
+    youtubeId?: string | null
+    createdAt?: Date | string
+    owner?: { username?: string | null; name?: string | null } | null
+  }>
 }
 
 function thumbUrl(youtubeId: string | null, platform: string | undefined, fallback: string) {
@@ -103,7 +113,7 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {shorts.map((s, i) => {
-          const owner = s.owner.username ?? s.owner.name ?? 'Choutuppal'
+          const owner = s.owner?.username ?? s.owner?.name ?? 'Choutuppal'
           const isInstagram = s.platform === 'INSTAGRAM'
           return (
             <button
@@ -119,7 +129,7 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
                   </div>
                 ) : (
                   <Image
-                    src={thumbUrl(s.youtubeId, s.platform, s.thumbnail ?? '') || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&auto=format&fit=crop&q=80'}
+                    src={thumbUrl(s.youtubeId ?? null, s.platform, s.thumbnail ?? '') || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400&auto=format&fit=crop&q=80'}
                     alt={s.title ?? 'Short'}
                     fill
                     sizes="(max-width: 640px) 128px, 144px"
@@ -141,8 +151,8 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
                   </p>
                   <p className="mt-0.5 text-[10px] text-white/70">@{owner}</p>
                   <div className="mt-1 flex items-center gap-2 text-[9px] text-white/60">
-                    <span className="flex items-center gap-0.5"><Eye className="h-2.5 w-2.5" /> {s.views}</span>
-                    <span className="flex items-center gap-0.5"><Heart className="h-2.5 w-2.5" /> {s.likes}</span>
+                    <span className="flex items-center gap-0.5"><Eye className="h-2.5 w-2.5" /> {s.views ?? 0}</span>
+                    <span className="flex items-center gap-0.5"><Heart className="h-2.5 w-2.5" /> {s.likes ?? 0}</span>
                   </div>
                 </div>
               </div>
@@ -178,7 +188,7 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
               </div>
             ) : (
               <iframe
-                src={embedUrl(shorts[active].youtubeId, shorts[active].videoUrl)}
+                src={embedUrl(shorts[active].youtubeId ?? null, shorts[active].videoUrl)}
                 title={shorts[active].title ?? 'Short'}
                 className="h-full w-full"
                 loading="lazy"
@@ -189,7 +199,7 @@ export function ShortsRail({ shorts }: ShortsRailProps) {
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 pointer-events-none">
               <p className="text-sm font-semibold text-white">{shorts[active].title ?? 'Short'}</p>
               <p className="text-xs text-white/70">
-                @{shorts[active].owner.username ?? shorts[active].owner.name ?? 'Choutuppal'}
+                @{shorts[active].owner?.username ?? shorts[active].owner?.name ?? 'Choutuppal'}
               </p>
             </div>
           </div>

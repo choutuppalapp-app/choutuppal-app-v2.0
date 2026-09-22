@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { BlogList } from '@/components/content/blog-list'
 import { swrCache } from '@/lib/cache'
+import { getOfflineBlogs } from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 60
@@ -17,8 +18,8 @@ export const metadata: Metadata = {
 export default async function BlogPage() {
   const blogs = await swrCache(
     'blog_list_all',
-    () =>
-      safeDbQuery(
+    async () => {
+      const dbBlogs = await safeDbQuery(
         () =>
           prisma.blog.findMany({
             where: { isPublished: true },
@@ -29,10 +30,19 @@ export default async function BlogPage() {
               createdAt: true,
             },
           }),
-        [],
-      ),
+        []
+      )
+      return (dbBlogs && dbBlogs.length > 0) ? dbBlogs : getOfflineBlogs()
+    },
     { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
   )
 
-  return <BlogList posts={blogs.map(b => ({ ...b, createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : new Date().toISOString() }))} />
+  return (
+    <BlogList
+      posts={blogs.map((b: any) => ({
+        ...b,
+        createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : new Date().toISOString(),
+      }))}
+    />
+  )
 }

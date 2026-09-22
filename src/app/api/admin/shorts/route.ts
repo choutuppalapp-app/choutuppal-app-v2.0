@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { invalidateHomeDataCache } from '@/lib/home-data'
+import { getCurrentTenant } from '@/lib/tenant'
 import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
@@ -61,6 +62,8 @@ export async function POST(req: NextRequest) {
       thumbnail = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&auto=format&fit=crop&q=80'
     }
 
+    const tenant = await getCurrentTenant()
+
     const short = await safeDbQuery(
       () =>
         prisma.short.create({
@@ -72,13 +75,18 @@ export async function POST(req: NextRequest) {
             title: title || 'Choutuppal Short Video',
             description: description || '',
             ownerId: auth.user.id,
+            tenantId: tenant?.id || undefined,
           },
         }),
       null
     )
 
     invalidateHomeDataCache()
-    try { revalidatePath('/') } catch {}
+    try {
+      revalidatePath('/')
+      revalidatePath('/shorts')
+      revalidatePath('/admin/shorts')
+    } catch {}
 
     return NextResponse.json({ ok: true, short, message: 'Short added successfully' })
   } catch (error: any) {
@@ -116,7 +124,11 @@ export async function PATCH(req: NextRequest) {
     )
 
     invalidateHomeDataCache()
-    try { revalidatePath('/') } catch {}
+    try {
+      revalidatePath('/')
+      revalidatePath('/shorts')
+      revalidatePath('/admin/shorts')
+    } catch {}
 
     return NextResponse.json({ ok: true, message: 'Short updated' })
   } catch (error: any) {
@@ -142,7 +154,11 @@ export async function DELETE(req: NextRequest) {
     await safeDbQuery(() => prisma.short.delete({ where: { id } }), null)
 
     invalidateHomeDataCache()
-    try { revalidatePath('/') } catch {}
+    try {
+      revalidatePath('/')
+      revalidatePath('/shorts')
+      revalidatePath('/admin/shorts')
+    } catch {}
 
     return NextResponse.json({ ok: true, message: 'Short deleted' })
   } catch (error: any) {

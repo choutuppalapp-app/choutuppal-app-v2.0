@@ -8,10 +8,6 @@ import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
-function persistOfflineListings(_listings: any[]) {
-  // In-memory or database persistence only in serverless environment
-}
-
 /** GET /api/admin/listings - List all shops/listings with filters */
 export async function GET(req: NextRequest) {
   const auth = await requireApiAdmin()
@@ -26,18 +22,22 @@ export async function GET(req: NextRequest) {
   const villageId = searchParams.get('villageId') || 'ALL'
 
   try {
-    const dbListings = await safeDbQuery(
-      () =>
-        prisma.listing.findMany({
-          orderBy: { createdAt: 'desc' },
-          include: {
-            category: true,
-            village: true,
-            owner: { select: { id: true, name: true, phone: true, email: true, username: true } },
-          },
-        }),
-      null
-    )
+    const [dbListings, dbCategories, dbVillages] = await Promise.all([
+      safeDbQuery(
+        () =>
+          prisma.listing.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+              category: true,
+              village: true,
+              owner: { select: { id: true, name: true, phone: true, email: true, username: true } },
+            },
+          }),
+        []
+      ),
+      safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' } }), null),
+      safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' } }), null),
+    ])
 
     let listings = dbListings || []
 
@@ -57,15 +57,25 @@ export async function GET(req: NextRequest) {
     }
 
     if (categoryId !== 'ALL') {
-      listings = listings.filter((l: any) => l.categoryId === categoryId || l.category?.id === categoryId)
+      listings = listings.filter(
+        (l: any) =>
+          l.categoryId === categoryId ||
+          l.category?.id === categoryId ||
+          l.category?.slug === categoryId
+      )
     }
 
     if (villageId !== 'ALL') {
-      listings = listings.filter((l: any) => l.villageId === villageId || l.village?.id === villageId)
+      listings = listings.filter(
+        (l: any) =>
+          l.villageId === villageId ||
+          l.village?.id === villageId ||
+          l.village?.slug === villageId
+      )
     }
 
-    const categories = getOfflineCategories()
-    const villages = getOfflineVillages()
+    const categories = (dbCategories && dbCategories.length > 0) ? dbCategories : getOfflineCategories()
+    const villages = (dbVillages && dbVillages.length > 0) ? dbVillages : getOfflineVillages()
 
     return NextResponse.json({
       ok: true,
@@ -109,11 +119,11 @@ export async function POST(req: NextRequest) {
 
     const slug = title
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/[^a-z0-9\u0C00-\u0C7F]+/g, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 40) + '-' + Math.random().toString(36).substring(2, 6)
 
-    // 1. Try Prisma DB insert
+    // 1. Prisma DB insert
     const createdDb = await safeDbQuery(
       () =>
         prisma.listing.create({
@@ -127,7 +137,7 @@ export async function POST(req: NextRequest) {
             status,
             isPremium: !!isPremium,
             isFeatured: !!isFeatured,
-            coverImage: coverImage || null,
+            coverImage: coverImage || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
             categoryId: categoryId || 'cat-services',
             villageId: villageId || 'cmsepb40r0000jv04tdwwd5cw',
             ownerId: auth.user.id,
@@ -137,38 +147,18 @@ export async function POST(req: NextRequest) {
       null
     )
 
-    // 2. Also keep offline backup updated
-    const offlineList = getOfflineListings()
-    const newOfflineItem = createdDb || {
-      id: `list_${Date.now()}`,
-      title,
-      slug,
-      description,
-      phone,
-      whatsapp: whatsapp || phone,
-      address,
-      status,
-      isPremium: !!isPremium,
-      isFeatured: !!isFeatured,
-      coverImage,
-      categoryId,
-      villageId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      views: 1,
-      avgRating: 5.0,
-      owner: { id: auth.user.id, name: auth.user.name || 'Admin', phone: auth.user.phone },
-    }
-
-    offlineList.unshift(newOfflineItem)
-    persistOfflineListings(offlineList)
-
     invalidateHomeDataCache()
     invalidateCache('listings_')
     invalidateCache('listing_')
-    try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
+    try {
+      revalidatePath('/')
+      revalidatePath('/explore')
+      revalidatePath('/listings')
+      revalidatePath('/admin/listings')
+      revalidatePath('/admin')
+    } catch {}
 
-    return NextResponse.json({ ok: true, listing: createdDb || newOfflineItem })
+    return NextResponse.json({ ok: true, listing: createdDb, message: 'Listing created successfully' })
   } catch (error: any) {
     console.error('[Admin Listings POST] Error:', error)
     return NextResponse.json({ error: error.message || 'Failed to create listing' }, { status: 500 })
@@ -184,7 +174,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { id, status, isPremium, isFeatured, title, description, phone, address } = body
+    const { id, status, isPremium, isFeatured, title, description, phone, whatsapp, address, categoryId, villageId } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Listing ID is required' }, { status: 400 })
@@ -197,10 +187,13 @@ export async function PATCH(req: NextRequest) {
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
     if (phone !== undefined) updateData.phone = phone
+    if (whatsapp !== undefined) updateData.whatsapp = whatsapp
     if (address !== undefined) updateData.address = address
+    if (categoryId !== undefined) updateData.categoryId = categoryId
+    if (villageId !== undefined) updateData.villageId = villageId
 
-    // 1. Try DB update
-    await safeDbQuery(
+    // Try DB update
+    const updated = await safeDbQuery(
       () =>
         prisma.listing.update({
           where: { id },
@@ -212,9 +205,15 @@ export async function PATCH(req: NextRequest) {
     invalidateHomeDataCache()
     invalidateCache('listings_')
     invalidateCache('listing_')
-    try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
+    try {
+      revalidatePath('/')
+      revalidatePath('/explore')
+      revalidatePath('/listings')
+      revalidatePath('/admin/listings')
+      revalidatePath('/admin')
+    } catch {}
 
-    return NextResponse.json({ ok: true, message: 'Listing updated successfully' })
+    return NextResponse.json({ ok: true, listing: updated, message: 'Listing updated successfully' })
   } catch (error: any) {
     console.error('[Admin Listings PATCH] Error:', error)
     return NextResponse.json({ error: error.message || 'Failed to update listing' }, { status: 500 })
@@ -241,7 +240,13 @@ export async function DELETE(req: NextRequest) {
     invalidateHomeDataCache()
     invalidateCache('listings_')
     invalidateCache('listing_')
-    try { revalidatePath('/'); revalidatePath('/explore'); revalidatePath('/listings') } catch {}
+    try {
+      revalidatePath('/')
+      revalidatePath('/explore')
+      revalidatePath('/listings')
+      revalidatePath('/admin/listings')
+      revalidatePath('/admin')
+    } catch {}
 
     return NextResponse.json({ ok: true, message: 'Listing deleted' })
   } catch (error: any) {

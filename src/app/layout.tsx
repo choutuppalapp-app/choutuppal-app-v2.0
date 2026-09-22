@@ -59,8 +59,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'Choutuppal App Team' }],
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: 'https://i.ibb.co/NgtRxPLw/Untitled-design.jpg',
-    apple: 'https://i.ibb.co/NgtRxPLw/Untitled-design.jpg',
+    icon: 'https://i.ibb.co/rGwMGrby/logo-pwa-20260922-131108-0000.png',
+    apple: 'https://i.ibb.co/rGwMGrby/logo-pwa-20260922-131108-0000.png',
   },
   openGraph: {
     title: 'Choutuppal App v2.0 — Business, Real Estate & Community',
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     siteName: 'Choutuppal App',
     images: [
       {
-        url: 'https://i.ibb.co/NgtRxPLw/Untitled-design.jpg',
+        url: 'https://i.ibb.co/rGwMGrby/logo-pwa-20260922-131108-0000.png',
         width: 1200,
         height: 630,
         alt: 'Choutuppal App v2.0',
@@ -84,7 +84,7 @@ export const metadata: Metadata = {
     title: 'Choutuppal App v2.0',
     description:
       'Businesses, services, real estate, news & community for Choutuppal, Yadadri, Telangana.',
-    images: ['https://i.ibb.co/NgtRxPLw/Untitled-design.jpg'],
+    images: ['https://i.ibb.co/rGwMGrby/logo-pwa-20260922-131108-0000.png'],
   },
   verification: {
     other: {

@@ -20,8 +20,10 @@ import {
   RefreshCw,
   Eye,
   Crown,
+  Upload,
 } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
+import { BulkImportModal } from '@/components/admin/bulk-import-modal'
 import { toast } from '@/hooks/use-toast'
 import {
   Dialog,
@@ -46,6 +48,7 @@ export default function AdminListingsPage() {
   // Modals state
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [bulkImportOpen, setBulkImportOpen] = useState(false)
   const [selectedListing, setSelectedListing] = useState<any | null>(null)
   const [formData, setFormData] = useState({
     title: '',
@@ -226,6 +229,11 @@ export default function AdminListingsPage() {
         title="Listings Management"
         teluguTitle="షాపులు & డైరెక్టరీ నిర్వహణ"
         description="Verify, approve, and manage merchant shops, categories, phone contacts, and premium status across Choutuppal."
+        secondaryActionButton={{
+          label: 'Bulk Import CSV/JSON',
+          icon: Upload,
+          onClick: () => setBulkImportOpen(true),
+        }}
         actionButton={{
           label: 'Add Business',
           onClick: () => {
@@ -718,6 +726,15 @@ export default function AdminListingsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Import CSV/JSON Tool Modal */}
+      <BulkImportModal
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        onSuccess={fetchListings}
+        categories={categories}
+        villages={villages}
+      />
     </div>
   )
 }

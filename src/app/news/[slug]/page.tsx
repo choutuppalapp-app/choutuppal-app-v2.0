@@ -1,5 +1,5 @@
 import { cache } from 'react'
-import Image from 'next/image';
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -8,6 +8,7 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { swrCache } from '@/lib/cache'
 import { applyAutoLinks } from '@/lib/autolinks'
 import { ArticleFooter } from '@/components/news/article-footer'
+import { getOfflineNewsBySlug, getOfflineBlogBySlug } from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 60
@@ -15,17 +16,58 @@ export const revalidate = 60
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 const getArticle = cache(async (slug: string) => {
+  const decodedSlug = decodeURIComponent(slug).trim()
   return swrCache(
-    `news_article_${slug}`,
-    () =>
-      safeDbQuery(
+    `news_article_${decodedSlug}`,
+    async () => {
+      // 1. Try DB news by slug or id
+      const dbNews = await safeDbQuery(
         () =>
-          prisma.news.findUnique({
-            where: { slug },
+          prisma.news.findFirst({
+            where: {
+              OR: [{ slug: decodedSlug }, { id: decodedSlug }],
+            },
             include: { author: { select: { name: true } } },
           }),
         null
-      ),
+      )
+      if (dbNews) return dbNews
+
+      // 2. Try offline news fallback
+      const offlineNews = getOfflineNewsBySlug(decodedSlug)
+      if (offlineNews) return offlineNews
+
+      // 3. Try DB blog by slug or id
+      const dbBlog = await safeDbQuery(
+        () =>
+          prisma.blog.findFirst({
+            where: {
+              OR: [{ slug: decodedSlug }, { id: decodedSlug }],
+            },
+            include: { author: { select: { name: true } } },
+          }),
+        null
+      )
+      if (dbBlog) {
+        return {
+          ...dbBlog,
+          summary: dbBlog.excerpt || '',
+          image: dbBlog.coverImage || null,
+        }
+      }
+
+      // 4. Try offline blog fallback
+      const offlineBlog = getOfflineBlogBySlug(decodedSlug)
+      if (offlineBlog) {
+        return {
+          ...offlineBlog,
+          summary: offlineBlog.excerpt || offlineBlog.summary || '',
+          image: offlineBlog.coverImage || offlineBlog.image || null,
+        }
+      }
+
+      return null
+    },
     { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
   )
 })

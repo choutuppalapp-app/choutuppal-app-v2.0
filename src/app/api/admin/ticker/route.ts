@@ -17,6 +17,33 @@ export interface TickerItem {
   createdAt?: string
 }
 
+export const DEFAULT_TICKERS: TickerItem[] = [
+  {
+    id: 'tick_1',
+    text: 'చౌటుప్పల్ సూపర్ యాప్‌లోకి స్వాగతం! మీ వ్యాపారాన్ని ఉచితంగా రిజిస్టర్ చేసుకోండి.',
+    link: '/add-business',
+    isActive: true,
+    isUrgent: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'tick_2',
+    text: '24/7 అత్యవసర సేవలు, ఎలక్ట్రీషియన్, ప్లంబర్ కాంటాక్ట్స్ అందుబాటులో ఉన్నాయి.',
+    link: '/explore?category=services',
+    isActive: true,
+    isUrgent: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'tick_3',
+    text: 'హైవే ఫేసింగ్ HMDA అప్రూవ్డ్ ఓపెన్ ప్లాట్ల కోసం రియల్ ఎస్టేట్ సెక్షన్ చూడండి.',
+    link: '/real-estate',
+    isActive: true,
+    isUrgent: true,
+    createdAt: new Date().toISOString(),
+  },
+]
+
 export async function GET() {
   const auth = await requireApiAdmin()
   if (!auth.ok) {
@@ -29,12 +56,15 @@ export async function GET() {
       null
     )
 
-    let tickers: TickerItem[] = []
+    let tickers: TickerItem[] = DEFAULT_TICKERS
     if (setting?.value) {
       try {
-        tickers = JSON.parse(setting.value)
+        const parsed = JSON.parse(setting.value)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          tickers = parsed
+        }
       } catch {
-        tickers = []
+        tickers = DEFAULT_TICKERS
       }
     }
 
@@ -67,7 +97,10 @@ export async function POST(req: NextRequest) {
     let tickers: TickerItem[] = DEFAULT_TICKERS
     if (setting?.value) {
       try {
-        tickers = JSON.parse(setting.value)
+        const parsed = JSON.parse(setting.value)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          tickers = parsed
+        }
       } catch {
         tickers = DEFAULT_TICKERS
       }
@@ -113,7 +146,11 @@ export async function POST(req: NextRequest) {
     )
 
     invalidateHomeDataCache()
-    try { revalidatePath('/') } catch {}
+    try {
+      revalidatePath('/')
+      revalidatePath('/admin/ticker')
+      revalidatePath('/admin')
+    } catch {}
 
     return NextResponse.json({ ok: true, tickers, item: newItem, message: 'Ticker item added' })
   } catch (error: any) {
@@ -132,7 +169,7 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json()
     const { id, isActive, text, link, isUrgent, reorderedItems } = body
 
-    let tickers: TickerItem[] = []
+    let tickers: TickerItem[] = DEFAULT_TICKERS
 
     if (Array.isArray(reorderedItems)) {
       tickers = reorderedItems
@@ -143,12 +180,13 @@ export async function PATCH(req: NextRequest) {
       )
       if (setting?.value) {
         try {
-          tickers = JSON.parse(setting.value)
+          const parsed = JSON.parse(setting.value)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            tickers = parsed
+          }
         } catch {
-          tickers = []
+          tickers = DEFAULT_TICKERS
         }
-      } else {
-        tickers = []
       }
 
       if (id) {
@@ -191,7 +229,11 @@ export async function PATCH(req: NextRequest) {
 
     invalidateHomeDataCache()
     invalidateCache('app_settings_')
-    try { revalidatePath('/') } catch {}
+    try {
+      revalidatePath('/')
+      revalidatePath('/admin/ticker')
+      revalidatePath('/admin')
+    } catch {}
 
     return NextResponse.json({ ok: true, tickers, message: 'Ticker updated' })
   } catch (error: any) {
@@ -219,12 +261,15 @@ export async function DELETE(req: NextRequest) {
       null
     )
 
-    let tickers: TickerItem[] = []
+    let tickers: TickerItem[] = DEFAULT_TICKERS
     if (setting?.value) {
       try {
-        tickers = JSON.parse(setting.value)
+        const parsed = JSON.parse(setting.value)
+        if (Array.isArray(parsed)) {
+          tickers = parsed
+        }
       } catch {
-        tickers = []
+        tickers = DEFAULT_TICKERS
       }
     }
 
@@ -257,7 +302,11 @@ export async function DELETE(req: NextRequest) {
 
     invalidateHomeDataCache()
     invalidateCache('app_settings_')
-    try { revalidatePath('/') } catch {}
+    try {
+      revalidatePath('/')
+      revalidatePath('/admin/ticker')
+      revalidatePath('/admin')
+    } catch {}
 
     return NextResponse.json({ ok: true, tickers, message: 'Ticker deleted' })
   } catch (error: any) {

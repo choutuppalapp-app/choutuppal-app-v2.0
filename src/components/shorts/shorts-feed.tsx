@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
-import type { Short } from '@prisma/client'
 import Script from 'next/script'
 
 interface ShortsFeedProps {
@@ -16,16 +15,41 @@ const WHATSAPP_LINK =
 
 function embedUrl(youtubeId: string | null, videoUrl: string): string {
   if (youtubeId) return `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&playsinline=1`
-  const m = videoUrl.match(/[?&]v=([^&]+)/)
+  const m = videoUrl?.match(/[?&]v=([^&]+)/)
   if (m) return `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0&playsinline=1`
+  const shortMatch = videoUrl?.match(/(?:embed|shorts)\/([A-Za-z0-9_-]{11})/)
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}?autoplay=1&rel=0&playsinline=1`
   return videoUrl
 }
 
-export function ShortsFeed({ shorts }: ShortsFeedProps) {
+export function ShortsFeed({ shorts: initialShorts }: ShortsFeedProps) {
+  const [items, setItems] = useState<any[]>(initialShorts || [])
   const [activeIndex, setActiveIndex] = useState(0)
 
+  // Live sync with backend
   useEffect(() => {
-    if (shorts[activeIndex]?.platform === 'INSTAGRAM') {
+    let isMounted = true
+    async function syncShorts() {
+      try {
+        const res = await fetch('/api/shorts', { cache: 'no-store' })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.ok && Array.isArray(data.shorts) && isMounted && data.shorts.length > 0) {
+            setItems(data.shorts)
+          }
+        }
+      } catch (e) {
+        // silent fallback to initial
+      }
+    }
+    syncShorts()
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (items[activeIndex]?.platform === 'INSTAGRAM') {
       const timer = setTimeout(() => {
         if (typeof window !== 'undefined') {
           // @ts-ignore
@@ -34,20 +58,28 @@ export function ShortsFeed({ shorts }: ShortsFeedProps) {
       }, 100)
       return () => clearTimeout(timer)
     }
-  }, [activeIndex, shorts])
+  }, [activeIndex, items])
 
-  if (shorts.length === 0) {
+  if (items.length === 0) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center bg-black text-center text-white">
-        <p className="text-sm text-white/70">No shorts available yet.</p>
-        <p className="font-telugu mt-4 text-xs text-white/50">
-          మీ వీడియో పోస్ట్ చేయాలనుకుంటే ఇక్కడ క్లిక్ చేయండి
+      <div className="flex h-screen flex-col items-center justify-center bg-black text-center text-white px-4">
+        {/* Back button overlay */}
+        <Link
+          href="/"
+          className="fixed left-4 top-4 z-50 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
+          aria-label="Back to home"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Link>
+        <p className="text-base font-medium text-white/80">No shorts available yet.</p>
+        <p className="font-telugu mt-2 text-xs text-white/60">
+          మీ వ్యాపారం లేదా షాప్ వీడియో పోస్ట్ చేయాలనుకుంటే ఇక్కడ క్లిక్ చేయండి
         </p>
         <a
           href={WHATSAPP_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg"
+          className="mt-4 rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg transition active:scale-95"
         >
           వీడియో పోస్ట్ చేయండి
         </a>
@@ -77,10 +109,10 @@ export function ShortsFeed({ shorts }: ShortsFeedProps) {
         <ChevronLeft className="h-5 w-5" />
       </Link>
 
-      {shorts.map((s, i) => (
+      {items.map((s, i) => (
         <div
-          key={s.id}
-          className="relative flex h-screen w-full snap-start items-center justify-center"
+          key={s.id || i}
+          className="relative flex h-screen w-full snap-start items-center justify-center bg-black"
         >
           {s.platform === 'INSTAGRAM' ? (
             i === activeIndex ? (
@@ -93,7 +125,7 @@ export function ShortsFeed({ shorts }: ShortsFeedProps) {
                 />
               </div>
             ) : (
-              <div className="w-[320px] h-[560px] bg-slate-900 rounded-xl flex items-center justify-center text-white/50">
+              <div className="w-[320px] h-[560px] bg-slate-900 rounded-xl flex items-center justify-center text-white/50 text-xs">
                 Loading Reel...
               </div>
             )
@@ -101,34 +133,30 @@ export function ShortsFeed({ shorts }: ShortsFeedProps) {
             <iframe
               src={i === activeIndex ? embedUrl(s.youtubeId, s.videoUrl) : undefined}
               title={s.title ?? 'Short'}
-              className="h-full w-full"
+              className="h-full w-full max-w-lg border-0"
               loading="lazy"
               allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
               allowFullScreen
-              frameBorder="0"
             />
           )}
 
           {/* Title + channel at bottom */}
-          <div className="pointer-events-none absolute bottom-24 left-4 z-10">
-            <p className="text-sm font-medium text-white drop-shadow-lg">
-              {s.title ?? 'Short'}
+          <div className="pointer-events-none absolute bottom-24 left-4 right-20 z-10">
+            <p className="text-sm font-semibold text-white drop-shadow-lg line-clamp-2">
+              {s.title ?? 'Choutuppal Short Video'}
             </p>
-            <p className="text-xs text-white/70 drop-shadow">
-              @{s.owner.username ?? s.owner.name ?? 'choutuppal'}
+            <p className="text-xs text-white/80 drop-shadow mt-0.5">
+              @{s.owner?.username ?? s.owner?.name ?? 'choutuppal'}
             </p>
           </div>
 
           {/* WhatsApp CTA */}
-          <div className="absolute bottom-20 left-0 right-0 z-10 flex flex-col items-center gap-2">
-            <p className="font-telugu text-center text-xs text-white drop-shadow-lg">
-              మీ వీడియో పోస్ట్ చేయాలనుకుంటే ఇక్కడ క్లిక్ చేయండి
-            </p>
+          <div className="absolute bottom-6 left-0 right-0 z-10 flex flex-col items-center gap-1.5 px-4">
             <a
               href={WHATSAPP_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg"
+              className="rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 px-5 py-2 text-xs font-bold text-white shadow-lg transition active:scale-95"
             >
               వీడియో పోస్ట్ చేయండి
             </a>
@@ -138,3 +166,4 @@ export function ShortsFeed({ shorts }: ShortsFeedProps) {
     </div>
   )
 }
+

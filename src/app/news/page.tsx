@@ -3,6 +3,7 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { NewsList } from '@/components/content/news-list'
 import { swrCache } from '@/lib/cache'
+import { getOfflineNews, getOfflineBlogs } from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 60
@@ -34,7 +35,7 @@ export default async function NewsPage() {
                 createdAt: true,
               },
             }),
-          [],
+          []
         ),
         safeDbQuery(
           () =>
@@ -47,16 +48,20 @@ export default async function NewsPage() {
                 createdAt: true,
               },
             }),
-          [],
+          []
         ),
       ])
-      return { news: n, blogs: b }
+
+      const finalNews = (n && n.length > 0) ? n : getOfflineNews()
+      const finalBlogs = (b && b.length > 0) ? b : getOfflineBlogs()
+
+      return { news: finalNews, blogs: finalBlogs }
     },
     { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
   )
 
   const combined = [
-    ...news.map((n) => ({
+    ...news.map((n: any) => ({
       id: n.id,
       slug: n.slug,
       title: n.title,
@@ -65,12 +70,12 @@ export default async function NewsPage() {
       createdAt: n.createdAt ? new Date(n.createdAt).toISOString() : new Date().toISOString(),
       type: 'news' as const,
     })),
-    ...blogs.map((b) => ({
+    ...blogs.map((b: any) => ({
       id: b.id,
       slug: b.slug,
       title: b.title,
-      summary: b.excerpt,
-      image: b.coverImage,
+      summary: b.excerpt || b.summary,
+      image: b.coverImage || b.image,
       createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : new Date().toISOString(),
       type: 'blog' as const,
     })),
