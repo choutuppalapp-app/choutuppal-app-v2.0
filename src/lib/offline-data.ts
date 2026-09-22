@@ -106,7 +106,7 @@ export function getOfflineSettings(): any[] {
     { key: 'ticker_items_json', value: '[]' },
     { key: 'hero_title', value: 'చౌటుప్పల్ సూపర్ యాప్' },
     { key: 'hero_subtitle', value: 'మీ పట్టణం, మీ వ్యాపారాలు - అన్నీ ఒకే యాప్‌లో' },
-    { key: 'hero_bg_image', value: '/images/hero-banner.webp' },
+    { key: 'hero_bg_image', value: 'https://68eqkurg5him9yb0.public.blob.vercel-storage.com/choutuppal-uploads/migrated-1790058158931-hero-banner.webp' },
   ]
 }
 

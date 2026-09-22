@@ -39,7 +39,7 @@ const getExplorePageData = cache(async (category?: string, village?: string, q?:
               : {}),
           },
           orderBy: { createdAt: 'desc' },
-          take: 300,
+          take: 500,
           select: {
             id: true,
             title: true,

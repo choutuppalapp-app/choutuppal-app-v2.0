@@ -237,7 +237,7 @@ export default function AdminStoriesBannersPage() {
                   <div>
                     <div className="relative aspect-16/9 bg-slate-100 border-b border-slate-200">
                       <NextImage
-                        src={banner.imageUrl || '/images/hero-banner.webp'}
+                        src={banner.imageUrl || 'https://68eqkurg5him9yb0.public.blob.vercel-storage.com/choutuppal-uploads/migrated-1790058158931-hero-banner.webp'}
                         alt={banner.title || 'Banner Ad'}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
