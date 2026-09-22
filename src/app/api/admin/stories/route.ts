@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getOfflineStories, saveOfflineStory, deleteOfflineStory } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { revalidatePath } from 'next/cache'
 
@@ -13,7 +14,7 @@ export async function GET() {
   }
 
   try {
-    const stories = await safeDbQuery(
+    const dbStories = await safeDbQuery(
       () =>
         prisma.story.findMany({
           orderBy: { createdAt: 'desc' },
@@ -22,9 +23,10 @@ export async function GET() {
             _count: { select: { storyViews: true, storyLikes: true, storyReplies: true } },
           },
         }),
-      []
+      null
     )
 
+    const stories = (dbStories && dbStories.length > 0) ? dbStories : getOfflineStories()
     return NextResponse.json({ ok: true, stories })
   } catch (error: any) {
     console.error('[Admin Stories GET] Error:', error)
@@ -64,6 +66,14 @@ export async function POST(req: NextRequest) {
       null
     )
 
+    saveOfflineStory({
+      mediaUrl,
+      mediaType,
+      caption,
+      link,
+      isActive: true,
+    })
+
     invalidateHomeDataCache()
     try { revalidatePath('/') } catch {}
 
@@ -102,6 +112,8 @@ export async function PATCH(req: NextRequest) {
       null
     )
 
+    saveOfflineStory({ id, ...updateData })
+
     invalidateHomeDataCache()
     try { revalidatePath('/') } catch {}
 
@@ -127,6 +139,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await safeDbQuery(() => prisma.story.delete({ where: { id } }), null)
+    deleteOfflineStory(id)
 
     invalidateHomeDataCache()
     try { revalidatePath('/') } catch {}

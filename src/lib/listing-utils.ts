@@ -38,7 +38,7 @@ export function getLogoUrl(listing?: ListingLike | null): string {
     return 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=150&h=150&q=80'
   }
   if (catName.includes('retail') || catName.includes('shop') || catName.includes('store') || catName.includes('clothing') || catName.includes('fashion') || catName.includes('mall')) {
-    return 'https://images.unsplash.com/photo-1472850543286-069f6cfacc59?auto=format&fit=crop&w=150&h=150&q=80'
+    return 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=150&h=150&q=80'
   }
   if (catName.includes('service') || catName.includes('plumber') || catName.includes('electric') || catName.includes('repair')) {
     return 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=150&h=150&q=80'
@@ -47,7 +47,7 @@ export function getLogoUrl(listing?: ListingLike | null): string {
     return 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=150&h=150&q=80'
   }
   if (catName.includes('agri') || catName.includes('farm') || catName.includes('seed') || catName.includes('fertilizer')) {
-    return 'https://images.unsplash.com/photo-1625825943869-956e3f78bc36?auto=format&fit=crop&w=150&h=150&q=80'
+    return 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=150&h=150&q=80'
   }
   if (catName.includes('transport') || catName.includes('travel') || catName.includes('cab') || catName.includes('bus') || catName.includes('goods')) {
     return 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=150&h=150&q=80'
@@ -79,7 +79,7 @@ export function getCoverUrl(listing?: ListingLike | null): string {
     return 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=600&h=400&q=80'
   }
   if (catName.includes('edu') || catName.includes('school') || catName.includes('college') || catName.includes('tuition') || catName.includes('coaching')) {
-    return 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=600&h=400&q=80'
+    return 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&h=400&q=80'
   }
   if (catName.includes('retail') || catName.includes('shop') || catName.includes('store') || catName.includes('clothing') || catName.includes('fashion') || catName.includes('mall')) {
     return 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&h=400&q=80'
@@ -94,7 +94,7 @@ export function getCoverUrl(listing?: ListingLike | null): string {
     return 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=600&h=400&q=80'
   }
   if (catName.includes('transport') || catName.includes('travel') || catName.includes('cab') || catName.includes('bus') || catName.includes('goods')) {
-    return 'https://images.unsplash.com/photo-1580612432646-3d8e0a5d3c44?auto=format&fit=crop&w=600&h=400&q=80'
+    return 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=600&h=400&q=80'
   }
   if (catName.includes('electron') || catName.includes('mobile') || catName.includes('laptop') || catName.includes('computer') || catName.includes('tv')) {
     return 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?auto=format&fit=crop&w=600&h=400&q=80'

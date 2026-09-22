@@ -99,7 +99,7 @@ export function BlogList({ posts }: { posts: Post[] }) {
           <>
             <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {visiblePosts.map((p) => (
-                <Link key={p.id} href={`/blog/${p.slug}`} className="group flex flex-col justify-between overflow-hidden rounded-3xl bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-1">
+                <Link key={p.id} href={`/blog/${p.slug}`} prefetch={true} className="group flex flex-col justify-between overflow-hidden rounded-3xl bg-white border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-1">
                   <div>
                     <div className="relative aspect-[16/9] overflow-hidden">
                       {p.coverImage ? (

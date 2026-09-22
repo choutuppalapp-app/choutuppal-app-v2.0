@@ -85,6 +85,7 @@ export function BottomNav() {
       <Link
         id="bottom-nav-news"
         href="/news"
+        prefetch={true}
         className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[42px] transition active:scale-95"
         title="News & Blog"
       >

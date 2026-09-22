@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getOfflineShorts, saveOfflineShort, deleteOfflineShort } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { getCurrentTenant } from '@/lib/tenant'
 import { revalidatePath } from 'next/cache'
@@ -21,7 +22,7 @@ export async function GET() {
   }
 
   try {
-    const shorts = await safeDbQuery(
+    const dbShorts = await safeDbQuery(
       () =>
         prisma.short.findMany({
           orderBy: { createdAt: 'desc' },
@@ -29,9 +30,10 @@ export async function GET() {
             owner: { select: { id: true, name: true, phone: true, username: true } },
           },
         }),
-      []
+      null
     )
 
+    const shorts = (dbShorts && dbShorts.length > 0) ? dbShorts : getOfflineShorts()
     return NextResponse.json({ ok: true, shorts })
   } catch (error: any) {
     console.error('[Admin Shorts GET] Error:', error)
@@ -81,6 +83,14 @@ export async function POST(req: NextRequest) {
       null
     )
 
+    saveOfflineShort({
+      videoUrl,
+      youtubeId,
+      platform,
+      thumbnail,
+      title: title || 'Choutuppal Short Video',
+    })
+
     invalidateHomeDataCache()
     try {
       revalidatePath('/')
@@ -103,7 +113,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { id, title, description, thumbnail } = body
+    const { id, title, description, videoUrl, customThumbnail } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Short ID is required' }, { status: 400 })
@@ -112,7 +122,17 @@ export async function PATCH(req: NextRequest) {
     const updateData: any = {}
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
-    if (thumbnail !== undefined) updateData.thumbnail = thumbnail
+    if (videoUrl !== undefined) {
+      updateData.videoUrl = videoUrl
+      const yId = extractYouTubeId(videoUrl)
+      if (yId) {
+        updateData.youtubeId = yId
+        if (!customThumbnail) {
+          updateData.thumbnail = `https://img.youtube.com/vi/${yId}/hqdefault.jpg`
+        }
+      }
+    }
+    if (customThumbnail) updateData.thumbnail = customThumbnail
 
     await safeDbQuery(
       () =>
@@ -122,6 +142,8 @@ export async function PATCH(req: NextRequest) {
         }),
       null
     )
+
+    saveOfflineShort({ id, ...updateData })
 
     invalidateHomeDataCache()
     try {
@@ -152,6 +174,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await safeDbQuery(() => prisma.short.delete({ where: { id } }), null)
+    deleteOfflineShort(id)
 
     invalidateHomeDataCache()
     try {

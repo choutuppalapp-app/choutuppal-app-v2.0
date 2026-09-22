@@ -8,12 +8,24 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { swrCache } from '@/lib/cache'
 import { applyAutoLinks } from '@/lib/autolinks'
 import { ArticleFooter } from '@/components/news/article-footer'
-import { getOfflineBlogBySlug, getOfflineNewsBySlug } from '@/lib/offline-data'
+import { getOfflineBlogBySlug, getOfflineNewsBySlug, getOfflineBlogs } from '@/lib/offline-data'
 
-export const dynamic = 'force-dynamic'
 export const revalidate = 60
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+
+export async function generateStaticParams() {
+  try {
+    const dbBlogs = await safeDbQuery(
+      () => prisma.blog.findMany({ where: { isPublished: true }, select: { slug: true }, take: 30 }),
+      []
+    )
+    if (dbBlogs && dbBlogs.length > 0) {
+      return dbBlogs.map((b) => ({ slug: b.slug }))
+    }
+  } catch {}
+  return getOfflineBlogs().map((b) => ({ slug: b.slug }))
+}
 
 const getPost = cache(async (slug: string) => {
   const decodedSlug = decodeURIComponent(slug).trim()
@@ -118,19 +130,32 @@ export default async function BlogDetailPage({
   const post = await getPost(slug)
   if (!post || !post.isPublished) notFound()
 
-  // Fetch AutoLinks & Related Blogs (3 from same category)
+  // Fetch AutoLinks & Related Blogs with SWR In-Memory Caching
   const [autoLinks, relatedBlogs] = await Promise.all([
-    prisma.autoLink.findMany().catch(() => []),
-    prisma.blog.findMany({
-      where: {
-        isPublished: true,
-        id: { not: post.id },
-        ...(post.category ? { category: post.category } : {}),
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 3,
-      select: { id: true, title: true, slug: true, excerpt: true, coverImage: true, createdAt: true },
-    }).catch(() => []),
+    swrCache(
+      'autolinks_all',
+      () => safeDbQuery(() => prisma.autoLink.findMany(), []),
+      { ttlMs: 10 * 60 * 1000 }
+    ),
+    swrCache(
+      `related_blogs_${post.id}_${post.category || 'all'}`,
+      () =>
+        safeDbQuery(
+          () =>
+            prisma.blog.findMany({
+              where: {
+                isPublished: true,
+                id: { not: post.id },
+                ...(post.category ? { category: post.category } : {}),
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 3,
+              select: { id: true, title: true, slug: true, excerpt: true, coverImage: true, createdAt: true },
+            }),
+          []
+        ),
+      { ttlMs: 5 * 60 * 1000 }
+    ),
   ])
 
   // Process Auto-Linking

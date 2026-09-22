@@ -147,6 +147,7 @@ export function ArticleFooter({
                 <Link
                   key={post.id}
                   href={`/${type}/${post.slug}`}
+                  prefetch={true}
                   className="hover-lift group flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition hover:border-blue-300"
                 >
                   {img ? (

@@ -19,11 +19,13 @@ export interface OfflineListing {
   servicesCatalog?: any
   avgRating?: number | null
   views?: number
+  clicks?: number
+  whatsappClicks?: number
   categoryId?: string | null
   villageId?: string | null
   category?: { id: string; name: string; slug: string; icon?: string | null; telugu?: string } | null
   village?: { id: string; name: string; slug: string } | null
-  owner?: { id: string; name: string; username?: string; phone?: string | null; image?: string | null } | null
+  owner?: { id: string; name: string; username?: string; phone?: string | null; email?: string | null; image?: string | null } | null
   createdAt?: string
   updatedAt?: string
   [key: string]: any
@@ -39,60 +41,451 @@ export interface ServiceCategory {
 }
 
 export const STANDARD_CATEGORIES: ServiceCategory[] = [
-  { id: 'cmso8tgy60002v35o914xbblk', name: 'Automobile & Garage', slug: 'automobile', icon: 'Car', telugu: 'ఆటోమొబైల్ & గ్యారేజ్', description: 'Auto sales, service centers, spare parts & bike repair' },
+  { id: 'cat-automobile', name: 'Automobile & Garage', slug: 'automobile', icon: 'Car', telugu: 'ఆటోమొబైల్ & గ్యారేజ్', description: 'Auto sales, service centers, spare parts & bike repair' },
   { id: 'cat-services', name: 'Services & Technicians', slug: 'services', icon: 'Wrench', telugu: 'సేవలు & టెక్నీషియన్లు', description: 'Electricians, plumbers, mechanics, AC repair & home services' },
   { id: 'cat-electrical', name: 'Electrical & Hardware', slug: 'electrical-hardware', icon: 'Zap', telugu: 'ఎలక్ట్రికల్ & హార్డ్‌వేర్', description: 'Electrical goods, wiring, motors & hardware tools' },
-  { id: 'cat-medical', name: 'Health & Medical', slug: 'health-medical', icon: 'HeartPulse', telugu: 'వైద్యం & ఫార్మసీ', description: 'Hospitals, clinics, medical stores & diagnostic centers' },
-  { id: 'cat-food', name: 'Food & Restaurants', slug: 'food-dining', icon: 'UtensilsCrossed', telugu: 'హోటల్స్ & రెస్టారెంట్లు', description: 'Restaurants, tiffin centers, bakeries & sweets' },
+  { id: 'cat-health', name: 'Health & Medical', slug: 'health-medical', icon: 'HeartPulse', telugu: 'వైద్యం & ఫార్మసీ', description: 'Hospitals, clinics, medical stores & diagnostic centers' },
+  { id: 'cat-food', name: 'Food & Dining', slug: 'food-dining', icon: 'UtensilsCrossed', telugu: 'హోటల్స్ & రెస్టారెంట్లు', description: 'Restaurants, tiffin centers, bakeries & sweets' },
   { id: 'cat-internet', name: 'Internet & MeeSeva', slug: 'internet-cyber-cafe', icon: 'Globe', telugu: 'మీసేవ & నెట్ సెంటర్', description: 'MeeSeva, Cyber Cafe, Xerox, online forms & DTP' },
   { id: 'cat-building', name: 'Building Materials', slug: 'building-materials', icon: 'BrickWall', telugu: 'భవన నిర్మాణ సామాగ్రి', description: 'Cement, steel, sand, bricks & construction supply' },
   { id: 'cat-engineering', name: 'Engineering & Welding', slug: 'engineering-welding', icon: 'Flame', telugu: 'ఇంజనీరింగ్ & వెల్డింగ్', description: 'Welding works, fabrication, grill & shutter manufacturing' },
-  { id: 'cat-agriculture', name: 'Agriculture & Seeds', slug: 'agriculture-seeds', icon: 'Sprout', telugu: 'వ్యవసాయం & ఎరువులు', description: 'Seeds, pesticides, fertilizers & agriculture equipment' },
+  { id: 'cat-agriculture', name: 'Agriculture & Seeds', slug: 'agriculture', icon: 'Sprout', telugu: 'వ్యవసాయం & ఎరువులు', description: 'Seeds, pesticides, fertilizers & agriculture equipment' },
   { id: 'cat-furniture', name: 'Furniture & Home', slug: 'furniture-home', icon: 'Armchair', telugu: 'ఫర్నిచర్ & డెకార్', description: 'Furniture showrooms, wood works, mattresses & home decor' },
   { id: 'cat-interior', name: 'Interior & Paints', slug: 'interior-decor', icon: 'Paintbrush', telugu: 'ఇంటీరియర్ & పెయింట్స్', description: 'Paints, false ceiling, glass, ACP & interior design' },
-  { id: 'cat-retail', name: 'Retail & Fashion', slug: 'retail-fashion', icon: 'Shirt', telugu: 'షాపింగ్ & దుస్తులు', description: 'Cloth stores, readymade garments, footwear & matching' },
-  { id: 'cat-agencies', name: 'Agencies & Distributors', slug: 'agencies-distributors', icon: 'Briefcase', telugu: 'ఏజెన్సీలు & హోల్‌సేల్', description: 'Wholesale dealers, commercial agencies & distribution' },
-  { id: 'cat-realestate', name: 'Real Estate & Lands', slug: 'real-estate', icon: 'Building2', telugu: 'రియల్ ఎస్టేట్ & ప్లాట్లు', description: 'Open plots, farmland, commercial properties & houses' },
+  { id: 'cat-retail', name: 'Retail Shopping', slug: 'retail-shopping', icon: 'ShoppingBag', telugu: 'షాపింగ్ & దుస్తులు', description: 'Supermarkets, cloth stores, readymade garments, footwear' },
+  { id: 'cat-realestate', name: 'Real Estate & Lands', slug: 'real-estate', icon: 'Home', telugu: 'రియల్ ఎస్టేట్ & ప్లాట్లు', description: 'Open plots, farmland, commercial properties & houses' },
+  { id: 'cat-education', name: 'Education & Coaching', slug: 'education', icon: 'GraduationCap', telugu: 'విద్య & కోచింగ్', description: 'Schools, colleges, coaching centers & tuition classes' },
+  { id: 'cat-electronics', name: 'Electronics & Mobiles', slug: 'electronics', icon: 'Smartphone', telugu: 'మొబైల్స్ & ఎలక్ట్రానిక్స్', description: 'Smartphones, repairs, computers & home appliances' },
+  { id: 'cat-transport', name: 'Transport & Logistics', slug: 'transport', icon: 'Truck', telugu: 'రవాణా & ట్రాన్స్‌పోర్ట్', description: 'Auto, goods transport, tempo, cabs & parcel service' },
 ]
 
-const CATEGORY_MAP_BY_SLUG = new Map(STANDARD_CATEGORIES.map((c) => [c.slug, c]))
+export const STANDARD_VILLAGES = [
+  { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-panthangi', name: 'Panthangi', slug: 'panthangi', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-malkapur', name: 'Malkapur', slug: 'malkapur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-peddakondur', name: 'Peddakondur', slug: 'peddakondur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-lingojiguda', name: 'Lingoji Guda', slug: 'lingoji-guda', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-koyalagudem', name: 'Koyalagudem', slug: 'koyalagudem', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-lakkaram', name: 'Lakkaram', slug: 'lakkaram', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-tupranpet', name: 'Tupranpet', slug: 'tupranpet', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-tallasingaram', name: 'Tallasingaram', slug: 'tallasingaram', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-allapur', name: 'Allapur', slug: 'allapur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-chinnakondur', name: 'Chinna Kondur', slug: 'chinna-kondur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-devalamma', name: 'Devalamma Nagaram', slug: 'devalamma-nagaram', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-jaikesaram', name: 'Jai Kesaram', slug: 'jai-kesaram', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-khairathpur', name: 'Khairathpur', slug: 'khairathpur', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-nelapatla', name: 'Nelapatla', slug: 'nelapatla', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-peepalpahad', name: 'Peepal Pahad', slug: 'peepal-pahad', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-swamulavari', name: 'Swamulavari Lingotam', slug: 'swamulavari-lingotam', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-tangadpalle', name: 'Tangad Palle', slug: 'tangad-palle', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+  { id: 'v-yellagiri', name: 'Yellagiri', slug: 'yellagiri', district: 'Yadadri Bhuvanagiri', state: 'Telangana', pincode: '508252' },
+]
 
-let cachedListings: OfflineListing[] | null = null
-let listingsByIdMap: Map<string, OfflineListing> | null = null
-let listingsBySlugMap: Map<string, OfflineListing> | null = null
-let cachedCategories: ServiceCategory[] | null = null
-let cachedVillages: any[] | null = null
+export const INITIAL_OFFLINE_LISTINGS: OfflineListing[] = [
+  {
+    id: 'list-1',
+    slug: 'sri-sai-ram-electricals-plumber-works',
+    title: 'Sri Sai Ram Electricals & Plumber Works',
+    description: 'Expert 24/7 home electricians, plumbing repairs, sanitary fittings, submersible motor wiring & inverter installations.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: true,
+    coverImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+    phone: '9494348175',
+    whatsapp: '9494348175',
+    address: 'Main Road, Near Bus Stand, Choutuppal',
+    avgRating: 4.8,
+    views: 1890,
+    clicks: 280,
+    whatsappClicks: 155,
+    categoryId: 'cat-services',
+    villageId: 'v-choutuppal',
+    category: { id: 'cat-services', name: 'Services & Technicians', slug: 'services', icon: 'Wrench', telugu: 'సేవలు & టెక్నీషియన్లు' },
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-10T10:00:00Z',
+  },
+  {
+    id: 'list-2',
+    slug: 'bhavani-electrical-works-rewinding',
+    title: 'Bhavani Electrical Works & Rewinding',
+    description: 'Motor rewinding, submersible pump repair, home wiring, fan rewinding & industrial electrical repairs.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: false,
+    coverImage: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80',
+    phone: '9848012345',
+    whatsapp: '9848012345',
+    address: 'Shiva Temple Street, Choutuppal',
+    avgRating: 4.8,
+    views: 1420,
+    clicks: 190,
+    whatsappClicks: 95,
+    categoryId: 'cat-electrical',
+    villageId: 'v-choutuppal',
+    category: { id: 'cat-electrical', name: 'Electrical & Hardware', slug: 'electrical-hardware', icon: 'Zap', telugu: 'ఎలక్ట్రికల్ & హార్డ్‌వేర్' },
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-11T10:00:00Z',
+  },
+  {
+    id: 'list-3',
+    slug: 'venkateshwara-medical-general-stores',
+    title: 'Venkateshwara Medical & General Stores',
+    description: '24x7 allopathic medicines, emergency surgical items, baby care, BP/Sugar testing & free door delivery in Choutuppal.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: true,
+    coverImage: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
+    phone: '9849123456',
+    whatsapp: '9849123456',
+    address: 'Opp. Community Hospital, Choutuppal',
+    avgRating: 4.9,
+    views: 2100,
+    clicks: 410,
+    whatsappClicks: 210,
+    categoryId: 'cat-health',
+    villageId: 'v-choutuppal',
+    category: { id: 'cat-health', name: 'Health & Medical', slug: 'health-medical', icon: 'HeartPulse', telugu: 'వైద్యం & ఫార్మసీ' },
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-12T10:00:00Z',
+  },
+  {
+    id: 'list-4',
+    slug: 'sri-lakshmi-kirana-general-stores',
+    title: 'Sri Lakshmi Kirana & General Stores',
+    description: 'Daily essentials, fresh groceries, premium pulses, edible oils, spices & household provisions.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: false,
+    coverImage: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80',
+    phone: '9988776655',
+    whatsapp: '9988776655',
+    address: 'Gandhi Chowk, Choutuppal',
+    avgRating: 4.7,
+    views: 1650,
+    clicks: 190,
+    whatsappClicks: 95,
+    categoryId: 'cat-retail',
+    villageId: 'v-choutuppal',
+    category: { id: 'cat-retail', name: 'Retail Shopping', slug: 'retail-shopping', icon: 'ShoppingBag', telugu: 'షాపింగ్ & దుస్తులు' },
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-13T10:00:00Z',
+  },
+  {
+    id: 'list-5',
+    slug: 'gayatri-plumbing-sanitary-hardware',
+    title: 'Gayatri Plumbing & Sanitary Hardware',
+    description: 'CPVC/PVC pipe fittings, sanitary ware, water tanks, taps, bathroom accessories & professional plumbing services.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: false,
+    coverImage: 'https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&w=800&q=80',
+    phone: '9876543210',
+    whatsapp: '9876543210',
+    address: 'NH 65 Bypass, Choutuppal',
+    avgRating: 4.8,
+    views: 1350,
+    clicks: 210,
+    whatsappClicks: 105,
+    categoryId: 'cat-services',
+    villageId: 'v-choutuppal',
+    category: { id: 'cat-services', name: 'Services & Technicians', slug: 'services', icon: 'Wrench', telugu: 'సేవలు & టెక్నీషియన్లు' },
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-14T10:00:00Z',
+  },
+  {
+    id: 'list-6',
+    slug: 'choutuppal-real-estate-land-developers',
+    title: 'Choutuppal Real Estate & Land Developers',
+    description: 'HMDA & DTCP approved open residential plots, farmland ventures, highway facing commercial bit lands & house sales.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: true,
+    coverImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+    phone: '9440123456',
+    whatsapp: '9440123456',
+    address: 'Hyderabad Highway, Choutuppal',
+    avgRating: 4.9,
+    views: 2950,
+    clicks: 580,
+    whatsappClicks: 320,
+    categoryId: 'cat-realestate',
+    villageId: 'v-malkapur',
+    category: { id: 'cat-realestate', name: 'Real Estate & Lands', slug: 'real-estate', icon: 'Home', telugu: 'రియల్ ఎస్టేట్ & ప్లాట్లు' },
+    village: { id: 'v-malkapur', name: 'Malkapur', slug: 'malkapur' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-15T10:00:00Z',
+  },
+  {
+    id: 'list-7',
+    slug: 'sri-lakshmi-tiffin-center',
+    title: 'Sri Lakshmi Tiffin Center',
+    description: 'Famous for hot idli, dosa, upma, poori & filter coffee. Fresh morning tiffins and evening snacks served daily since 2008.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: true,
+    coverImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    phone: '9494348175',
+    whatsapp: '9494348175',
+    address: 'Main Road, Near Bus Stand, Choutuppal',
+    avgRating: 4.9,
+    views: 2450,
+    clicks: 340,
+    whatsappClicks: 180,
+    categoryId: 'cat-food',
+    villageId: 'v-choutuppal',
+    category: { id: 'cat-food', name: 'Food & Dining', slug: 'food-dining', icon: 'UtensilsCrossed', telugu: 'హోటల్స్ & రెస్టారెంట్లు' },
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-16T10:00:00Z',
+  },
+  {
+    id: 'list-8',
+    slug: 'reddy-automobiles-bike-point',
+    title: 'Reddy Automobiles & 2-Wheeler Service',
+    description: 'Complete multi-brand bike servicing, engine oil change, water wash, puncture repair and original genuine spare parts.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: true,
+    coverImage: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
+    phone: '9912353710',
+    whatsapp: '9912353710',
+    address: 'Hyderabad Highway (NH 65), Panthangi',
+    avgRating: 4.8,
+    views: 1420,
+    clicks: 220,
+    whatsappClicks: 110,
+    categoryId: 'cat-automobile',
+    villageId: 'v-panthangi',
+    category: { id: 'cat-automobile', name: 'Automobile & Garage', slug: 'automobile', icon: 'Car', telugu: 'ఆటోమొబైల్ & గ్యారేజ్' },
+    village: { id: 'v-panthangi', name: 'Panthangi', slug: 'panthangi' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-17T10:00:00Z',
+  },
+  {
+    id: 'list-9',
+    slug: 'sri-venkateswara-mobiles-services',
+    title: 'Sri Venkateswara Mobiles & Electronics',
+    description: 'All brands latest mobile phones, display replacement, glass change, accessories, recharges & zero down-payment EMI.',
+    status: 'APPROVED',
+    isFeatured: false,
+    isPremium: false,
+    coverImage: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80',
+    phone: '9912353707',
+    whatsapp: '9912353707',
+    address: 'Clock Tower Center, Choutuppal',
+    avgRating: 4.7,
+    views: 1220,
+    clicks: 175,
+    whatsappClicks: 80,
+    categoryId: 'cat-electronics',
+    villageId: 'v-choutuppal',
+    category: { id: 'cat-electronics', name: 'Electronics & Mobiles', slug: 'electronics', icon: 'Smartphone', telugu: 'మొబైల్స్ & ఎలక్ట్రానిక్స్' },
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-18T10:00:00Z',
+  },
+  {
+    id: 'list-10',
+    slug: 'choutuppal-meeseva-internet-center',
+    title: 'Choutuppal Digital MeeSeva & Net Center',
+    description: 'Online certificates, Aadhar card updates, voter ID, PAN card, passport application, Xerox, color printouts & lamination.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: false,
+    coverImage: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80',
+    phone: '9494348175',
+    whatsapp: '9494348175',
+    address: 'Near MRO Office, Choutuppal',
+    avgRating: 4.8,
+    views: 1380,
+    clicks: 210,
+    whatsappClicks: 95,
+    categoryId: 'cat-internet',
+    villageId: 'v-choutuppal',
+    category: { id: 'cat-internet', name: 'Internet & MeeSeva', slug: 'internet-cyber-cafe', icon: 'Globe', telugu: 'మీసేవ & నెట్ సెంటర్' },
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-19T10:00:00Z',
+  },
+  {
+    id: 'list-11',
+    slug: 'sri-sai-vidya-niketan-school',
+    title: 'Sri Sai Vidya Niketan High School',
+    description: 'CBSE syllabus education from Nursery to 10th class. Digital smart classes, sports ground & school bus for all villages.',
+    status: 'APPROVED',
+    isFeatured: false,
+    isPremium: false,
+    coverImage: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80',
+    phone: '9912353709',
+    whatsapp: '9912353709',
+    address: 'Yadadri Road, Panthangi, Choutuppal',
+    avgRating: 4.9,
+    views: 1100,
+    clicks: 140,
+    whatsappClicks: 65,
+    categoryId: 'cat-education',
+    villageId: 'v-panthangi',
+    category: { id: 'cat-education', name: 'Education & Coaching', slug: 'education', icon: 'GraduationCap', telugu: 'విద్య & కోచింగ్' },
+    village: { id: 'v-panthangi', name: 'Panthangi', slug: 'panthangi' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-18T10:00:00Z',
+  },
+  {
+    id: 'list-12',
+    slug: 'lakshmi-ganapathi-textiles-sarees',
+    title: 'Lakshmi Ganapathi Textiles & Sarees',
+    description: 'Pattu sarees, fancy dresses, mens shirts, readymade suits, wedding collections & matching center at wholesale rates.',
+    status: 'APPROVED',
+    isFeatured: false,
+    isPremium: false,
+    coverImage: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+    phone: '9912353711',
+    whatsapp: '9912353711',
+    address: 'Cloth Market Lane, Choutuppal',
+    avgRating: 4.7,
+    views: 950,
+    clicks: 115,
+    whatsappClicks: 50,
+    categoryId: 'cat-retail',
+    villageId: 'v-choutuppal',
+    category: { id: 'cat-retail', name: 'Retail Shopping', slug: 'retail-shopping', icon: 'ShoppingBag', telugu: 'షాపింగ్ & దుస్తులు' },
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-19T10:00:00Z',
+  },
+  {
+    id: 'list-13',
+    slug: 'kisan-agri-seeds-fertilizers',
+    title: 'Kisan Agri Seeds, Fertilizers & Pesticides',
+    description: 'High yield hybrid seeds, organic fertilizers, pesticides, drip irrigation tubes, sprayer pumps & expert agri counseling.',
+    status: 'APPROVED',
+    isFeatured: true,
+    isPremium: false,
+    coverImage: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=800&q=80',
+    phone: '9876543210',
+    whatsapp: '9876543210',
+    address: 'Agricultural Market Yard Road, Peddakondur',
+    avgRating: 4.8,
+    views: 1340,
+    clicks: 160,
+    whatsappClicks: 85,
+    categoryId: 'cat-agriculture',
+    villageId: 'v-peddakondur',
+    category: { id: 'cat-agriculture', name: 'Agriculture & Seeds', slug: 'agriculture', icon: 'Sprout', telugu: 'వ్యవసాయం & ఎరువులు' },
+    village: { id: 'v-peddakondur', name: 'Peddakondur', slug: 'peddakondur' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-20T10:00:00Z',
+  },
+  {
+    id: 'list-14',
+    slug: 'srinivasa-building-materials-cement',
+    title: 'Srinivasa Building Materials & Cement',
+    description: 'TMT steel bars, UltraTech / Priya cement, sand, river gravel, red bricks, stone dust & construction logistics supply.',
+    status: 'APPROVED',
+    isFeatured: false,
+    isPremium: true,
+    coverImage: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80',
+    phone: '9912353715',
+    whatsapp: '9912353715',
+    address: 'Bypass Road, Tupranpet Stage, Choutuppal',
+    avgRating: 4.8,
+    views: 1560,
+    clicks: 195,
+    whatsappClicks: 90,
+    categoryId: 'cat-building',
+    villageId: 'v-tupranpet',
+    category: { id: 'cat-building', name: 'Building Materials', slug: 'building-materials', icon: 'BrickWall', telugu: 'భవన నిర్మాణ సామాగ్రి' },
+    village: { id: 'v-tupranpet', name: 'Tupranpet', slug: 'tupranpet' },
+    owner: { id: 'cms0du1m40000v32slild2p1s', name: 'Choutuppal Admin', username: 'admin', phone: '9494348175' },
+    createdAt: '2026-01-21T10:00:00Z',
+  },
+]
 
-const DEFAULT_OFFLINE_LISTINGS: OfflineListing[] = []
+let offlineListingsStore: OfflineListing[] = [...INITIAL_OFFLINE_LISTINGS]
 
 export function getOfflineListings(): OfflineListing[] {
-  return []
+  return offlineListingsStore
 }
 
 export function getOfflineListingById(id: string): OfflineListing | null {
-  return null
+  return offlineListingsStore.find((l) => l.id === id) || null
 }
 
 export function getOfflineListingBySlug(slug: string): OfflineListing | null {
-  return null
+  const clean = slug.toLowerCase().trim()
+  return offlineListingsStore.find((l) => l.slug?.toLowerCase() === clean || l.id === clean) || null
+}
+
+export function saveOfflineListing(listing: Partial<OfflineListing> & { id?: string; title?: string }): OfflineListing {
+  const now = new Date().toISOString()
+  const id = listing.id || `listing_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
+  const slug = listing.slug || (listing.title ? listing.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : `listing-${Date.now()}`)
+
+  // resolve category & village
+  const catObj = STANDARD_CATEGORIES.find((c) => c.id === listing.categoryId || c.slug === listing.categoryId) || STANDARD_CATEGORIES[0]
+  const vilObj = STANDARD_VILLAGES.find((v) => v.id === listing.villageId || v.slug === listing.villageId) || STANDARD_VILLAGES[0]
+
+  const existingIdx = offlineListingsStore.findIndex((l) => l.id === id || l.slug === slug)
+
+  if (existingIdx >= 0) {
+    const updated: OfflineListing = {
+      ...offlineListingsStore[existingIdx],
+      ...listing,
+      id: offlineListingsStore[existingIdx].id,
+      category: catObj ? { id: catObj.id, name: catObj.name, slug: catObj.slug, icon: catObj.icon, telugu: catObj.telugu } : offlineListingsStore[existingIdx].category,
+      village: vilObj ? { id: vilObj.id, name: vilObj.name, slug: vilObj.slug } : offlineListingsStore[existingIdx].village,
+      updatedAt: now,
+    }
+    offlineListingsStore[existingIdx] = updated
+    return updated
+  }
+
+  const newListing: OfflineListing = {
+    id,
+    slug,
+    title: listing.title || 'New Shop Listing',
+    description: listing.description || 'Welcome to our business in Choutuppal.',
+    status: listing.status || 'APPROVED',
+    isFeatured: listing.isFeatured ?? false,
+    isPremium: listing.isPremium ?? false,
+    coverImage: listing.coverImage || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    phone: listing.phone || '9494348175',
+    whatsapp: listing.whatsapp || listing.phone || '9494348175',
+    address: listing.address || 'Choutuppal, Telangana',
+    avgRating: listing.avgRating ?? 5.0,
+    views: listing.views ?? 1,
+    clicks: listing.clicks ?? 0,
+    whatsappClicks: listing.whatsappClicks ?? 0,
+    categoryId: catObj.id,
+    villageId: vilObj.id,
+    category: { id: catObj.id, name: catObj.name, slug: catObj.slug, icon: catObj.icon, telugu: catObj.telugu },
+    village: { id: vilObj.id, name: vilObj.name, slug: vilObj.slug },
+    owner: listing.owner || { id: 'cms0du1m40000v32slild2p1s', name: 'Admin', username: 'admin', phone: '9494348175' },
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  offlineListingsStore.unshift(newListing)
+  return newListing
+}
+
+export function deleteOfflineListing(id: string): boolean {
+  const initialLen = offlineListingsStore.length
+  offlineListingsStore = offlineListingsStore.filter((l) => l.id !== id && l.slug !== id)
+  return offlineListingsStore.length < initialLen
 }
 
 export function getOfflineCategories(): ServiceCategory[] {
-  if (cachedCategories) return cachedCategories
-  cachedCategories = STANDARD_CATEGORIES
-  return cachedCategories
+  return STANDARD_CATEGORIES
 }
 
 export function getOfflineVillages(): any[] {
-  if (cachedVillages) return cachedVillages
-  cachedVillages = [
-    {
-      id: 'cmsepb40r0000jv04tdwwd5cw',
-      name: 'Choutuppal',
-      slug: 'choutuppal',
-    },
-  ]
-  return cachedVillages
+  return STANDARD_VILLAGES
 }
 
 export function getOfflineSettings(): any[] {
@@ -102,8 +495,7 @@ export function getOfflineSettings(): any[] {
     { key: 'banner_free', value: 'true' },
     { key: 'ads_paid', value: 'false' },
     { key: 'banner_price', value: '99' },
-    { key: 'announcement_ticker', value: '' },
-    { key: 'ticker_items_json', value: '[]' },
+    { key: 'announcement_ticker', value: 'చౌటుప్పల్ సూపర్ యాప్‌లోకి స్వాగతం! మీ వ్యాపారాన్ని ఉచితంగా రిజిస్టర్ చేసుకోండి.' },
     { key: 'hero_title', value: 'చౌటుప్పల్ సూపర్ యాప్' },
     { key: 'hero_subtitle', value: 'మీ పట్టణం, మీ వ్యాపారాలు - అన్నీ ఒకే యాప్‌లో' },
     { key: 'hero_bg_image', value: 'https://68eqkurg5him9yb0.public.blob.vercel-storage.com/choutuppal-uploads/migrated-1790058158931-hero-banner.webp' },
@@ -205,7 +597,7 @@ const OFFLINE_NEWS_ARTICLES = [
     author: { name: 'చౌటుప్పల్ బిజినెస్ డెస్క్' },
   },
   {
-    id: 'news-health-camps-yadadri',
+    id: 'news-5',
     slug: 'free-mega-health-camp-choutuppal-community-hall',
     title: 'చౌటుప్పల్ కమ్యూనిటీ హాల్‌లో ఉచిత మెగా హెల్త్ క్యాంప్ - ఉచిత మందుల పంపిణీ',
     summary: 'ప్రముఖ వైద్య నిపుణులతో సాధారణ, గుండె, కంటి మరియు రక్త పరీక్షల ఉచిత నిర్వహణ.',
@@ -232,6 +624,66 @@ const OFFLINE_NEWS_ARTICLES = [
     author: { name: 'హెల్త్ రిపోర్టర్' },
   },
 ]
+
+let offlineNewsStore = [...OFFLINE_NEWS_ARTICLES]
+
+export function getOfflineNews(): any[] {
+  return offlineNewsStore
+}
+
+export function getOfflineNewsBySlug(slug: string): any | null {
+  const cleanSlug = slug.toLowerCase().trim()
+  return (
+    offlineNewsStore.find(
+      (n) => n.slug.toLowerCase() === cleanSlug || n.id.toLowerCase() === cleanSlug
+    ) ||
+    offlineBlogsStore.find(
+      (b) => b.slug.toLowerCase() === cleanSlug || b.id.toLowerCase() === cleanSlug
+    ) ||
+    null
+  )
+}
+
+export function saveOfflineNews(newsItem: any): any {
+  const now = new Date()
+  const id = newsItem.id || `news-${Date.now()}`
+  const slug = newsItem.slug || (newsItem.title ? newsItem.title.toLowerCase().replace(/[^a-z0-9\u0C00-\u0C7F]+/g, '-').replace(/^-|-$/g, '').slice(0, 45) + '-' + Math.random().toString(36).substring(2, 5) : `news-${Date.now()}`)
+
+  const existingIdx = offlineNewsStore.findIndex((n) => n.id === id || n.slug === slug)
+  if (existingIdx >= 0) {
+    const updated = {
+      ...offlineNewsStore[existingIdx],
+      ...newsItem,
+      id: offlineNewsStore[existingIdx].id,
+      updatedAt: now,
+    }
+    offlineNewsStore[existingIdx] = updated
+    return updated
+  }
+
+  const newItem = {
+    id,
+    slug,
+    title: newsItem.title || 'News Update',
+    summary: newsItem.summary || (newsItem.content ? newsItem.content.slice(0, 120) : ''),
+    content: newsItem.content || '',
+    image: newsItem.image || 'https://images.unsplash.com/photo-1545459720-aac8509eb02c?auto=format&fit=crop&w=800&q=80',
+    tags: newsItem.tags || ['Choutuppal', 'News'],
+    isPublished: newsItem.isPublished ?? true,
+    views: newsItem.views || 10,
+    createdAt: now,
+    updatedAt: now,
+    author: newsItem.author || { name: 'చౌటుప్పల్ న్యూస్ డెస్క్' },
+  }
+  offlineNewsStore.unshift(newItem)
+  return newItem
+}
+
+export function deleteOfflineNews(id: string): boolean {
+  const initial = offlineNewsStore.length
+  offlineNewsStore = offlineNewsStore.filter((n) => n.id !== id && n.slug !== id)
+  return offlineNewsStore.length < initial
+}
 
 const OFFLINE_BLOG_POSTS = [
   {
@@ -334,42 +786,312 @@ const OFFLINE_BLOG_POSTS = [
   },
 ]
 
-export function getOfflineBanners(): any[] {
-  return []
-}
-
-export function getOfflineNews(): any[] {
-  return OFFLINE_NEWS_ARTICLES
-}
+let offlineBlogsStore = [...OFFLINE_BLOG_POSTS]
 
 export function getOfflineBlogs(): any[] {
-  return OFFLINE_BLOG_POSTS
-}
-
-export function getOfflineNewsBySlug(slug: string): any | null {
-  const cleanSlug = slug.toLowerCase().trim()
-  return (
-    OFFLINE_NEWS_ARTICLES.find(
-      (n) => n.slug.toLowerCase() === cleanSlug || n.id.toLowerCase() === cleanSlug
-    ) ||
-    OFFLINE_BLOG_POSTS.find(
-      (b) => b.slug.toLowerCase() === cleanSlug || b.id.toLowerCase() === cleanSlug
-    ) ||
-    null
-  )
+  return offlineBlogsStore
 }
 
 export function getOfflineBlogBySlug(slug: string): any | null {
   const cleanSlug = slug.toLowerCase().trim()
   return (
-    OFFLINE_BLOG_POSTS.find(
+    offlineBlogsStore.find(
       (b) => b.slug.toLowerCase() === cleanSlug || b.id.toLowerCase() === cleanSlug
     ) ||
-    OFFLINE_NEWS_ARTICLES.find(
+    offlineNewsStore.find(
       (n) => n.slug.toLowerCase() === cleanSlug || n.id.toLowerCase() === cleanSlug
     ) ||
     null
   )
+}
+
+export function saveOfflineBlog(blogItem: any): any {
+  const now = new Date()
+  const id = blogItem.id || `blog-${Date.now()}`
+  const slug = blogItem.slug || (blogItem.title ? blogItem.title.toLowerCase().replace(/[^a-z0-9\u0C00-\u0C7F]+/g, '-').replace(/^-|-$/g, '').slice(0, 45) + '-' + Math.random().toString(36).substring(2, 5) : `blog-${Date.now()}`)
+
+  const existingIdx = offlineBlogsStore.findIndex((b) => b.id === id || b.slug === slug)
+  if (existingIdx >= 0) {
+    const updated = {
+      ...offlineBlogsStore[existingIdx],
+      ...blogItem,
+      id: offlineBlogsStore[existingIdx].id,
+      updatedAt: now,
+    }
+    offlineBlogsStore[existingIdx] = updated
+    return updated
+  }
+
+  const newItem = {
+    id,
+    slug,
+    title: blogItem.title || 'Blog Post',
+    excerpt: blogItem.excerpt || (blogItem.content ? blogItem.content.slice(0, 120) : ''),
+    content: blogItem.content || '',
+    coverImage: blogItem.coverImage || blogItem.image || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+    category: blogItem.category || 'General',
+    tags: blogItem.tags || ['Choutuppal', 'Guide'],
+    isPublished: blogItem.isPublished ?? true,
+    views: blogItem.views || 25,
+    createdAt: now,
+    updatedAt: now,
+    author: blogItem.author || { name: 'చౌటుప్పల్ బ్లాగ్ డెస్క్' },
+  }
+  offlineBlogsStore.unshift(newItem)
+  return newItem
+}
+
+export function deleteOfflineBlog(id: string): boolean {
+  const initial = offlineBlogsStore.length
+  offlineBlogsStore = offlineBlogsStore.filter((b) => b.id !== id && b.slug !== id)
+  return offlineBlogsStore.length < initial
+}
+
+const INITIAL_BANNERS = [
+  {
+    id: 'banner-1',
+    title: 'Promote Your Business Across Choutuppal',
+    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80',
+    link: '/listings',
+    position: 'HOME_TOP',
+    status: 'APPROVED',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'banner-2',
+    title: 'Spin & Win Rewards Everyday on Choutuppal App',
+    imageUrl: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&auto=format&fit=crop&q=80',
+    link: '/#spin',
+    position: 'HOME_MIDDLE',
+    status: 'APPROVED',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+  },
+]
+
+let offlineBannersStore = [...INITIAL_BANNERS]
+
+export function getOfflineBanners(): any[] {
+  return offlineBannersStore
+}
+
+export function saveOfflineBanner(banner: any): any {
+  const id = banner.id || `banner_${Date.now()}`
+  const existingIdx = offlineBannersStore.findIndex((b) => b.id === id)
+  if (existingIdx >= 0) {
+    const updated = { ...offlineBannersStore[existingIdx], ...banner, id }
+    offlineBannersStore[existingIdx] = updated
+    return updated
+  }
+  const newBanner = {
+    id,
+    title: banner.title || 'Special Banner Ad',
+    imageUrl: banner.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80',
+    link: banner.link || '/categories',
+    position: banner.position || 'HOME_TOP',
+    status: banner.status || 'APPROVED',
+    isActive: banner.isActive ?? true,
+    createdAt: new Date().toISOString(),
+  }
+  offlineBannersStore.unshift(newBanner)
+  return newBanner
+}
+
+export function deleteOfflineBanner(id: string): boolean {
+  const initial = offlineBannersStore.length
+  offlineBannersStore = offlineBannersStore.filter((b) => b.id !== id)
+  return offlineBannersStore.length < initial
+}
+
+const INITIAL_STORIES = [
+  {
+    id: 'story-1',
+    mediaUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+    mediaType: 'IMAGE',
+    caption: 'శ్రీ లక్ష్మి టిఫిన్స్ - స్పెషల్ నెయ్యి కారం దోశ ఆఫర్!',
+    link: '/listings/sri-lakshmi-tiffin-center',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'story-2',
+    mediaUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=600&q=80',
+    mediaType: 'IMAGE',
+    caption: 'మల్కాపూర్ స్టేజ్ వద్ద 200 గజాల HMDA ప్లాట్లు అమ్మకానికి ఉన్నాయి.',
+    link: '/real-estate',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+  },
+]
+
+let offlineStoriesStore = [...INITIAL_STORIES]
+
+export function getOfflineStories(): any[] {
+  return offlineStoriesStore
+}
+
+export function saveOfflineStory(story: any): any {
+  const id = story.id || `story_${Date.now()}`
+  const existingIdx = offlineStoriesStore.findIndex((s) => s.id === id)
+  if (existingIdx >= 0) {
+    const updated = { ...offlineStoriesStore[existingIdx], ...story, id }
+    offlineStoriesStore[existingIdx] = updated
+    return updated
+  }
+  const newStory = {
+    id,
+    mediaUrl: story.mediaUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+    mediaType: story.mediaType || 'IMAGE',
+    caption: story.caption || 'Choutuppal Story',
+    link: story.link || '/',
+    isActive: story.isActive ?? true,
+    createdAt: new Date().toISOString(),
+  }
+  offlineStoriesStore.unshift(newStory)
+  return newStory
+}
+
+export function deleteOfflineStory(id: string): boolean {
+  const initial = offlineStoriesStore.length
+  offlineStoriesStore = offlineStoriesStore.filter((s) => s.id !== id)
+  return offlineStoriesStore.length < initial
+}
+
+const INITIAL_SHORTS = [
+  {
+    id: 'short-1',
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    youtubeId: 'dQw4w9WgXcQ',
+    title: 'చౌటుప్పల్ టౌన్ & మార్కెట్ వాక్‌త్రూ',
+    thumbnail: 'https://images.unsplash.com/photo-1545459720-aac8509eb02c?w=600&auto=format&fit=crop&q=80',
+    views: 1840,
+    likes: 120,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'short-2',
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    youtubeId: 'dQw4w9WgXcQ',
+    title: 'యాదాద్రి శ్రీ లక్ష్మీ నరసింహ స్వామి దర్శనం విశేషాలు',
+    thumbnail: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=600&auto=format&fit=crop&q=80',
+    views: 2600,
+    likes: 310,
+    createdAt: new Date().toISOString(),
+  },
+]
+
+let offlineShortsStore = [...INITIAL_SHORTS]
+
+export function getOfflineShorts(): any[] {
+  return offlineShortsStore
+}
+
+export function saveOfflineShort(short: any): any {
+  const id = short.id || `short_${Date.now()}`
+  const existingIdx = offlineShortsStore.findIndex((s) => s.id === id)
+  if (existingIdx >= 0) {
+    const updated = { ...offlineShortsStore[existingIdx], ...short, id }
+    offlineShortsStore[existingIdx] = updated
+    return updated
+  }
+  const newShort = {
+    id,
+    videoUrl: short.videoUrl || '',
+    youtubeId: short.youtubeId || 'dQw4w9WgXcQ',
+    title: short.title || 'Choutuppal Short Video',
+    thumbnail: short.thumbnail || 'https://images.unsplash.com/photo-1545459720-aac8509eb02c?w=600&auto=format&fit=crop&q=80',
+    views: short.views || 0,
+    likes: short.likes || 0,
+    createdAt: new Date().toISOString(),
+  }
+  offlineShortsStore.unshift(newShort)
+  return newShort
+}
+
+export function deleteOfflineShort(id: string): boolean {
+  const initial = offlineShortsStore.length
+  offlineShortsStore = offlineShortsStore.filter((s) => s.id !== id)
+  return offlineShortsStore.length < initial
+}
+
+const INITIAL_REAL_ESTATES = [
+  {
+    id: 're-1',
+    title: 'హైవే ఫేసింగ్ ఓపెన్ ప్లాట్లు (HMDA / DTCP Approved)',
+    slug: 'highway-facing-open-plots-choutuppal',
+    coverImage: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+    price: 1500000,
+    type: 'PLOT',
+    listingType: 'SALE',
+    bedrooms: null,
+    areaSqft: 1800,
+    villageId: 'v-choutuppal',
+    status: 'APPROVED',
+    contactPhone: '9494348175',
+    contactWhatsapp: '9494348175',
+    views: 450,
+    village: { id: 'v-choutuppal', name: 'Choutuppal Town', slug: 'choutuppal' },
+  },
+  {
+    id: 're-2',
+    title: '2BHK ఇండిపెండెంట్ లగ్జరీ హౌస్ అమ్మకానికి',
+    slug: '2bhk-independent-luxury-house-lingojiguda',
+    coverImage: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80',
+    price: 4200000,
+    type: 'HOUSE',
+    listingType: 'SALE',
+    bedrooms: 2,
+    areaSqft: 1350,
+    villageId: 'v-lingojiguda',
+    status: 'APPROVED',
+    contactPhone: '9494348175',
+    contactWhatsapp: '9494348175',
+    views: 380,
+    village: { id: 'v-lingojiguda', name: 'Lingoji Guda', slug: 'lingoji-guda' },
+  },
+]
+
+let offlineRealEstatesStore = [...INITIAL_REAL_ESTATES]
+
+export function getOfflineRealEstates(): any[] {
+  return offlineRealEstatesStore
+}
+
+export function saveOfflineRealEstate(item: any): any {
+  const id = item.id || `re_${Date.now()}`
+  const existingIdx = offlineRealEstatesStore.findIndex((r) => r.id === id)
+  if (existingIdx >= 0) {
+    const updated = { ...offlineRealEstatesStore[existingIdx], ...item, id }
+    offlineRealEstatesStore[existingIdx] = updated
+    return updated
+  }
+  const newItem = {
+    id,
+    title: item.title || 'Real Estate Property',
+    slug: item.slug || `property-${Date.now()}`,
+    coverImage: item.coverImage || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+    price: item.price || 1500000,
+    type: item.type || 'PLOT',
+    listingType: item.listingType || 'SALE',
+    bedrooms: item.bedrooms ?? null,
+    areaSqft: item.areaSqft || 1800,
+    villageId: item.villageId || 'v-choutuppal',
+    status: item.status || 'APPROVED',
+    contactPhone: item.contactPhone || '9494348175',
+    contactWhatsapp: item.contactWhatsapp || '9494348175',
+    views: item.views || 10,
+    village: STANDARD_VILLAGES.find((v) => v.id === item.villageId) || STANDARD_VILLAGES[0],
+    createdAt: new Date().toISOString(),
+  }
+  offlineRealEstatesStore.unshift(newItem)
+  return newItem
+}
+
+export function deleteOfflineRealEstate(id: string): boolean {
+  const initial = offlineRealEstatesStore.length
+  offlineRealEstatesStore = offlineRealEstatesStore.filter((r) => r.id !== id)
+  return offlineRealEstatesStore.length < initial
 }
 
 export interface OfflineUser {
@@ -407,7 +1129,7 @@ const DEFAULT_DEMO_USERS: OfflineUser[] = [
     role: 'ADMIN',
     planTier: 'PREMIUM',
     planExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    villageId: 'cmsepb40r0000jv04tdwwd5cw',
+    villageId: 'v-choutuppal',
     bio: 'Official administrator and community lead for Choutuppal App.',
     image: 'https://i.ibb.co/BVdvN5rB/Untitled-design-removebg-preview.png',
     coverImage: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&auto=format&fit=crop&q=80',
@@ -426,7 +1148,7 @@ const DEFAULT_DEMO_USERS: OfflineUser[] = [
     role: 'ADMIN',
     planTier: 'PREMIUM',
     planExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    villageId: 'cmsepb40r0000jv04tdwwd5cw',
+    villageId: 'v-choutuppal',
     bio: 'Official administrator and community lead for Choutuppal App.',
     image: 'https://i.ibb.co/BVdvN5rB/Untitled-design-removebg-preview.png',
     coverImage: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&auto=format&fit=crop&q=80',
@@ -476,7 +1198,7 @@ export function saveOfflineUser(user: Partial<OfflineUser> & { id?: string }): O
     role: user.role || 'USER',
     planTier: user.planTier || 'FREE',
     planExpiresAt: user.planExpiresAt || null,
-    villageId: user.villageId || 'cmsepb40r0000jv04tdwwd5cw',
+    villageId: user.villageId || 'v-choutuppal',
     bio: user.bio || null,
     image: user.image || null,
     coverImage: user.coverImage || null,
@@ -494,5 +1216,9 @@ export function saveOfflineUser(user: Partial<OfflineUser> & { id?: string }): O
   return newUser
 }
 
-
-
+export function deleteOfflineUser(id: string): boolean {
+  const users = getOfflineUsers()
+  const initial = users.length
+  offlineUsersStore = users.filter((u) => u.id !== id && u.email !== id && u.username !== id)
+  return offlineUsersStore.length < initial
+}

@@ -98,19 +98,19 @@ export function SiteHeader({ tenant = DEFAULT_TENANT }: SiteHeaderProps) {
 
         {/* Center: Desktop nav links */}
         <nav className="hidden items-center gap-6 md:flex">
-          <Link href="/" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+          <Link href="/" prefetch={true} className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
             Home
           </Link>
-          <Link href="/listings" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+          <Link href="/listings" prefetch={true} className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
             Listings
           </Link>
-          <Link href="/news" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+          <Link href="/news" prefetch={true} className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
             News &amp; Blog
           </Link>
-          <Link href="/community" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+          <Link href="/community" prefetch={true} className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
             Community
           </Link>
-          <Link href="/about" className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
+          <Link href="/about" prefetch={true} className="text-sm font-semibold text-slate-600 transition hover:text-blue-600">
             About
           </Link>
         </nav>

@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getOfflineNews, getOfflineBlogs, saveOfflineNews, saveOfflineBlog, deleteOfflineNews, deleteOfflineBlog } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
@@ -36,8 +37,8 @@ export async function GET(req: NextRequest) {
       ),
     ])
 
-    const newsList = dbNews || []
-    const blogsList = dbBlogs || []
+    const newsList = (dbNews && dbNews.length > 0) ? dbNews : getOfflineNews()
+    const blogsList = (dbBlogs && dbBlogs.length > 0) ? dbBlogs : getOfflineBlogs()
 
     return NextResponse.json({
       ok: true,
@@ -89,6 +90,16 @@ export async function POST(req: NextRequest) {
           }),
         null
       )
+      saveOfflineBlog({
+        title,
+        slug,
+        excerpt: summary || content.slice(0, 150),
+        content,
+        coverImage: image || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80',
+        category: category || 'Business',
+        tags: tags || ['Choutuppal', 'Guide'],
+        isPublished: Boolean(isPublished),
+      })
       invalidateHomeDataCache()
       invalidateCache('blog_')
       try { revalidatePath('/blog'); revalidatePath('/news'); revalidatePath('/') } catch {}
@@ -111,6 +122,15 @@ export async function POST(req: NextRequest) {
           }),
         null
       )
+      saveOfflineNews({
+        title,
+        slug,
+        summary: summary || content.slice(0, 150),
+        content,
+        image: image || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&auto=format&fit=crop&q=80',
+        tags: tags || ['Choutuppal', 'News'],
+        isPublished: Boolean(isPublished),
+      })
       invalidateHomeDataCache()
       invalidateCache('news_')
       try { revalidatePath('/news'); revalidatePath('/blog'); revalidatePath('/') } catch {}
@@ -151,8 +171,10 @@ export async function PATCH(req: NextRequest) {
 
     if (type === 'blog') {
       await safeDbQuery(() => prisma.blog.update({ where: { id }, data: updateData }), null)
+      saveOfflineBlog({ id, ...updateData })
     } else {
       await safeDbQuery(() => prisma.news.update({ where: { id }, data: updateData }), null)
+      saveOfflineNews({ id, ...updateData })
     }
 
     invalidateHomeDataCache()
@@ -184,8 +206,10 @@ export async function DELETE(req: NextRequest) {
 
     if (type === 'blog') {
       await safeDbQuery(() => prisma.blog.delete({ where: { id } }), null)
+      deleteOfflineBlog(id)
     } else {
       await safeDbQuery(() => prisma.news.delete({ where: { id } }), null)
+      deleteOfflineNews(id)
     }
 
     invalidateHomeDataCache()

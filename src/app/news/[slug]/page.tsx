@@ -8,12 +8,24 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { swrCache } from '@/lib/cache'
 import { applyAutoLinks } from '@/lib/autolinks'
 import { ArticleFooter } from '@/components/news/article-footer'
-import { getOfflineNewsBySlug, getOfflineBlogBySlug } from '@/lib/offline-data'
+import { getOfflineNewsBySlug, getOfflineBlogBySlug, getOfflineNews } from '@/lib/offline-data'
 
-export const dynamic = 'force-dynamic'
 export const revalidate = 60
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
+
+export async function generateStaticParams() {
+  try {
+    const dbNews = await safeDbQuery(
+      () => prisma.news.findMany({ where: { isPublished: true }, select: { slug: true }, take: 30 }),
+      []
+    )
+    if (dbNews && dbNews.length > 0) {
+      return dbNews.map((n) => ({ slug: n.slug }))
+    }
+  } catch {}
+  return getOfflineNews().map((n) => ({ slug: n.slug }))
+}
 
 const getArticle = cache(async (slug: string) => {
   const decodedSlug = decodeURIComponent(slug).trim()
@@ -116,18 +128,31 @@ export default async function NewsDetailPage({
   const article = await getArticle(slug)
   if (!article || !article.isPublished) notFound()
 
-  // Fetch AutoLinks & Related News
+  // Fetch AutoLinks & Related News with SWR In-Memory Caching
   const [autoLinks, relatedNews] = await Promise.all([
-    prisma.autoLink.findMany().catch(() => []),
-    prisma.news.findMany({
-      where: {
-        isPublished: true,
-        id: { not: article.id },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 4,
-      select: { id: true, title: true, slug: true, summary: true, image: true, createdAt: true },
-    }).catch(() => []),
+    swrCache(
+      'autolinks_all',
+      () => safeDbQuery(() => prisma.autoLink.findMany(), []),
+      { ttlMs: 10 * 60 * 1000 }
+    ),
+    swrCache(
+      `related_news_${article.id}`,
+      () =>
+        safeDbQuery(
+          () =>
+            prisma.news.findMany({
+              where: {
+                isPublished: true,
+                id: { not: article.id },
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 4,
+              select: { id: true, title: true, slug: true, summary: true, image: true, createdAt: true },
+            }),
+          []
+        ),
+      { ttlMs: 5 * 60 * 1000 }
+    ),
   ])
 
   // Process Auto-Linking

@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getOfflineBanners, saveOfflineBanner, deleteOfflineBanner } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
@@ -25,7 +26,7 @@ export async function GET() {
       null
     )
 
-    const banners = dbBanners || []
+    const banners = (dbBanners && dbBanners.length > 0) ? dbBanners : getOfflineBanners()
     return NextResponse.json({ ok: true, banners })
   } catch (error: any) {
     console.error('[Admin Banners GET] Error:', error)
@@ -65,6 +66,15 @@ export async function POST(req: NextRequest) {
         }),
       null
     )
+
+    saveOfflineBanner({
+      title: title || 'Special Banner Ad',
+      imageUrl,
+      link: link || '/categories',
+      position,
+      status,
+      isActive: true,
+    })
 
     invalidateHomeDataCache()
     invalidateCache('home_')
@@ -111,6 +121,8 @@ export async function PATCH(req: NextRequest) {
       null
     )
 
+    saveOfflineBanner({ id, ...updateData })
+
     invalidateHomeDataCache()
     invalidateCache('home_')
     invalidateCache('banners')
@@ -138,6 +150,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await safeDbQuery(() => prisma.banner.delete({ where: { id } }), null)
+    deleteOfflineBanner(id)
 
     invalidateHomeDataCache()
     invalidateCache('home_')

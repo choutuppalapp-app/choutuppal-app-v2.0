@@ -98,7 +98,7 @@ export function NewsList({ articles }: { articles: Article[] }) {
               const itemType = a.type || 'news'
               const href = `/${itemType}/${a.slug}`
               return (
-                <Link key={a.id} href={href} className="hover-lift overflow-hidden rounded-2xl glass group flex flex-col justify-between">
+                <Link key={a.id} href={href} prefetch={true} className="hover-lift overflow-hidden rounded-2xl glass group flex flex-col justify-between">
                   <div>
                     <div className="relative aspect-[16/9] w-full overflow-hidden">
                       {a.image ? (

@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
-import { getOfflineCategories, getOfflineVillages } from '@/lib/offline-data'
+import { getOfflineCategories, getOfflineVillages, getOfflineListings, saveOfflineListing, deleteOfflineListing } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' } }), null),
     ])
 
-    let listings = dbListings || []
+    let listings = (dbListings && dbListings.length > 0) ? dbListings : getOfflineListings()
 
     // Apply Filters
     if (search) {
@@ -139,13 +139,30 @@ export async function POST(req: NextRequest) {
             isFeatured: !!isFeatured,
             coverImage: coverImage || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
             categoryId: categoryId || 'cat-services',
-            villageId: villageId || 'cmsepb40r0000jv04tdwwd5cw',
+            villageId: villageId || 'v-choutuppal',
             ownerId: auth.user.id,
           },
           include: { category: true, village: true, owner: true },
         }),
       null
     )
+
+    // 2. Save in offline store as well
+    const offlineSaved = saveOfflineListing({
+      title,
+      slug,
+      description: description || title,
+      phone,
+      whatsapp: whatsapp || phone,
+      address: address || 'Choutuppal',
+      status,
+      isPremium: !!isPremium,
+      isFeatured: !!isFeatured,
+      coverImage: coverImage || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+      categoryId: categoryId || 'cat-services',
+      villageId: villageId || 'v-choutuppal',
+      owner: { id: auth.user.id, name: auth.user.name || 'Admin', username: auth.user.username || 'admin', phone: auth.user.phone },
+    })
 
     invalidateHomeDataCache()
     invalidateCache('listings_')
@@ -158,7 +175,7 @@ export async function POST(req: NextRequest) {
       revalidatePath('/admin')
     } catch {}
 
-    return NextResponse.json({ ok: true, listing: createdDb, message: 'Listing created successfully' })
+    return NextResponse.json({ ok: true, listing: createdDb || offlineSaved, message: 'Listing created successfully' })
   } catch (error: any) {
     console.error('[Admin Listings POST] Error:', error)
     return NextResponse.json({ error: error.message || 'Failed to create listing' }, { status: 500 })
@@ -202,6 +219,9 @@ export async function PATCH(req: NextRequest) {
       null
     )
 
+    // Save in offline store
+    const offlineUpdated = saveOfflineListing({ id, ...updateData })
+
     invalidateHomeDataCache()
     invalidateCache('listings_')
     invalidateCache('listing_')
@@ -213,7 +233,7 @@ export async function PATCH(req: NextRequest) {
       revalidatePath('/admin')
     } catch {}
 
-    return NextResponse.json({ ok: true, listing: updated, message: 'Listing updated successfully' })
+    return NextResponse.json({ ok: true, listing: updated || offlineUpdated, message: 'Listing updated successfully' })
   } catch (error: any) {
     console.error('[Admin Listings PATCH] Error:', error)
     return NextResponse.json({ error: error.message || 'Failed to update listing' }, { status: 500 })
@@ -236,6 +256,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await safeDbQuery(() => prisma.listing.delete({ where: { id } }), null)
+    deleteOfflineListing(id)
 
     invalidateHomeDataCache()
     invalidateCache('listings_')

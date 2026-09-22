@@ -42,6 +42,7 @@ export function NewsGrid({ articles }: NewsGridProps) {
           <Link
             key={a.id}
             href={`/news/${a.slug}`}
+            prefetch={true}
             className="hover-lift group flex w-full flex-col justify-between overflow-hidden rounded-2xl glass"
           >
             <div>

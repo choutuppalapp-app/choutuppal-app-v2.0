@@ -3,16 +3,34 @@ import {
   getOfflineListings,
   getOfflineListingById,
   getOfflineListingBySlug,
+  saveOfflineListing,
+  deleteOfflineListing,
   getOfflineCategories,
   getOfflineVillages,
   getOfflineSettings,
   getOfflineBanners,
+  saveOfflineBanner,
+  deleteOfflineBanner,
+  getOfflineStories,
+  saveOfflineStory,
+  deleteOfflineStory,
+  getOfflineShorts,
+  saveOfflineShort,
+  deleteOfflineShort,
+  getOfflineRealEstates,
+  saveOfflineRealEstate,
+  deleteOfflineRealEstate,
   getOfflineNews,
   getOfflineBlogs,
   getOfflineNewsBySlug,
   getOfflineBlogBySlug,
+  saveOfflineNews,
+  deleteOfflineNews,
+  saveOfflineBlog,
+  deleteOfflineBlog,
   getOfflineUsers,
   saveOfflineUser,
+  deleteOfflineUser,
 } from './offline-data'
 
 /**
@@ -46,7 +64,7 @@ function isConnectionOrInitError(err: any): boolean {
   return (
     name === 'PrismaClientInitializationError' ||
     name === 'PrismaClientRustPanicError' ||
-    name === 'PrismaClientKnownRequestError' && (code === 'P1000' || code === 'P1001' || code === 'P1002' || code === 'P1003' || code === 'P1017' || code === 'P2024') ||
+    (name === 'PrismaClientKnownRequestError' && (code === 'P1000' || code === 'P1001' || code === 'P1002' || code === 'P1003' || code === 'P1017' || code === 'P2024')) ||
     name === 'TimeoutError' ||
     name === 'AbortError' ||
     code === 'P1000' ||
@@ -126,12 +144,14 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
           if (w.id?.not) {
             results = results.filter((l) => l.id !== w.id.not)
           }
+          if (w.ownerId) {
+            results = results.filter((l) => l.owner?.id === w.ownerId)
+          }
 
           // Handle OR conditions (Search query matching title, phone, village name)
           if (Array.isArray(w.OR) && w.OR.length > 0) {
             results = results.filter((l) => {
               return w.OR.some((cond: any) => {
-                // If it's a tenant or expiresAt condition, pass it
                 if ('expiresAt' in cond) return true
                 if ('tenantId' in cond) return true
                 if (cond.title?.contains) {
@@ -186,6 +206,19 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
       if (method === 'count') {
         return all.length
       }
+      if (method === 'create') {
+        return saveOfflineListing(queryArg.data || {})
+      }
+      if (method === 'update') {
+        return saveOfflineListing({ id: queryArg.where?.id || queryArg.where?.slug, ...queryArg.data })
+      }
+      if (method === 'upsert') {
+        return saveOfflineListing({ id: queryArg.where?.id || queryArg.where?.slug, ...(queryArg.update || queryArg.create || {}) })
+      }
+      if (method === 'delete' || method === 'deleteMany') {
+        deleteOfflineListing(queryArg.where?.id || queryArg.where?.slug)
+        return { count: 1 }
+      }
       break
     }
 
@@ -224,6 +257,9 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
         if (queryArg.where?.key) return all.find((s) => s.key === queryArg.where.key) || null
         return all[0] || null
       }
+      if (method === 'create' || method === 'update' || method === 'upsert') {
+        return { key: queryArg.where?.key || queryArg.data?.key, value: queryArg.data?.value || queryArg.update?.value }
+      }
       break
     }
 
@@ -231,19 +267,56 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
       const all = getOfflineBanners()
       if (method === 'findMany') return all
       if (method === 'findUnique' || method === 'findFirst') return all[0] || null
+      if (method === 'count') return all.length
+      if (method === 'create') return saveOfflineBanner(queryArg.data || {})
+      if (method === 'update' || method === 'upsert') return saveOfflineBanner({ id: queryArg.where?.id, ...queryArg.data })
+      if (method === 'delete' || method === 'deleteMany') {
+        deleteOfflineBanner(queryArg.where?.id)
+        return { count: 1 }
+      }
       break
     }
 
     case 'story': {
-      return []
+      const all = getOfflineStories()
+      if (method === 'findMany') return all
+      if (method === 'findUnique' || method === 'findFirst') return all[0] || null
+      if (method === 'count') return all.length
+      if (method === 'create') return saveOfflineStory(queryArg.data || {})
+      if (method === 'update' || method === 'upsert') return saveOfflineStory({ id: queryArg.where?.id, ...queryArg.data })
+      if (method === 'delete' || method === 'deleteMany') {
+        deleteOfflineStory(queryArg.where?.id)
+        return { count: 1 }
+      }
+      break
     }
 
     case 'short': {
-      return []
+      const all = getOfflineShorts()
+      if (method === 'findMany') return all
+      if (method === 'findUnique' || method === 'findFirst') return all[0] || null
+      if (method === 'count') return all.length
+      if (method === 'create') return saveOfflineShort(queryArg.data || {})
+      if (method === 'update' || method === 'upsert') return saveOfflineShort({ id: queryArg.where?.id, ...queryArg.data })
+      if (method === 'delete' || method === 'deleteMany') {
+        deleteOfflineShort(queryArg.where?.id)
+        return { count: 1 }
+      }
+      break
     }
 
     case 'realEstate': {
-      return []
+      const all = getOfflineRealEstates()
+      if (method === 'findMany') return all
+      if (method === 'findUnique' || method === 'findFirst') return all[0] || null
+      if (method === 'count') return all.length
+      if (method === 'create') return saveOfflineRealEstate(queryArg.data || {})
+      if (method === 'update' || method === 'upsert') return saveOfflineRealEstate({ id: queryArg.where?.id, ...queryArg.data })
+      if (method === 'delete' || method === 'deleteMany') {
+        deleteOfflineRealEstate(queryArg.where?.id)
+        return { count: 1 }
+      }
+      break
     }
 
     case 'news': {
@@ -273,6 +346,12 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
         return all[0] || null
       }
       if (method === 'count') return all.length
+      if (method === 'create') return saveOfflineNews(queryArg.data || {})
+      if (method === 'update' || method === 'upsert') return saveOfflineNews({ id: queryArg.where?.id || queryArg.where?.slug, ...queryArg.data })
+      if (method === 'delete' || method === 'deleteMany') {
+        deleteOfflineNews(queryArg.where?.id || queryArg.where?.slug)
+        return { count: 1 }
+      }
       break
     }
 
@@ -306,6 +385,12 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
         return all[0] || null
       }
       if (method === 'count') return all.length
+      if (method === 'create') return saveOfflineBlog(queryArg.data || {})
+      if (method === 'update' || method === 'upsert') return saveOfflineBlog({ id: queryArg.where?.id || queryArg.where?.slug, ...queryArg.data })
+      if (method === 'delete' || method === 'deleteMany') {
+        deleteOfflineBlog(queryArg.where?.id || queryArg.where?.slug)
+        return { count: 1 }
+      }
       break
     }
 
@@ -365,16 +450,17 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
         return all[0] || null
       }
       if (method === 'create') {
-        const created = saveOfflineUser(queryArg.data || {})
-        return created
+        return saveOfflineUser(queryArg.data || {})
       }
       if (method === 'update') {
-        const updated = saveOfflineUser({ id: queryArg.where?.id, ...queryArg.data })
-        return updated
+        return saveOfflineUser({ id: queryArg.where?.id, ...queryArg.data })
       }
       if (method === 'upsert') {
-        const target = saveOfflineUser({ id: queryArg.where?.id, ...(queryArg.update || queryArg.create || {}) })
-        return target
+        return saveOfflineUser({ id: queryArg.where?.id, ...(queryArg.update || queryArg.create || {}) })
+      }
+      if (method === 'delete' || method === 'deleteMany') {
+        deleteOfflineUser(queryArg.where?.id)
+        return { count: 1 }
       }
       if (method === 'count') return all.length
       break
@@ -411,7 +497,7 @@ function createModelProxy(realModel: any, modelName: string) {
               const timeoutErr = new Error(`Database query ${modelName}.${method} timed out`)
               timeoutErr.name = 'TimeoutError'
               reject(timeoutErr)
-            }, 8000)
+            }, 1200)
           })
 
           const queryPromise = Promise.resolve().then(() => target[method](...args))
@@ -424,7 +510,6 @@ function createModelProxy(realModel: any, modelName: string) {
           }
         } catch (err: any) {
           if (isConnectionOrInitError(err)) {
-            console.warn(`[Prisma] Database query issue on ${modelName}.${method} (${err.name || err.message}). Fallback used.`)
             return handleOfflineQuery(modelName, method, args)
           }
           throw err
@@ -498,8 +583,8 @@ export async function safeDbQuery<T>(
   queryFn: () => Promise<T>,
   fallback: T,
   maxRetries = 1,
-  delayMs = 50,
-  timeoutMs = 2500
+  delayMs = 20,
+  timeoutMs = 1200
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let timer: NodeJS.Timeout | undefined
@@ -519,7 +604,6 @@ export async function safeDbQuery<T>(
       return (result !== undefined && result !== null) ? result : fallback
     } catch (err: any) {
       if (isConnectionOrInitError(err)) {
-        console.warn(`[Prisma safeDbQuery] Query error (${err.name || err.message}). Attempt ${attempt}/${maxRetries}.`)
         if (attempt === maxRetries) {
           return fallback
         }

@@ -42,6 +42,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
           <Link
             key={b.id}
             href={`/blog/${b.slug}`}
+            prefetch={true}
             className="hover-lift group flex w-full flex-col justify-between overflow-hidden rounded-2xl glass"
           >
             <div>
