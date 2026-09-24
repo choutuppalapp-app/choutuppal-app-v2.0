@@ -44,6 +44,7 @@ const getExplorePageData = cache(async (category?: string, village?: string, q?:
             id: true,
             title: true,
             slug: true,
+            type: true,
             coverImage: true,
             logo: true,
             avgRating: true,
@@ -78,7 +79,7 @@ const getExplorePageData = cache(async (category?: string, village?: string, q?:
               : {}),
           },
           orderBy: { createdAt: 'desc' },
-          take: 24,
+          take: 50,
           select: {
             id: true,
             title: true,
@@ -104,7 +105,7 @@ const getExplorePageData = cache(async (category?: string, village?: string, q?:
 export default async function ExplorePage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; village?: string; q?: string }>
+  searchParams: Promise<{ category?: string; village?: string; q?: string; tab?: string; type?: string }>
 }) {
   const params = await searchParams
   const { listings, realEstates, villages, categories } = await getExplorePageData(
@@ -112,6 +113,8 @@ export default async function ExplorePage({
     params.village,
     params.q,
   )
+
+  const initialTab = (params.tab || (params.type === 'SERVICE' ? 'services' : params.type === 'REAL_ESTATE' ? 'realestate' : 'businesses')) as 'businesses' | 'services' | 'realestate'
 
   return (
     <ExploreGrid
@@ -122,6 +125,7 @@ export default async function ExplorePage({
       initialCategory={params.category ?? 'all'}
       initialVillage={params.village ?? 'all'}
       initialQuery={params.q ?? ''}
+      initialTab={initialTab}
     />
   )
 }

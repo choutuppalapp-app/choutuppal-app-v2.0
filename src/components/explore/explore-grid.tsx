@@ -1,15 +1,14 @@
 'use client'
-import Image from 'next/image';
-
+import Image from 'next/image'
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import {
   Search, MapPin, Tag, SlidersHorizontal, X, Star,
-  MessageCircle, Home as HomeIcon, IndianRupee, BedDouble, Maximize, Crown,
+  MessageCircle, IndianRupee, BedDouble, Maximize, Crown,
   UtensilsCrossed, HeartPulse, Car, GraduationCap, ShoppingBag, Wrench,
   Sprout, Truck, Smartphone, Store, Layers, Loader2, Globe, Flame, Armchair,
-  Zap, BrickWall, Paintbrush, Shirt, Briefcase, Building2,
+  Zap, BrickWall, Paintbrush, Shirt, Briefcase, Building2, PhoneCall,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -19,12 +18,13 @@ import { Badge } from '@/components/ui/badge'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import type { Listing, RealEstate, Category, Village } from '@prisma/client'
+import type { Category, Village } from '@prisma/client'
 
 type ListingItem = {
   id: string
   title: string
   slug: string
+  type?: string | null
   coverImage: string | null
   logo?: string | null
   avgRating?: number | null
@@ -62,9 +62,23 @@ interface ExploreGridProps {
   initialCategory: string
   initialVillage: string
   initialQuery: string
+  initialTab?: 'businesses' | 'services' | 'realestate'
 }
 
-type TabType = 'businesses' | 'realestate'
+type TabType = 'businesses' | 'services' | 'realestate'
+
+const SERVICE_CATEGORY_SLUGS = new Set([
+  'services',
+  'automobile',
+  'engineering-welding',
+  'electrical-hardware',
+  'interior-decor',
+  'building-materials',
+  'transport',
+  'plumber',
+  'electrician',
+  'mechanic',
+])
 
 const CATEGORY_ICON_MAP: Record<string, LucideIcon> = {
   'food-dining': UtensilsCrossed,
@@ -96,10 +110,11 @@ export function ExploreGrid({
   initialCategory,
   initialVillage,
   initialQuery,
+  initialTab = 'businesses',
 }: ExploreGridProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const [tab, setTab] = useState<TabType>('businesses')
+  const [tab, setTab] = useState<TabType>(initialTab)
   const [query, setQuery] = useState(initialQuery)
   const [category, setCategory] = useState(initialCategory)
   const [village, setVillage] = useState(initialVillage)
@@ -115,8 +130,7 @@ export function ExploreGrid({
   useEffect(() => {
     setItems(initialListings)
     setPage(1)
-    // If pre-fetched batch is large (>= 150), all items are already in memory
-    setHasMore(initialListings.length >= 24 && initialListings.length < 150)
+    setHasMore(initialListings.length >= 24 && initialListings.length < 200)
   }, [initialListings])
 
   const fetchNextPage = useCallback(async () => {
@@ -180,21 +194,18 @@ export function ExploreGrid({
     }
   }, [fetchNextPage, hasMore, loadingMore])
 
-  // Dynamic instant client-side filtering by category, village, and search query
+  // Filter all base items by category, village, and search query
   const filteredListings = useMemo(() => {
     let result = items
 
-    // Filter by selected category pill/select
     if (category && category !== 'all') {
       result = result.filter((l) => l.category?.slug === category)
     }
 
-    // Filter by village
     if (village && village !== 'all') {
       result = result.filter((l) => l.village?.slug === village)
     }
 
-    // Filter search query matching name (title), phone, village name, or description
     if (query.trim()) {
       const q = query.toLowerCase().trim()
       result = result.filter((l) => {
@@ -212,6 +223,28 @@ export function ExploreGrid({
 
     return result
   }, [items, category, village, query])
+
+  // Split into Businesses, Services, and Real Estate
+  const { businesses, services, listingRealEstate } = useMemo(() => {
+    const bList: ListingItem[] = []
+    const sList: ListingItem[] = []
+    const reList: ListingItem[] = []
+
+    for (const item of filteredListings) {
+      const type = (item.type || '').toUpperCase()
+      const catSlug = item.category?.slug?.toLowerCase() || ''
+
+      if (type === 'REAL_ESTATE' || catSlug === 'real-estate') {
+        reList.push(item)
+      } else if (type === 'SERVICE' || SERVICE_CATEGORY_SLUGS.has(catSlug)) {
+        sList.push(item)
+      } else {
+        bList.push(item)
+      }
+    }
+
+    return { businesses: bList, services: sList, listingRealEstate: reList }
+  }, [filteredListings])
 
   const filteredRE = useMemo(() => {
     let result = realEstates
@@ -233,9 +266,12 @@ export function ExploreGrid({
     return result
   }, [realEstates, village, query])
 
-  const updateUrlParams = useCallback((newCat: string, newVill: string, newQ: string) => {
+  const totalRealEstateCount = filteredRE.length + listingRealEstate.length
+
+  const updateUrlParams = useCallback((newCat: string, newVill: string, newQ: string, newTab: TabType) => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams()
+    if (newTab && newTab !== 'businesses') params.set('tab', newTab)
     if (newCat && newCat !== 'all') params.set('category', newCat)
     if (newVill && newVill !== 'all') params.set('village', newVill)
     if (newQ && newQ.trim()) params.set('q', newQ.trim())
@@ -245,23 +281,28 @@ export function ExploreGrid({
     window.history.replaceState(null, '', newUrl)
   }, [pathname])
 
+  function handleTabChange(newTab: TabType) {
+    setTab(newTab)
+    updateUrlParams(category, village, query, newTab)
+  }
+
   function handleCategorySelect(slug: string) {
     setCategory(slug)
-    updateUrlParams(slug, village, query)
+    updateUrlParams(slug, village, query, tab)
   }
 
   function handleVillageSelect(vSlug: string) {
     setVillage(vSlug)
-    updateUrlParams(category, vSlug, query)
+    updateUrlParams(category, vSlug, query, tab)
   }
 
   function handleQueryChange(newQ: string) {
     setQuery(newQ)
-    updateUrlParams(category, village, newQ)
+    updateUrlParams(category, village, newQ, tab)
   }
 
   function applyFilters() {
-    updateUrlParams(category, village, query)
+    updateUrlParams(category, village, query, tab)
     setSheetOpen(false)
   }
 
@@ -275,7 +316,7 @@ export function ExploreGrid({
             <input
               value={query}
               onChange={(e) => handleQueryChange(e.target.value)}
-              placeholder="Search by business name, phone number, or village…"
+              placeholder="Search by name, service, phone number, or village…"
               className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             />
             {query ? (
@@ -434,28 +475,70 @@ export function ExploreGrid({
           })}
         </div>
 
-        {/* Tab toggle (Businesses vs Real Estate) */}
-        <div className="mb-5 flex items-center justify-between border-b border-slate-200/60 pb-3">
-          <div className="flex gap-2">
+        {/* 3-Way Tab toggle (Businesses vs Services vs Real Estate) */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4">
+          <div className="grid grid-cols-3 gap-1.5 sm:flex sm:gap-2.5 p-1 rounded-2xl bg-slate-200/50 backdrop-blur-md">
+            {/* Tab 1: Businesses */}
             <button
-              onClick={() => setTab('businesses')}
+              onClick={() => handleTabChange('businesses')}
               className={cn(
-                'rounded-full px-4 py-2 text-xs sm:text-sm font-semibold transition',
-                tab === 'businesses' ? 'gradient-brand text-white shadow-xs' : 'bg-white/60 text-slate-600 hover:bg-white',
+                'flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-200',
+                tab === 'businesses'
+                  ? 'bg-white text-blue-800 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               )}
             >
-              Businesses ({filteredListings.length})
+              <Store className="h-4 w-4 text-blue-600 shrink-0" />
+              <span>Businesses</span>
+              <span className={cn(
+                'rounded-full px-1.5 py-0.2 text-[10px] font-extrabold',
+                tab === 'businesses' ? 'bg-blue-100 text-blue-800' : 'bg-slate-300/60 text-slate-700'
+              )}>
+                {businesses.length}
+              </span>
             </button>
+
+            {/* Tab 2: Services */}
             <button
-              onClick={() => setTab('realestate')}
+              onClick={() => handleTabChange('services')}
               className={cn(
-                'rounded-full px-4 py-2 text-xs sm:text-sm font-semibold transition',
-                tab === 'realestate' ? 'gradient-brand text-white shadow-xs' : 'bg-white/60 text-slate-600 hover:bg-white',
+                'flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-200',
+                tab === 'services'
+                  ? 'bg-white text-amber-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
               )}
             >
-              Real Estate ({filteredRE.length})
+              <Wrench className="h-4 w-4 text-amber-600 shrink-0" />
+              <span>Services</span>
+              <span className={cn(
+                'rounded-full px-1.5 py-0.2 text-[10px] font-extrabold',
+                tab === 'services' ? 'bg-amber-100 text-amber-800' : 'bg-slate-300/60 text-slate-700'
+              )}>
+                {services.length}
+              </span>
+            </button>
+
+            {/* Tab 3: Real Estate */}
+            <button
+              onClick={() => handleTabChange('realestate')}
+              className={cn(
+                'flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold transition-all duration-200',
+                tab === 'realestate'
+                  ? 'bg-white text-emerald-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+              )}
+            >
+              <Building2 className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>Real Estate</span>
+              <span className={cn(
+                'rounded-full px-1.5 py-0.2 text-[10px] font-extrabold',
+                tab === 'realestate' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-300/60 text-slate-700'
+              )}>
+                {totalRealEstateCount}
+              </span>
             </button>
           </div>
+
           {(category !== 'all' || village !== 'all' || query) && (
             <button
               onClick={() => {
@@ -465,20 +548,23 @@ export function ExploreGrid({
                 const basePath = pathname.startsWith('/listings') ? '/listings' : '/explore'
                 router.push(basePath)
               }}
-              className="text-xs text-blue-600 hover:underline font-medium"
+              className="text-xs text-blue-600 hover:underline font-semibold self-end sm:self-auto"
             >
               Reset Filters
             </button>
           )}
         </div>
 
-        {/* Business/Service grid */}
-        {tab === 'businesses' ? (
-          filteredListings.length === 0 ? (
-            <EmptyState query={query} category={category} />
+        {/* Tab 1: Businesses Grid */}
+        {tab === 'businesses' && (
+          businesses.length === 0 ? (
+            <EmptyNotice
+              title="No Businesses Found"
+              subtitle="Try clearing category or village filters to view local shops and stores."
+            />
           ) : (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-              {filteredListings.map((l, idx) => {
+              {businesses.map((l) => {
                 const rating = (4 + (((l.views ?? 0) * 7) % 10) / 10).toFixed(1)
                 const cover = getCoverUrl(l)
                 const villageName = getVillage(l)
@@ -487,29 +573,31 @@ export function ExploreGrid({
                     key={l.id}
                     href={`/business/${l.slug}`}
                     prefetch={true}
-                    className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
+                    className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300 flex flex-col"
                   >
-                    <div className="relative aspect-[16/9] overflow-hidden">
+                    <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
                       <GridImage src={cover} alt={l.title} />
                       {l.isFeatured ? (
-                        <span className="absolute left-2 top-2 flex items-center gap-0.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 shadow-xs">
+                        <span className="absolute left-2 top-2 flex items-center gap-0.5 rounded-full bg-white/95 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 shadow-xs">
                           <Crown className="h-2.5 w-2.5" /> Premium
                         </span>
                       ) : null}
                     </div>
-                    <div className="p-2.5 md:p-3">
-                      <h3 className="truncate text-xs font-bold text-slate-900 md:text-sm">{l.title}</h3>
-                      <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-slate-500 md:text-xs">
-                        <span className="flex items-center gap-0.5">
-                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {rating}
-                        </span>
-                        <span>·</span>
-                        <span className="truncate">{l.category?.name ?? 'Business'}</span>
+                    <div className="p-2.5 md:p-3 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="truncate text-xs font-bold text-slate-900 md:text-sm">{l.title}</h3>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-slate-500 md:text-xs">
+                          <span className="flex items-center gap-0.5">
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {rating}
+                          </span>
+                          <span>·</span>
+                          <span className="truncate">{l.category?.name ?? 'Business'}</span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-400 md:text-xs">{villageName}</span>
+                      <div className="mt-2 flex items-center justify-between pt-1 border-t border-slate-100">
+                        <span className="text-[10px] text-slate-400 md:text-xs truncate">{villageName}</span>
                         {l.whatsapp ? (
-                          <MessageCircle className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                          <MessageCircle className="h-3.5 w-3.5 text-green-600 shrink-0" />
                         ) : null}
                       </div>
                     </div>
@@ -518,7 +606,163 @@ export function ExploreGrid({
               })}
             </div>
           )
-        ) : null}
+        )}
+
+        {/* Tab 2: Services Grid (Electricians, Plumbers, Mechanics, etc.) */}
+        {tab === 'services' && (
+          services.length === 0 ? (
+            <EmptyNotice
+              title="No Services Found"
+              subtitle="No mechanics, electricians, or technicians matched your search."
+            />
+          ) : (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+              {services.map((l) => {
+                const rating = (4.5 + (((l.views ?? 0) * 3) % 5) / 10).toFixed(1)
+                const cover = getCoverUrl(l)
+                const villageName = getVillage(l)
+                return (
+                  <div
+                    key={l.id}
+                    className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-amber-300 flex flex-col justify-between"
+                  >
+                    <Link href={`/business/${l.slug}`} prefetch={true} className="block">
+                      <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+                        <GridImage src={cover} alt={l.title} />
+                        <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-amber-500/90 text-white px-2 py-0.5 text-[9px] font-bold shadow-xs backdrop-blur-xs">
+                          <Wrench className="h-2.5 w-2.5" /> Service
+                        </span>
+                      </div>
+                      <div className="p-2.5 md:p-3">
+                        <h3 className="truncate text-xs font-bold text-slate-900 md:text-sm">{l.title}</h3>
+                        <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-slate-500 md:text-xs">
+                          <span className="flex items-center gap-0.5">
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {rating}
+                          </span>
+                          <span>·</span>
+                          <span className="truncate">{l.category?.name ?? 'Professional'}</span>
+                        </div>
+                        <p className="mt-1 text-[10px] text-slate-400 truncate">{villageName}</p>
+                      </div>
+                    </Link>
+
+                    {/* Quick Call / WhatsApp Action Bar */}
+                    <div className="px-2.5 pb-2.5 pt-1 grid grid-cols-2 gap-1.5 border-t border-slate-100">
+                      {l.phone ? (
+                        <a
+                          href={`tel:${l.phone}`}
+                          className="flex items-center justify-center gap-1 rounded-lg bg-blue-50 py-1.5 text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition"
+                        >
+                          <PhoneCall className="h-3 w-3" /> Call
+                        </a>
+                      ) : (
+                        <Link
+                          href={`/business/${l.slug}`}
+                          className="flex items-center justify-center rounded-lg bg-slate-100 py-1.5 text-[11px] font-semibold text-slate-700"
+                        >
+                          Details
+                        </Link>
+                      )}
+
+                      {l.whatsapp ? (
+                        <a
+                          href={`https://wa.me/91${l.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${l.title}, I found your service on Choutuppal App.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1 rounded-lg bg-emerald-50 py-1.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition"
+                        >
+                          <MessageCircle className="h-3 w-3" /> Book
+                        </a>
+                      ) : (
+                        <Link
+                          href={`/business/${l.slug}`}
+                          className="flex items-center justify-center rounded-lg bg-slate-100 py-1.5 text-[11px] font-semibold text-slate-700"
+                        >
+                          View
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        )}
+
+        {/* Tab 3: Real Estate Grid (Plots, Houses, Rentals) */}
+        {tab === 'realestate' && (
+          totalRealEstateCount === 0 ? (
+            <EmptyNotice
+              title="No Real Estate Found"
+              subtitle="No plots, houses, or commercial properties matched your criteria."
+            />
+          ) : (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+              {/* Items from RealEstate model */}
+              {filteredRE.map((r) => {
+                const reCover = getCoverUrl(r)
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/business/${r.slug}`}
+                    prefetch={true}
+                    className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-emerald-300"
+                  >
+                    <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+                      <GridImage src={reCover} alt={r.title} />
+                      <Badge className={`absolute left-2 top-2 ${r.listingType === 'SALE' ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'}`}>
+                        For {r.listingType === 'SALE' ? 'Sale' : 'Rent'}
+                      </Badge>
+                    </div>
+                    <div className="p-2.5 md:p-3">
+                      <h3 className="truncate text-xs font-bold text-slate-900 md:text-sm">{r.title}</h3>
+                      <div className="mt-0.5 flex items-baseline gap-0.5 text-blue-700">
+                        <IndianRupee className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                        <span className="text-base font-black md:text-lg">
+                          {new Intl.NumberFormat('en-IN').format(r.price).replace('₹', '')}{r.listingType === 'RENT' ? '/mo' : ''}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500 md:text-xs">
+                        {r.bedrooms ? <span className="flex items-center gap-0.5"><BedDouble className="h-3 w-3" /> {r.bedrooms}</span> : null}
+                        {r.areaSqft ? <span className="flex items-center gap-0.5"><Maximize className="h-3 w-3" /> {r.areaSqft} sqft</span> : null}
+                        <span className="flex items-center gap-0.5 truncate"><MapPin className="h-3 w-3 shrink-0" /> {r.village?.name ?? '—'}</span>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+
+              {/* Items from Listing model with type = REAL_ESTATE */}
+              {listingRealEstate.map((l) => {
+                const cover = getCoverUrl(l)
+                const villageName = getVillage(l)
+                return (
+                  <Link
+                    key={l.id}
+                    href={`/business/${l.slug}`}
+                    prefetch={true}
+                    className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-emerald-300"
+                  >
+                    <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+                      <GridImage src={cover} alt={l.title} />
+                      <Badge className="absolute left-2 top-2 bg-emerald-600 text-white">
+                        Property
+                      </Badge>
+                    </div>
+                    <div className="p-2.5 md:p-3">
+                      <h3 className="truncate text-xs font-bold text-slate-900 md:text-sm">{l.title}</h3>
+                      <p className="mt-1 text-[10px] text-slate-500 truncate">{l.category?.name ?? 'Real Estate'}</p>
+                      <div className="mt-1 flex items-center justify-between text-[10px] text-slate-400 md:text-xs">
+                        <span>{villageName}</span>
+                        {l.phone && <span className="font-semibold text-slate-700">{l.phone}</span>}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )
+        )}
 
         {/* Infinite Scroll Sentinel */}
         {tab === 'businesses' && (
@@ -536,58 +780,16 @@ export function ExploreGrid({
           </div>
         )}
 
-        {/* Real Estate grid */}
-        {tab === 'realestate' ? (
-          filteredRE.length === 0 ? (
-            <EmptyState query={query} category={category} />
-          ) : (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-              {filteredRE.map((r) => {
-                const reCover = getCoverUrl(r)
-                return (
-                  <Link
-                    key={r.id}
-                    href={`/business/${r.slug}`}
-                    prefetch={true}
-                    className="hover-lift group overflow-hidden rounded-2xl glass transition-all duration-200 hover:border-blue-300"
-                  >
-                    <div className="relative aspect-[16/9] overflow-hidden">
-                      <GridImage src={reCover} alt={r.title} />
-                      <Badge className={`absolute left-2 top-2 ${r.listingType === 'SALE' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
-                        For {r.listingType === 'SALE' ? 'Sale' : 'Rent'}
-                      </Badge>
-                    </div>
-                  <div className="p-2.5 md:p-3">
-                    <h3 className="truncate text-xs font-bold text-slate-900 md:text-sm">{r.title}</h3>
-                    <div className="mt-0.5 flex items-baseline gap-0.5 text-blue-700">
-                      <IndianRupee className="h-3 w-3 md:h-3.5 md:w-3.5" />
-                      <span className="text-base font-black md:text-lg">
-                        {new Intl.NumberFormat('en-IN').format(r.price).replace('₹', '')}{r.listingType === 'RENT' ? '/mo' : ''}
-                      </span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500 md:text-xs">
-                      {r.bedrooms ? <span className="flex items-center gap-0.5"><BedDouble className="h-3 w-3" /> {r.bedrooms}</span> : null}
-                      {r.areaSqft ? <span className="flex items-center gap-0.5"><Maximize className="h-3 w-3" /> {r.areaSqft}</span> : null}
-                      <span className="flex items-center gap-0.5 truncate"><MapPin className="h-3 w-3 shrink-0" /> {r.village?.name ?? '—'}</span>
-                    </div>
-                  </div>
-                </Link>
-                )
-              })}
-            </div>
-          )
-        ) : null}
-
         {/* Lead CTA Button below explore cards */}
         <div className="mt-8 flex justify-center">
           <a
-            href={`https://wa.me/919494348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, మీ యాప్ లో బిజినెస్ లిస్ట్ చేయాలనుకుంటున్నాను. దయచేసి మార్గనిర్దేశనం చేయండి.')}`}
+            href={`https://wa.me/919494348175?text=${encodeURIComponent('నమస్కారం చౌటుప్పల్ యాప్, మీ యాప్ లో బిజినెస్ లేదా సర్వీస్ లిస్ట్ చేయాలనుకుంటున్నాను. దయచేసి మార్గనిర్దేశనం చేయండి.')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-blue-600 bg-white/80 px-4 py-1.5 text-sm font-medium text-blue-600 shadow-xs backdrop-blur transition-all hover:bg-blue-50"
+            className="inline-flex items-center gap-2 rounded-full border border-blue-600 bg-white/80 px-4 py-2 text-sm font-semibold text-blue-600 shadow-xs backdrop-blur transition-all hover:bg-blue-50"
           >
             <MessageCircle className="h-4 w-4 shrink-0 text-emerald-600" />
-            <span>మీ బిజినెస్ జోడించండి</span>
+            <span>మీ బిజినెస్ / సర్వీస్ జోడించండి (WhatsApp)</span>
           </a>
         </div>
       </main>
@@ -595,16 +797,14 @@ export function ExploreGrid({
   )
 }
 
-function EmptyState({ query, category }: { query?: string; category?: string }) {
+function EmptyNotice({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4 my-4 animate-pulse">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="overflow-hidden rounded-2xl glass border border-slate-200/50 p-2.5 space-y-2">
-          <div className="aspect-[16/9] bg-slate-200/80 rounded-xl" />
-          <div className="h-4 bg-slate-200/80 rounded-md w-3/4" />
-          <div className="h-3 bg-slate-200/60 rounded-md w-1/2" />
-        </div>
-      ))}
+    <div className="my-10 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-8 text-center backdrop-blur-xs">
+      <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+        <Store className="h-6 w-6" />
+      </div>
+      <h4 className="text-sm font-bold text-slate-800 md:text-base">{title}</h4>
+      <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">{subtitle}</p>
     </div>
   )
 }

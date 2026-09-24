@@ -4,11 +4,16 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { Plus, Star, Heart, Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Story } from '@prisma/client'
-import { StoryCreator } from '@/components/stories/story-creator'
+
+const StoryCreator = dynamic(
+  () => import('@/components/stories/story-creator').then((m) => m.StoryCreator),
+  { ssr: false }
+)
 
 interface StoriesRailProps {
   stories: {

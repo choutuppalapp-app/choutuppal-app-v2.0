@@ -1,96 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
-import { uploadToR2, isR2Configured } from '@/lib/r2-storage'
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
- * POST /api/upload — High-performance image upload via Vercel Blob Storage.
- * Resolves "Vercel storage full" issues by hosting media assets on Vercel's global CDN.
- * 
- * Supports:
- * - Single or multiple file uploads (fields: 'file', 'files', 'image')
- * - Custom folder routing ('folder' in formData)
- * - Automatic unique file prefix: choutuppal-uploads/${Date.now()}-${sanitizedName}
- * - Seamless fallback if BLOB_READ_WRITE_TOKEN is not yet set
+ * Configure AWS S3 Client targeting Cloudflare R2 Endpoint
  */
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || ''
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || ''
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || ''
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || 'choutuppal-media'
+const R2_PUBLIC_BASE_URL = (process.env.R2_PUBLIC_BASE_URL || 'media.choutuppal.in').replace(/^https?:\/\//, '').replace(/\/$/, '')
+
+const r2Client = new S3Client({
+  region: 'auto',
+  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY_ID,
+    secretAccessKey: R2_SECRET_ACCESS_KEY,
+  },
+})
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const folder = (formData.get('folder') as string) || 'choutuppal-uploads'
+    const file = (formData.get('file') || formData.get('image')) as File | null
 
-    // Extract files from formData (supports 'file', 'files', or 'image')
-    const rawFiles: File[] = []
-    const allEntries = formData.getAll('files')
-    if (allEntries.length > 0) {
-      for (const entry of allEntries) {
-        if (entry && typeof entry === 'object' && 'arrayBuffer' in entry) {
-          rawFiles.push(entry as File)
-        }
-      }
-    } else {
-      const single = (formData.get('file') || formData.get('image')) as File | null
-      if (single && typeof single === 'object' && 'arrayBuffer' in single) {
-        rawFiles.push(single)
-      }
-    }
-
-    if (rawFiles.length === 0) {
+    if (!file || typeof file === 'string') {
       return NextResponse.json(
-        { ok: false, error: 'No files provided for upload' },
+        { error: 'No file uploaded. Please send multipart/form-data with "file" or "image".' },
         { status: 400 }
       )
     }
 
-    const hasBlobToken = Boolean(process.env.BLOB_READ_WRITE_TOKEN)
-    const uploadedResults: Array<{ url: string; key: string; size: number; contentType: string }> = []
+    // Convert File into Buffer
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
 
-    for (const file of rawFiles) {
-      const originalName = file.name || 'image.jpg'
-      const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_')
-      const blobPathname = `${folder}/${Date.now()}-${sanitizedName}`
-      const contentType = file.type || 'image/jpeg'
+    // Sanitize filename and construct key with requested unique prefix
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+    const key = `choutuppal-uploads/${Date.now()}-${sanitizedFileName}`
+    const contentType = file.type || 'application/octet-stream'
 
-      if (hasBlobToken) {
-        // Upload directly to Vercel Blob Storage
-        const blob = await put(blobPathname, file, {
-          access: 'public',
-          token: process.env.BLOB_READ_WRITE_TOKEN,
-          contentType,
-          addRandomSuffix: true,
-        })
+    // Upload to Cloudflare R2 via S3 PutObjectCommand
+    const command = new PutObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    })
 
-        uploadedResults.push({
-          url: blob.url,
-          key: blob.pathname,
-          size: file.size,
-          contentType,
-        })
-      } else if (isR2Configured) {
-        // Cloudflare R2 fallback
-        const r2Result = await uploadToR2(file, folder, contentType)
-        uploadedResults.push(r2Result)
-      } else {
-        // Local storage / fallback for environments without Vercel token
-        const fallbackResult = await uploadToR2(file, folder, contentType)
-        uploadedResults.push(fallbackResult)
-      }
-    }
+    await r2Client.send(command)
 
-    const primaryUrl = uploadedResults[0]?.url
+    // Construct the public R2 URL
+    const publicUrl = `https://${R2_PUBLIC_BASE_URL}/${key}`
 
     return NextResponse.json({
-      ok: true,
-      url: primaryUrl,
-      files: uploadedResults,
+      url: publicUrl,
+      key,
+      size: file.size,
+      contentType,
     })
   } catch (err: any) {
-    console.error('[UploadAPI] Error uploading image to Vercel Blob:', err)
+    console.error('[Cloudflare R2 Upload Error]:', err)
     return NextResponse.json(
       {
-        ok: false,
-        error: err?.message || 'Failed to upload image. Please verify your BLOB_READ_WRITE_TOKEN.',
+        error: err?.message || 'Failed to upload file to Cloudflare R2.',
       },
       { status: 500 }
     )

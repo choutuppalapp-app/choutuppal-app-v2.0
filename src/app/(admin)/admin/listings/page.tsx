@@ -4,6 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import {
   Store,
+  Wrench,
+  Building2,
   Search,
   Filter,
   CheckCircle,
@@ -21,6 +23,7 @@ import {
   Eye,
   Crown,
   Upload,
+  Layers,
 } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { BulkImportModal } from '@/components/admin/bulk-import-modal'
@@ -43,6 +46,7 @@ export default function AdminListingsPage() {
   // Filters
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('ALL')
+  const [typeFilter, setTypeFilter] = useState('ALL')
   const [categoryFilter, setCategoryFilter] = useState('ALL')
 
   // Modals state
@@ -54,6 +58,7 @@ export default function AdminListingsPage() {
     title: '',
     phone: '',
     whatsapp: '',
+    type: 'BUSINESS',
     categoryId: 'cat-services',
     villageId: 'cmsepb40r0000jv04tdwwd5cw',
     address: '',
@@ -94,15 +99,18 @@ export default function AdminListingsPage() {
         item.village?.name?.toLowerCase().includes(search.toLowerCase())
 
       const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter
+      const itemType = (item.type || 'BUSINESS').toUpperCase()
+      const matchesType = typeFilter === 'ALL' || itemType === typeFilter
+
       const matchesCat =
         categoryFilter === 'ALL' ||
         item.categoryId === categoryFilter ||
         item.category?.id === categoryFilter ||
         item.category?.slug === categoryFilter
 
-      return matchesSearch && matchesStatus && matchesCat
+      return matchesSearch && matchesStatus && matchesType && matchesCat
     })
-  }, [listings, search, statusFilter, categoryFilter])
+  }, [listings, search, statusFilter, typeFilter, categoryFilter])
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     try {
@@ -165,6 +173,7 @@ export default function AdminListingsPage() {
       title: listing.title || '',
       phone: listing.phone || '',
       whatsapp: listing.whatsapp || '',
+      type: listing.type || 'BUSINESS',
       categoryId: listing.categoryId || listing.category?.id || 'cat-services',
       villageId: listing.villageId || listing.village?.id || 'cmsepb40r0000jv04tdwwd5cw',
       address: listing.address || '',
@@ -271,6 +280,17 @@ export default function AdminListingsPage() {
 
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
             <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 focus:border-blue-700 focus:outline-none"
+            >
+              <option value="ALL">All Types (అన్నీ)</option>
+              <option value="BUSINESS">Businesses (వ్యాపారాలు)</option>
+              <option value="SERVICE">Services (సేవలు)</option>
+              <option value="REAL_ESTATE">Real Estate (రియల్ ఎస్టేట్)</option>
+            </select>
+
+            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 focus:border-blue-700 focus:outline-none"
@@ -311,6 +331,7 @@ export default function AdminListingsPage() {
               <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="px-5 py-3.5">Business / Shop</th>
+                  <th className="px-4 py-3.5">Type</th>
                   <th className="px-4 py-3.5">Category</th>
                   <th className="px-4 py-3.5">Phone & WhatsApp</th>
                   <th className="px-4 py-3.5">Village / Ward</th>
@@ -322,26 +343,40 @@ export default function AdminListingsPage() {
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-slate-500 text-sm">
+                    <td colSpan={8} className="px-5 py-12 text-center text-slate-500 text-sm">
                       Loading merchant directory...
                     </td>
                   </tr>
                 ) : filteredListings.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-slate-500 text-sm">
+                    <td colSpan={8} className="px-5 py-12 text-center text-slate-500 text-sm">
                       No listings match your search criteria.
                     </td>
                   </tr>
                 ) : (
-                  filteredListings.map((item, idx) => (
+                  filteredListings.map((item, idx) => {
+                    const itemType = (item.type || 'BUSINESS').toUpperCase()
+                    return (
                     <tr
                       key={item.id}
                       className={idx % 2 === 1 ? 'bg-slate-50/40 hover:bg-slate-50' : 'bg-white hover:bg-slate-50'}
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-start gap-3">
-                          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">
-                            <Store className="h-4 w-4" />
+                          <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg font-bold text-xs border ${
+                            itemType === 'SERVICE'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : itemType === 'REAL_ESTATE'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-blue-50 text-blue-700 border-blue-100'
+                          }`}>
+                            {itemType === 'SERVICE' ? (
+                              <Wrench className="h-4 w-4" />
+                            ) : itemType === 'REAL_ESTATE' ? (
+                              <Building2 className="h-4 w-4" />
+                            ) : (
+                              <Store className="h-4 w-4" />
+                            )}
                           </div>
                           <div>
                             <p className="font-semibold text-slate-900 text-sm leading-tight">
@@ -352,6 +387,18 @@ export default function AdminListingsPage() {
                             </p>
                           </div>
                         </div>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <span className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-bold ${
+                          itemType === 'SERVICE'
+                            ? 'bg-amber-100 text-amber-800'
+                            : itemType === 'REAL_ESTATE'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {itemType === 'SERVICE' ? 'Service' : itemType === 'REAL_ESTATE' ? 'Real Estate' : 'Business'}
+                        </span>
                       </td>
 
                       <td className="px-4 py-4">
@@ -462,7 +509,8 @@ export default function AdminListingsPage() {
                         </div>
                       </td>
                     </tr>
-                  ))
+                    )
+                  })
                 )}
               </tbody>
             </table>
@@ -475,10 +523,10 @@ export default function AdminListingsPage() {
         <DialogContent className="max-w-lg bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-900">
-              Edit Business Listing
+              Edit Listing
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Update details, phone contacts, category, and approval status.
+              Update details, type, phone contacts, category, and approval status.
             </DialogDescription>
           </DialogHeader>
 
@@ -492,6 +540,34 @@ export default function AdminListingsPage() {
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700">Listing Type</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none font-semibold text-slate-800"
+                >
+                  <option value="BUSINESS">Business / Shop (వ్యాపారం)</option>
+                  <option value="SERVICE">Service / Professional (సేవ)</option>
+                  <option value="REAL_ESTATE">Real Estate (రియల్ ఎస్టేట్)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                >
+                  <option value="APPROVED">APPROVED (ఆమోదించినవి)</option>
+                  <option value="PENDING">PENDING (పెండింగ్)</option>
+                  <option value="REJECTED">REJECTED (తిరస్కరించినవి)</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -516,34 +592,19 @@ export default function AdminListingsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700">Category</label>
-                <select
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id || c.slug} value={c.id || c.slug}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  <option value="APPROVED">APPROVED (ఆమోదించినవి)</option>
-                  <option value="PENDING">PENDING (పెండింగ్)</option>
-                  <option value="REJECTED">REJECTED (తిరస్కరించినవి)</option>
-                </select>
-              </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700">Category</label>
+              <select
+                value={formData.categoryId}
+                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+              >
+                {categories.map((c) => (
+                  <option key={c.id || c.slug} value={c.id || c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -602,16 +663,16 @@ export default function AdminListingsPage() {
         <DialogContent className="max-w-lg bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-900">
-              Register New Business Listing
+              Register New Listing
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Directly add a shop to Choutuppal Directory with immediate approval.
+              Directly add a business, service, or real estate listing to Choutuppal Directory.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleCreateListing} className="space-y-4 pt-3">
             <div>
-              <label className="text-xs font-bold text-slate-700">Shop / Business Name *</label>
+              <label className="text-xs font-bold text-slate-700">Listing Title / Business Name *</label>
               <input
                 type="text"
                 required
@@ -620,6 +681,33 @@ export default function AdminListingsPage() {
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700">Listing Type</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none font-semibold text-slate-800"
+                >
+                  <option value="BUSINESS">Business / Shop (వ్యాపారం)</option>
+                  <option value="SERVICE">Service / Professional (సేవ)</option>
+                  <option value="REAL_ESTATE">Real Estate (రియల్ ఎస్టేట్)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                >
+                  <option value="APPROVED">APPROVED (ఆమోదించినవి)</option>
+                  <option value="PENDING">PENDING (పెండింగ్)</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -646,33 +734,19 @@ export default function AdminListingsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700">Category</label>
-                <select
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id || c.slug} value={c.id || c.slug}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  <option value="APPROVED">APPROVED (ఆమోదించినవి)</option>
-                  <option value="PENDING">PENDING (పెండింగ్)</option>
-                </select>
-              </div>
+            <div>
+              <label className="text-xs font-bold text-slate-700">Category</label>
+              <select
+                value={formData.categoryId}
+                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+              >
+                {categories.map((c) => (
+                  <option key={c.id || c.slug} value={c.id || c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>

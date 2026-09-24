@@ -84,6 +84,11 @@ export default async function Home() {
       <StickySocials />
 
       <main className="flex-1">
+        {/* Semantic H1 for Lighthouse Accessibility & SEO */}
+        <h1 className="sr-only">
+          చౌటుప్పల్ లోకల్ బిజినెస్ డైరెక్టరీ, రియల్ ఎస్టేట్ &amp; సర్వీసెస్ — Choutuppal Local Business &amp; Community App
+        </h1>
+
         <div className="mx-auto flex w-full overflow-visible max-w-7xl flex-col gap-6 sm:gap-7 px-3 py-4 sm:px-4 sm:py-6 lg:px-6 relative z-20">
           {/* 1. Stories & Banners */}
           <div className="relative w-full overflow-hidden bg-white/40 backdrop-blur-md rounded-[2rem] p-4 shadow-sm border border-white/50">

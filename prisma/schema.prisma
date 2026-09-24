@@ -167,6 +167,7 @@ model Listing {
   description String
 
   status     String  @default("PENDING")
+  type       String  @default("BUSINESS") // BUSINESS, SERVICE, REAL_ESTATE
   isFeatured Boolean @default(false)
   isPremium  Boolean @default(false)
 
@@ -210,6 +211,7 @@ model Listing {
   updatedAt DateTime @updatedAt
 
   @@index([status])
+  @@index([type])
   @@index([isFeatured])
   @@index([categoryId])
   @@index([villageId])

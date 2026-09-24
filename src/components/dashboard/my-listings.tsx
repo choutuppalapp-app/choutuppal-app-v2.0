@@ -1,11 +1,13 @@
 'use client'
 import Image from 'next/image';
 
+import Link from 'next/link'
 import { useState } from 'react'
-import { Store, Plus, Trash2, Eye, MapPin, BadgeCheck, Clock, XCircle } from 'lucide-react'
+import { Store, Plus, Trash2, Eye, MapPin, BadgeCheck, Clock, XCircle, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+import { ListingQrCodeModal } from '@/components/business/listing-qr-code'
 import type { Listing, Category, Village } from '@prisma/client'
 
 type Item = Listing & {
@@ -19,8 +21,8 @@ export function MyListings({
   onEdit,
 }: {
   listings: Item[]
-  onAdd: () => void
-  onEdit: (item: Item) => void
+  onAdd?: () => void
+  onEdit?: (item: Item) => void
 }) {
   const [items, setItems] = useState<Item[]>(listings)
 
@@ -43,9 +45,11 @@ export function MyListings({
           <h2 className="text-xl font-bold text-slate-900">My Listings</h2>
           <p className="text-sm text-slate-500">{items.length} business/service listings</p>
         </div>
-        <Button onClick={onAdd} size="sm" className="gap-1.5 gradient-brand text-white">
-          <Plus className="h-4 w-4" /> Add
-        </Button>
+        <Link href="/profile/listings/new">
+          <Button size="sm" className="gap-1.5 gradient-brand text-white">
+            <Plus className="h-4 w-4" /> Add Listing
+          </Button>
+        </Link>
       </div>
 
       {items.length === 0 ? (
@@ -53,65 +57,110 @@ export function MyListings({
           icon={Store}
           title="No listings yet"
           desc="Add your first business or service listing to reach local customers."
-          action={<Button onClick={onAdd} className="gap-2 gradient-brand text-white"><Plus className="h-4 w-4" /> Add Listing</Button>}
+          action={
+            <Link href="/profile/listings/new">
+              <Button className="gap-2 gradient-brand text-white">
+                <Plus className="h-4 w-4" /> Add Listing
+              </Button>
+            </Link>
+          }
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          {items.map((l) => (
-            <div key={l.id} className="hover-lift overflow-hidden rounded-2xl glass">
-              <div className="relative aspect-[16/9]">
-                {l.coverImage ? (
-                  <Image width={800} height={800} loading="lazy" decoding="async" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" src={l.coverImage} alt={l.title} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white">
-                    {l.title.charAt(0)}
+          {items.map((l) => {
+            const waBookingLink = `https://wa.me/919494348175?text=${encodeURIComponent(
+              `Hi I want to book ${l.title} in Choutuppal`
+            )}`
+
+            return (
+              <div key={l.id} className="hover-lift overflow-hidden rounded-2xl glass flex flex-col justify-between">
+                <div>
+                  <div className="relative aspect-[16/9]">
+                    {l.coverImage ? (
+                      <Image
+                        width={800}
+                        height={800}
+                        loading="lazy"
+                        decoding="async"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        src={l.coverImage}
+                        alt={l.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center gradient-brand text-3xl font-black text-white">
+                        {l.title.charAt(0)}
+                      </div>
+                    )}
+                    <StatusBadge status={l.status} className="absolute left-3 top-3" />
+                    {l.isFeatured ? (
+                      <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                        <BadgeCheck className="h-3 w-3 text-blue-600" /> Featured
+                      </span>
+                    ) : null}
                   </div>
-                )}
-                <StatusBadge status={l.status} className="absolute left-3 top-3" />
-                {l.isFeatured ? (
-                  <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                    <BadgeCheck className="h-3 w-3 text-blue-600" /> Featured
-                  </span>
-                ) : null}
-              </div>
-              <div className="p-3.5">
-                <h3 className="truncate font-bold text-slate-900">{l.title}</h3>
-                <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">{l.description}</p>
-                <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-500">
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-3 w-3 text-blue-500" /> {l.views}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-amber-500" /> {l.village?.name ?? '—'}
-                  </span>
-                  <span className="text-slate-400">{l.category?.name ?? 'Business'}</span>
+                  <div className="p-3.5">
+                    <h3 className="truncate font-bold text-slate-900">{l.title}</h3>
+                    <p className="mt-0.5 line-clamp-1 text-xs text-slate-500">{l.description}</p>
+                    <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <Eye className="h-3 w-3 text-blue-500" /> {l.views}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3 text-amber-500" /> {l.village?.name ?? '—'}
+                      </span>
+                      <span className="text-slate-400">{l.category?.name ?? 'Business'}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-3 flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => onEdit(l)} className="flex-1 gap-1.5 text-xs">
-                    Edit
-                  </Button>
+
+                <div className="p-3.5 pt-0 space-y-2">
+                  {/* WhatsApp Booking Link button */}
                   <a
-                    href={`https://wa.me/?text=${encodeURIComponent(
-                      `Check out ${l.title} on Choutuppal App: ${typeof window !== 'undefined' ? window.location.origin : 'https://choutuppal.in'}/business/${l.slug}`,
-                    )}`}
+                    href={waBookingLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition"
                   >
-                    Share
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    Book on WhatsApp
                   </a>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => remove(l.id)}
-                    className="gap-1.5 border-red-200 text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+
+                  <div className="flex items-center gap-2">
+                    <ListingQrCodeModal
+                      listingId={l.id}
+                      slug={l.slug}
+                      title={l.title}
+                      categoryName={l.category?.name}
+                      villageName={l.village?.name}
+                      logoUrl={l.logo}
+                      phone={l.phone}
+                      variant="button"
+                      className="flex-1"
+                    />
+                    {onEdit && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onEdit(l)}
+                        className="flex-1 gap-1.5 text-xs"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => remove(l.id)}
+                      className="gap-1.5 border-red-200 text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

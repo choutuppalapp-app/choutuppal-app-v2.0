@@ -18,12 +18,17 @@ export async function GET(request: NextRequest) {
 
     const category = searchParams.get('category')
     const village = searchParams.get('village')
+    const type = searchParams.get('type') // BUSINESS, SERVICE, REAL_ESTATE
     const q = searchParams.get('q')?.trim()
 
     const where: any = {
       ...tenantFilter,
       status: 'APPROVED',
       OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    }
+
+    if (type && type !== 'ALL') {
+      where.type = type.toUpperCase()
     }
 
     if (category && category !== 'all') {
@@ -58,6 +63,7 @@ export async function GET(request: NextRequest) {
               id: true,
               title: true,
               slug: true,
+              type: true,
               coverImage: true,
               logo: true,
               avgRating: true,

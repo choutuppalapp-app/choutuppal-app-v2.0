@@ -2,15 +2,29 @@
 
 import nextDynamic from 'next/dynamic'
 
-// Direct components for Above-the-fold content (Instant Server-Rendered HTML, zero layout shift)
+// Direct components for Above-the-fold critical viewport
 export { StoriesRail } from '@/components/home/stories-rail'
 export { BannerCarousel } from '@/components/home/banner-carousel'
 export { CategoriesGrid } from '@/components/home/categories-grid'
 export { FeaturedRail } from '@/components/home/featured-rail'
-export { RealEstateRail } from '@/components/home/real-estate-rail'
-export { NewsGrid } from '@/components/home/news-grid'
-export { SendNewsCTA } from '@/components/home/send-news-cta'
-export { BlogGrid } from '@/components/home/blog-grid'
+
+// Dynamic components for below-the-fold content (Splits JS chunks to save ~35 KiB on initial render)
+export const RealEstateRail = nextDynamic(
+  () => import('@/components/home/real-estate-rail').then((m) => ({ default: m.RealEstateRail })),
+  { ssr: true }
+)
+export const NewsGrid = nextDynamic(
+  () => import('@/components/home/news-grid').then((m) => ({ default: m.NewsGrid })),
+  { ssr: true }
+)
+export const SendNewsCTA = nextDynamic(
+  () => import('@/components/home/send-news-cta').then((m) => ({ default: m.SendNewsCTA })),
+  { ssr: true }
+)
+export const BlogGrid = nextDynamic(
+  () => import('@/components/home/blog-grid').then((m) => ({ default: m.BlogGrid })),
+  { ssr: true }
+)
 
 // Lazy-loaded components for below-the-fold heavy interactive widgets
 const LazySkeleton = () => <div className="h-48 w-full rounded-2xl bg-slate-100/60 animate-pulse my-4" />

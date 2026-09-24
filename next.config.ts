@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
 
+const r2PublicDomain = (process.env.R2_PUBLIC_BASE_URL || "")
+  .replace(/^https?:\/\//, "")
+  .replace(/\/.*$/, "")
+  .trim();
+
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
@@ -22,12 +27,48 @@ const nextConfig: NextConfig = {
       "@radix-ui/react-icons",
       "motion",
       "date-fns",
+      "sonner",
+      "clsx",
+      "tailwind-merge",
     ],
   },
+  productionBrowserSourceMaps: false,
   images: {
     formats: ["image/avif", "image/webp"],
-    qualities: [60, 75, 80, 100],
+    qualities: [60, 70, 75, 80],
+    deviceSizes: [360, 480, 640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 86400,
     remotePatterns: [
+      ...(r2PublicDomain
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: r2PublicDomain,
+              pathname: "/**",
+            },
+          ]
+        : []),
+      {
+        protocol: "https",
+        hostname: "media.choutuppal.in",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "media.choutuppal.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.r2.dev",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.r2.cloudflarestorage.com",
+        pathname: "/**",
+      },
       {
         protocol: "https",
         hostname: "*.vercel-storage.com",
@@ -46,6 +87,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "i.ibb.co",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
         pathname: "/**",
       },
       { protocol: "https", hostname: "**" },

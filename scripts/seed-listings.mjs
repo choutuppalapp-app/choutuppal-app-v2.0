@@ -79,6 +79,45 @@ function slugify(text) {
     .slice(0, 60)
 }
 
+function mapListingType(rawCategory, mappedSlug, title) {
+  const text = `${rawCategory || ''} ${mappedSlug || ''} ${title || ''}`.toLowerCase()
+  if (
+    text.includes('real-estate') ||
+    text.includes('real estate') ||
+    text.includes('property') ||
+    text.includes('plot') ||
+    text.includes('house') ||
+    text.includes('land') ||
+    text.includes('flat')
+  ) {
+    return 'REAL_ESTATE'
+  }
+  if (
+    text.includes('service') ||
+    text.includes('automobile') ||
+    text.includes('auto') ||
+    text.includes('bike') ||
+    text.includes('car') ||
+    text.includes('electrical') ||
+    text.includes('electrician') ||
+    text.includes('engineering') ||
+    text.includes('welding') ||
+    text.includes('plumber') ||
+    text.includes('mechanic') ||
+    text.includes('transport') ||
+    text.includes('driver') ||
+    text.includes('travel') ||
+    text.includes('carpenter') ||
+    text.includes('painter') ||
+    text.includes('repair') ||
+    text.includes('hardware')
+  ) {
+    return 'SERVICE'
+  }
+  // Default to BUSINESS (Retail, Food & Dining, Kirana, Internet, Electronics, Medical, etc.)
+  return 'BUSINESS'
+}
+
 // Helper to extract data from src/data/listings.ts
 function loadListingsFromSource() {
   const filePath = path.join(process.cwd(), 'src/data/listings.ts')
@@ -297,12 +336,14 @@ async function seedListings() {
       const isApproved = true
       const isPremium = Boolean(item.is_premium || item.isPremium || false)
       const isFeatured = Boolean(item.is_featured || item.isFeatured || false)
+      const listingType = mapListingType(rawCat, mappedSlug, title)
 
       const listingRecord = {
         id: `list-seed-${i + 1}`,
         title,
         slug: uniqueSlug,
         description,
+        type: listingType,
         phone,
         whatsapp: item.whatsapp || phone,
         address,
@@ -325,6 +366,7 @@ async function seedListings() {
             update: {
               title: listingRecord.title,
               description: listingRecord.description,
+              type: listingRecord.type,
               phone: listingRecord.phone,
               whatsapp: listingRecord.whatsapp,
               address: listingRecord.address,
@@ -338,6 +380,7 @@ async function seedListings() {
               title: listingRecord.title,
               slug: listingRecord.slug,
               description: listingRecord.description,
+              type: listingRecord.type,
               phone: listingRecord.phone,
               whatsapp: listingRecord.whatsapp,
               address: listingRecord.address,
@@ -360,6 +403,7 @@ async function seedListings() {
               update: {
                 title: listingRecord.title,
                 description: listingRecord.description,
+                type: listingRecord.type,
                 phone: listingRecord.phone,
                 whatsapp: listingRecord.whatsapp,
                 address: listingRecord.address,
@@ -373,6 +417,7 @@ async function seedListings() {
                 title: listingRecord.title,
                 slug: listingRecord.slug,
                 description: listingRecord.description,
+                type: listingRecord.type,
                 phone: listingRecord.phone,
                 whatsapp: listingRecord.whatsapp,
                 address: listingRecord.address,

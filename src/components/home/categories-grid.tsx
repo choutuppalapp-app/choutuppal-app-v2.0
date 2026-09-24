@@ -201,27 +201,27 @@ export function CategoriesGrid() {
             <button
               type="button"
               onClick={() => handleScroll('left')}
-              className="p-1.5 rounded-full border border-slate-200 bg-white/90 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors shadow-xs active:scale-95"
-              aria-label="Scroll left"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors shadow-xs active:scale-95"
+              aria-label="Scroll left categories"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={18} />
             </button>
             <button
               type="button"
               onClick={() => handleScroll('right')}
-              className="p-1.5 rounded-full border border-slate-200 bg-white/90 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors shadow-xs active:scale-95"
-              aria-label="Scroll right"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors shadow-xs active:scale-95"
+              aria-label="Scroll right categories"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={18} />
             </button>
           </div>
 
           <Link
             href="/listings"
-            className="group inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+            className="group inline-flex items-center gap-1 min-h-[44px] px-2 py-1 text-xs sm:text-sm font-bold text-blue-700 hover:text-blue-900 transition-colors"
           >
             <span>View All</span>
-            <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
       </div>

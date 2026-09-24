@@ -382,15 +382,16 @@ export function DashboardShell({ data: initialData }: DashboardShellProps) {
                 </span>
               </Button>
 
-              <Button
-                onClick={() => openAdd('business')}
-                size="sm"
-                className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/30"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Add Listing</span>
-                <span className="sm:hidden">Add</span>
-              </Button>
+              <Link href="/profile/listings/new">
+                <Button
+                  size="sm"
+                  className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/30"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Add Listing</span>
+                  <span className="sm:hidden">Add</span>
+                </Button>
+              </Link>
 
               <Button
                 onClick={() => signOut({ callbackUrl: '/' })}

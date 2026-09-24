@@ -8,6 +8,8 @@ import { authConfig } from '@/lib/auth.config'
 import { getOfflineUsers } from '@/lib/offline-data'
 
 const useSecure = process.env.NODE_ENV === 'production' || process.env.NEXTAUTH_URL?.startsWith('https://')
+const isChoutuppalHost = (process.env.NEXTAUTH_URL || '').includes('choutuppal.in')
+const cookieDomain = isChoutuppalHost ? '.choutuppal.in' : undefined
 
 export const authOptions: NextAuthOptions = {
   ...authConfig,
@@ -22,6 +24,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: useSecure,
+        domain: cookieDomain,
       },
     },
   },

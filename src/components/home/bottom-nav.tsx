@@ -33,30 +33,33 @@ export function BottomNav() {
       <Link
         id="bottom-nav-home"
         href="/"
-        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[40px] transition active:scale-95"
+        aria-label="Home page"
+        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[44px] min-h-[48px] transition active:scale-95"
       >
-        <Home className={cn('h-5 w-5 transition-colors', isActive('/') ? 'text-blue-600 stroke-[2.5]' : 'text-gray-500')} />
-        <span className={cn('text-[9px] font-semibold transition-colors', isActive('/') ? 'text-blue-600' : 'text-gray-500')}>Home</span>
+        <Home className={cn('h-5 w-5 transition-colors', isActive('/') ? 'text-blue-600 stroke-[2.5]' : 'text-slate-600')} />
+        <span className={cn('text-[10px] font-bold transition-colors', isActive('/') ? 'text-blue-600' : 'text-slate-600')}>Home</span>
       </Link>
 
       {/* Shorts */}
       <Link
         id="bottom-nav-shorts"
         href="/shorts"
-        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[40px] transition active:scale-95"
+        aria-label="Local shorts and reels"
+        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[44px] min-h-[48px] transition active:scale-95"
       >
-        <Clapperboard className={cn('h-5 w-5 transition-colors', isActive('/shorts') ? 'text-blue-600 stroke-[2.5]' : 'text-gray-500')} />
-        <span className={cn('text-[9px] font-semibold transition-colors', isActive('/shorts') ? 'text-blue-600' : 'text-gray-500')}>Shorts</span>
+        <Clapperboard className={cn('h-5 w-5 transition-colors', isActive('/shorts') ? 'text-blue-600 stroke-[2.5]' : 'text-slate-600')} />
+        <span className={cn('text-[10px] font-bold transition-colors', isActive('/shorts') ? 'text-blue-600' : 'text-slate-600')}>Shorts</span>
       </Link>
 
       {/* Explore */}
       <Link
         id="bottom-nav-explore"
         href="/listings"
-        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[40px] transition active:scale-95"
+        aria-label="Explore all businesses"
+        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[44px] min-h-[48px] transition active:scale-95"
       >
-        <Compass className={cn('h-5 w-5 transition-colors', isActive('/listings') ? 'text-blue-600 stroke-[2.5]' : 'text-gray-500')} />
-        <span className={cn('text-[9px] font-semibold transition-colors', isActive('/listings') ? 'text-blue-600' : 'text-gray-500')}>Explore</span>
+        <Compass className={cn('h-5 w-5 transition-colors', isActive('/listings') ? 'text-blue-600 stroke-[2.5]' : 'text-slate-600')} />
+        <span className={cn('text-[10px] font-bold transition-colors', isActive('/listings') ? 'text-blue-600' : 'text-slate-600')}>Explore</span>
       </Link>
 
       {/* Center FAB — Add */}
@@ -64,8 +67,8 @@ export function BottomNav() {
         <Link
           id="bottom-nav-add"
           href="/dashboard?tab=add-listing"
-          aria-label="Add new listing"
-          className="-mt-7 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 text-white shadow-lg transition active:scale-95"
+          aria-label="Add new business listing"
+          className="-mt-7 flex h-12 w-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-yellow-500 text-white shadow-lg transition active:scale-95"
         >
           <Plus className="h-7 w-7" />
         </Link>
@@ -75,10 +78,11 @@ export function BottomNav() {
       <Link
         id="bottom-nav-community"
         href="/community"
-        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[40px] transition active:scale-95"
+        aria-label="Community forum"
+        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[44px] min-h-[48px] transition active:scale-95"
       >
-        <Users className={cn('h-5 w-5 transition-colors', isActive('/community') ? 'text-blue-600 stroke-[2.5]' : 'text-gray-500')} />
-        <span className={cn('text-[9px] font-semibold transition-colors', isActive('/community') ? 'text-blue-600' : 'text-gray-500')}>Community</span>
+        <Users className={cn('h-5 w-5 transition-colors', isActive('/community') ? 'text-blue-600 stroke-[2.5]' : 'text-slate-600')} />
+        <span className={cn('text-[10px] font-bold transition-colors', isActive('/community') ? 'text-blue-600' : 'text-slate-600')}>Community</span>
       </Link>
 
       {/* News & Blog */}
@@ -86,18 +90,19 @@ export function BottomNav() {
         id="bottom-nav-news"
         href="/news"
         prefetch={true}
-        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[42px] transition active:scale-95"
-        title="News & Blog"
+        aria-label="News and blog articles"
+        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[44px] min-h-[48px] transition active:scale-95"
       >
-        <Newspaper className={cn('h-5 w-5 transition-colors', isActive('/news') ? 'text-blue-600 stroke-[2.5]' : 'text-gray-500')} />
-        <span className={cn('text-[9px] font-semibold whitespace-nowrap transition-colors', isActive('/news') ? 'text-blue-600' : 'text-gray-500')}>News &amp; Blog</span>
+        <Newspaper className={cn('h-5 w-5 transition-colors', isActive('/news') ? 'text-blue-600 stroke-[2.5]' : 'text-slate-600')} />
+        <span className={cn('text-[10px] font-bold whitespace-nowrap transition-colors', isActive('/news') ? 'text-blue-600' : 'text-slate-600')}>News</span>
       </Link>
 
       {/* You */}
       <Link
         id="bottom-nav-you"
         href="/dashboard"
-        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[40px] transition active:scale-95"
+        aria-label="User account and dashboard"
+        className="flex flex-col items-center justify-center gap-0.5 px-1 py-1 min-w-[44px] min-h-[48px] transition active:scale-95"
       >
         <User className={cn('h-5 w-5 transition-colors', isActive('/dashboard') ? 'text-blue-600 stroke-[2.5]' : 'text-gray-500')} />
         <span className={cn('text-[9px] font-semibold transition-colors', isActive('/dashboard') ? 'text-blue-600' : 'text-gray-500')}>You</span>

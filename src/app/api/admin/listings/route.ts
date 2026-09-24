@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const search = searchParams.get('search')?.toLowerCase() || ''
   const status = searchParams.get('status') || 'ALL'
+  const type = searchParams.get('type') || 'ALL'
   const categoryId = searchParams.get('categoryId') || 'ALL'
   const villageId = searchParams.get('villageId') || 'ALL'
 
@@ -54,6 +55,10 @@ export async function GET(req: NextRequest) {
 
     if (status !== 'ALL') {
       listings = listings.filter((l: any) => l.status === status)
+    }
+
+    if (type !== 'ALL') {
+      listings = listings.filter((l: any) => (l.type || 'BUSINESS').toUpperCase() === type.toUpperCase())
     }
 
     if (categoryId !== 'ALL') {
@@ -102,6 +107,7 @@ export async function POST(req: NextRequest) {
     const {
       title,
       description = '',
+      type = 'BUSINESS',
       phone,
       whatsapp,
       address,
@@ -131,6 +137,7 @@ export async function POST(req: NextRequest) {
             title,
             slug,
             description: description || title,
+            type,
             phone,
             whatsapp: whatsapp || phone,
             address: address || 'Choutuppal',
@@ -152,6 +159,7 @@ export async function POST(req: NextRequest) {
       title,
       slug,
       description: description || title,
+      type,
       phone,
       whatsapp: whatsapp || phone,
       address: address || 'Choutuppal',
@@ -191,7 +199,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { id, status, isPremium, isFeatured, title, description, phone, whatsapp, address, categoryId, villageId } = body
+    const { id, status, type, isPremium, isFeatured, title, description, phone, whatsapp, address, categoryId, villageId } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Listing ID is required' }, { status: 400 })
@@ -199,6 +207,7 @@ export async function PATCH(req: NextRequest) {
 
     const updateData: any = {}
     if (status !== undefined) updateData.status = status
+    if (type !== undefined) updateData.type = type
     if (isPremium !== undefined) updateData.isPremium = Boolean(isPremium)
     if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured)
     if (title !== undefined) updateData.title = title

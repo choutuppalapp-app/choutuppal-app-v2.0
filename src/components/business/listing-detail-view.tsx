@@ -20,12 +20,14 @@ import {
   Image as ImageIcon,
   Loader2,
   CheckCircle2,
+  QrCode,
 } from 'lucide-react'
 import { cn, formatPhoneNumber } from '@/lib/utils'
 import { getLogoUrl, getCoverUrl, getBusinessHours, getVillage, getServices } from '@/lib/listing-utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
+import { ListingQrCodeModal } from '@/components/business/listing-qr-code'
 import type { Listing, Category, Village, User } from '@prisma/client'
 
 interface ListingDetailData {
@@ -126,11 +128,23 @@ export function ListingDetailView({
           <span className="truncate text-sm font-bold text-slate-900">
             {listing.title}
           </span>
-          {isOwner || isAdmin ? (
-            <Badge className="ml-auto bg-amber-100 text-amber-700 hover:bg-amber-100">
-              {isOwner ? 'Your Listing' : `Admin · ${listing.status}`}
-            </Badge>
-          ) : null}
+          <div className="ml-auto flex items-center gap-2">
+            <ListingQrCodeModal
+              listingId={listing.id}
+              slug={listing.slug}
+              title={listing.title}
+              categoryName={listing.category?.name}
+              villageName={listing.village?.name}
+              logoUrl={getLogoUrl(listing)}
+              phone={listing.phone}
+              variant="button"
+            />
+            {isOwner || isAdmin ? (
+              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
+                {isOwner ? 'Your Listing' : `Admin · ${listing.status}`}
+              </Badge>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -176,6 +190,17 @@ export function ListingDetailView({
                   </h1>
 
                   <div className="flex flex-wrap items-center gap-2">
+                    {listing.type && (
+                      <Badge className={`border-none shadow-sm backdrop-blur-md ${
+                        listing.type === 'SERVICE'
+                          ? 'bg-amber-500 text-white hover:bg-amber-500'
+                          : listing.type === 'REAL_ESTATE'
+                          ? 'bg-emerald-600 text-white hover:bg-emerald-600'
+                          : 'bg-blue-600/90 text-white hover:bg-blue-600'
+                      }`}>
+                        {listing.type === 'SERVICE' ? 'Service' : listing.type === 'REAL_ESTATE' ? 'Real Estate' : 'Business'}
+                      </Badge>
+                    )}
                     {listing.category ? (
                       <Badge className="bg-blue-600/90 text-white hover:bg-blue-600 border-none shadow-sm backdrop-blur-md">
                         {listing.category.name}
@@ -224,8 +249,19 @@ export function ListingDetailView({
                   </h1>
 
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+                    {listing.type && (
+                      <Badge className={`font-semibold border-none ${
+                        listing.type === 'SERVICE'
+                          ? 'bg-amber-100 text-amber-800'
+                          : listing.type === 'REAL_ESTATE'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {listing.type === 'SERVICE' ? 'Service' : listing.type === 'REAL_ESTATE' ? 'Real Estate' : 'Business'}
+                      </Badge>
+                    )}
                     {listing.category ? (
-                      <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 font-semibold border-none">
+                      <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100 font-semibold border-none">
                         {listing.category.name}
                       </Badge>
                     ) : null}
@@ -528,6 +564,20 @@ export function ListingDetailView({
                 <DesktopActionButton
                   icon={MapPin} label="Location" color="bg-amber-500 hover:bg-amber-600"
                   href={listing.mapEmbed ?? `https://maps.google.com/?q=${encodeURIComponent(listing.address ?? listing.title)}`}
+                />
+              </div>
+
+              {/* Instant QR Code Widget */}
+              <div className="mt-4">
+                <ListingQrCodeModal
+                  listingId={listing.id}
+                  slug={listing.slug}
+                  title={listing.title}
+                  categoryName={listing.category?.name}
+                  villageName={listing.village?.name}
+                  logoUrl={getLogoUrl(listing)}
+                  phone={listing.phone}
+                  variant="card"
                 />
               </div>
 

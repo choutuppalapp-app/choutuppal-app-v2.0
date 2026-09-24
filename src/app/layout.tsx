@@ -124,6 +124,12 @@ export default async function RootLayout({
   return (
     <html lang="te" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://i.ibb.co" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://i.ibb.co" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${notoTelugu.variable} antialiased`}

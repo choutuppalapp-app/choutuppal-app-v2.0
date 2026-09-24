@@ -169,8 +169,11 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             src={current.imageUrl}
             alt={current.title ?? 'Banner Ad'}
             fill
-            priority
-            sizes="(max-width: 768px) 100vw, 1200px"
+            priority={true}
+            fetchPriority="high"
+            loading="eager"
+            decoding="async"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 95vw, 1200px"
             quality={75}
             className="object-cover bg-slate-900"
           />
@@ -186,9 +189,9 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 
         {/* Title overlay at the bottom */}
         <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 lg:p-10 pointer-events-none">
-          <h3 className="text-xl font-black leading-tight text-white drop-shadow-md sm:text-2xl lg:text-3xl max-w-3xl">
+          <h2 className="text-xl font-black leading-tight text-white drop-shadow-md sm:text-2xl lg:text-3xl max-w-3xl">
             {current?.title ?? 'Promote Your Business to 10,000+ Locals'}
-          </h3>
+          </h2>
           <p className="mt-1 hidden max-w-xl text-sm text-white/90 sm:block drop-shadow">
             Reach customers across Choutuppal, Panthangi, Lingojiguda, Koyyalagudem &amp; nearby villages.
           </p>
@@ -201,7 +204,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               type="button"
               aria-label="Previous banner"
               onClick={(e) => { e.stopPropagation(); go(-1); }}
-              className="absolute left-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60 md:grid"
+              className="absolute left-4 top-1/2 z-10 hidden h-11 w-11 min-h-[44px] min-w-[44px] -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60 md:grid"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -209,27 +212,31 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
               type="button"
               aria-label="Next banner"
               onClick={(e) => { e.stopPropagation(); go(1); }}
-              className="absolute right-4 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60 md:grid"
+              className="absolute right-4 top-1/2 z-10 hidden h-11 w-11 min-h-[44px] min-w-[44px] -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60 md:grid"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
           </>
         ) : null}
 
-        {/* Pagination dots */}
+        {/* Pagination dots with 44px touch targets */}
         {count > 1 ? (
-          <div className="absolute bottom-3 right-4 z-10 flex items-center gap-1.5">
+          <div className="absolute bottom-2 right-3 z-10 flex items-center">
             {activeBanners.map((_, i) => (
               <button
                 key={i}
                 type="button"
                 aria-label={`Go to banner ${i + 1}`}
                 onClick={(e) => { e.stopPropagation(); setIndex(i); }}
-                className={cn(
-                  'h-2 rounded-full transition-all',
-                  i === index ? 'w-6 bg-white shadow' : 'w-2 bg-white/50 hover:bg-white/80',
-                )}
-              />
+                className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center focus:outline-none"
+              >
+                <span
+                  className={cn(
+                    'h-2 rounded-full transition-all block',
+                    i === index ? 'w-6 bg-white shadow' : 'w-2 bg-white/60 hover:bg-white/90',
+                  )}
+                />
+              </button>
             ))}
           </div>
         ) : null}
