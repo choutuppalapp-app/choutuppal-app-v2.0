@@ -453,6 +453,20 @@ function loadStoreFromDisk(): DbStoreData {
     ],
     users: [
       {
+        id: 'cms0du1m40000v32slild2p1s_mosin',
+        name: 'Mosin Admin',
+        email: 'mailmosin@gmail.com',
+        username: 'mailmosin',
+        phone: '9494348175',
+        passwordHash: '$2b$10$eKgBR72xp3KfFQMMGtD/1edRXRft8EmWoxePGQ1ukYtpabWVBneoO',
+        role: 'ADMIN',
+        planTier: 'PREMIUM',
+        villageId: 'v-choutuppal',
+        isPublic: true,
+        isBanned: false,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+      {
         id: 'cms0du1m40000v32slild2p1s',
         name: 'Super Admin',
         email: 'admin@choutuppal.in',

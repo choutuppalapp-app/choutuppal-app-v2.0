@@ -20,6 +20,11 @@ interface AdminHeaderProps {
     onClick: () => void
     icon?: React.ElementType
   }
+  extraActions?: Array<{
+    label: string
+    onClick: () => void
+    icon?: React.ElementType
+  }>
   actionButton?: {
     label: string
     onClick: () => void
@@ -32,6 +37,7 @@ export function AdminHeader({
   teluguTitle,
   description,
   secondaryActionButton,
+  extraActions,
   actionButton,
 }: AdminHeaderProps) {
   return (
@@ -55,7 +61,7 @@ export function AdminHeader({
           )}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap sm:flex-nowrap">
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
           <div className="hidden lg:flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-800">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Live System</span>
@@ -73,7 +79,7 @@ export function AdminHeader({
           {secondaryActionButton && (
             <button
               onClick={secondaryActionButton.onClick}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
             >
               {secondaryActionButton.icon && (
                 <secondaryActionButton.icon className="h-4 w-4 text-slate-500" />
@@ -82,10 +88,22 @@ export function AdminHeader({
             </button>
           )}
 
+          {extraActions &&
+            extraActions.map((action, idx) => (
+              <button
+                key={idx}
+                onClick={action.onClick}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
+              >
+                {action.icon && <action.icon className="h-4 w-4 text-slate-500" />}
+                <span>{action.label}</span>
+              </button>
+            ))}
+
           {actionButton && (
             <button
               onClick={actionButton.onClick}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-800 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-800 transition cursor-pointer"
             >
               {actionButton.icon ? (
                 <actionButton.icon className="h-4 w-4" />

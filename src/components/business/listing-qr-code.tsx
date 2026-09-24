@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { QRCodeCanvas } from 'qrcode.react'
+import Image from 'next/image'
 import {
   QrCode,
   Download,
@@ -15,11 +16,12 @@ import {
   MessageCircle,
   FileImage,
   Layers,
-  Image as ImageIcon,
-  CheckCircle2,
-  PhoneCall,
-  MapPin,
-  Send,
+  Instagram,
+  Facebook,
+  Youtube,
+  ShieldCheck,
+  BadgeCheck,
+  Megaphone,
 } from 'lucide-react'
 import {
   Dialog,
@@ -27,7 +29,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -40,9 +41,19 @@ export interface ListingQrCodeProps {
   villageName?: string | null
   logoUrl?: string | null
   phone?: string | null
-  variant?: 'button' | 'card' | 'inline' | 'icon'
+  whatsapp?: string | null
+  address?: string | null
+  variant?: 'button' | 'card' | 'inline' | 'icon' | 'badge'
   className?: string
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
+
+const CHOUTUPPAL_APP_LOGO = 'https://i.ibb.co/BVdvN5rB/Untitled-design-removebg-preview.png'
+const OFFICIAL_INSTAGRAM = 'https://www.instagram.com/choutuppalapp/'
+const OFFICIAL_FACEBOOK = 'https://www.facebook.com/Choutuppalapp/'
+const OFFICIAL_YOUTUBE = 'https://www.youtube.com/@choutuppalapp'
+const OFFICIAL_WA_CHANNEL = 'https://whatsapp.com/channel/0029VbD28mkGpLHOk8wrLE1a'
 
 /**
  * Generates a high-resolution, print-ready branded merchant standee poster
@@ -52,11 +63,12 @@ function createBrandedStandeeCanvas(
   title: string,
   categoryName?: string | null,
   villageName?: string | null,
-  phone?: string | null
+  phone?: string | null,
+  address?: string | null
 ): HTMLCanvasElement {
-  const scale = 3 // High resolution 3x scaling for sharp printing
+  const scale = 3 // High resolution 3x scaling for ultra sharp printing
   const width = 600
-  const height = 860
+  const height = 900
   const canvas = document.createElement('canvas')
   canvas.width = width * scale
   canvas.height = height * scale
@@ -65,73 +77,93 @@ function createBrandedStandeeCanvas(
 
   ctx.scale(scale, scale)
 
-  // 1. White Background Base
+  // 1. Background Base
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, width, height)
 
-  // 2. Outer Decorative Frame & Shadow Border
+  // 2. Outer Decorative Frame & Subtle Golden Shadow
   ctx.strokeStyle = '#e2e8f0'
-  ctx.lineWidth = 3
+  ctx.lineWidth = 4
   ctx.strokeRect(8, 8, width - 16, height - 16)
 
-  ctx.strokeStyle = '#1e40af'
-  ctx.lineWidth = 1
+  ctx.strokeStyle = '#2563eb'
+  ctx.lineWidth = 1.5
   ctx.strokeRect(14, 14, width - 28, height - 28)
 
-  // 3. Header Hero Bar (Navy & Royal Blue Gradient)
-  const headerGrad = ctx.createLinearGradient(0, 0, width, 140)
-  headerGrad.addColorStop(0, '#1e3a8a') // Navy Blue
-  headerGrad.addColorStop(0.5, '#1d4ed8') // Royal Blue
-  headerGrad.addColorStop(1, '#0f172a') // Slate
+  // 3. Header Hero Bar (Deep Navy & Vibrant Royal Blue Gradient)
+  const headerGrad = ctx.createLinearGradient(0, 0, width, 160)
+  headerGrad.addColorStop(0, '#0f172a') // Slate 900
+  headerGrad.addColorStop(0.35, '#1e3a8a') // Deep Navy
+  headerGrad.addColorStop(0.7, '#1d4ed8') // Royal Blue
+  headerGrad.addColorStop(1, '#0284c7') // Sky Blue
   ctx.fillStyle = headerGrad
-  ctx.fillRect(8, 8, width - 16, 145)
+  ctx.fillRect(8, 8, width - 16, 160)
+
+  // Decorative Accent bar at top
+  const goldGrad = ctx.createLinearGradient(0, 0, width, 0)
+  goldGrad.addColorStop(0, '#f59e0b')
+  goldGrad.addColorStop(0.5, '#fbbf24')
+  goldGrad.addColorStop(1, '#f59e0b')
+  ctx.fillStyle = goldGrad
+  ctx.fillRect(8, 8, width - 16, 6)
 
   // 4. Verification Badge Pill
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.18)'
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'
   if (typeof ctx.roundRect === 'function') {
-    ctx.roundRect(width / 2 - 150, 24, 300, 28, 14)
+    ctx.roundRect(width / 2 - 165, 24, 330, 28, 14)
     ctx.fill()
   } else {
-    ctx.fillRect(width / 2 - 150, 24, 300, 28)
+    ctx.fillRect(width / 2 - 165, 24, 330, 28)
   }
 
-  ctx.fillStyle = '#93c5fd'
+  ctx.fillStyle = '#fef08a' // Warm Gold
   ctx.font = 'bold 12px system-ui, -apple-system, sans-serif'
   ctx.textAlign = 'center'
   ctx.fillText('★ CHOUTUPPAL SUPER APP VERIFIED ★', width / 2, 42)
 
-  // 5. Header Main Title
+  // 5. Header Main App Branding & Telugu Tagline
   ctx.fillStyle = '#ffffff'
-  ctx.font = 'bold 22px system-ui, -apple-system, sans-serif'
-  ctx.fillText('OFFICIAL MERCHANT QR CODE', width / 2, 86)
+  ctx.font = 'bold 24px system-ui, -apple-system, "Noto Sans Telugu", sans-serif'
+  ctx.fillText('చౌటుప్పల్ యాప్ · CHOUTUPPAL APP', width / 2, 86)
 
-  ctx.fillStyle = '#cbd5e1'
-  ctx.font = '13px system-ui, -apple-system, sans-serif'
-  ctx.fillText('Scan to View Catalog, Special Offers & Direct WhatsApp', width / 2, 114)
+  ctx.fillStyle = '#93c5fd'
+  ctx.font = 'bold 14px system-ui, -apple-system, sans-serif'
+  ctx.fillText('OFFICIAL VERIFIED MERCHANT QR CODE', width / 2, 112)
+
+  ctx.fillStyle = '#e0f2fe'
+  ctx.font = '12px system-ui, -apple-system, sans-serif'
+  ctx.fillText('Scan to View Shop Catalog, Offers & Connect on WhatsApp', width / 2, 134)
 
   // 6. Business Name & Category Section
   ctx.fillStyle = '#0f172a'
-  ctx.font = 'bold 24px system-ui, -apple-system, "Noto Sans Telugu", sans-serif'
-  const displayTitle = title.length > 34 ? title.slice(0, 34) + '...' : title
-  ctx.fillText(displayTitle, width / 2, 195)
+  ctx.font = 'bold 26px system-ui, -apple-system, "Noto Sans Telugu", sans-serif'
+  const displayTitle = title.length > 32 ? title.slice(0, 32) + '...' : title
+  ctx.fillText(displayTitle, width / 2, 215)
 
-  // Meta Subtitle
-  const metaParts = [categoryName, villageName || 'Choutuppal', phone ? `Tel: ${phone}` : '']
+  // Meta Subtitle (Category & Village)
+  const metaParts = [categoryName, villageName || 'Choutuppal', phone ? `📞 ${phone}` : '']
     .filter(Boolean)
-    .join('  •  ')
-  ctx.fillStyle = '#475569'
-  ctx.font = '600 14px system-ui, -apple-system, "Noto Sans Telugu", sans-serif'
-  ctx.fillText(metaParts, width / 2, 224)
+    .join('   •   ')
+  ctx.fillStyle = '#0369a1'
+  ctx.font = 'bold 14px system-ui, -apple-system, "Noto Sans Telugu", sans-serif'
+  ctx.fillText(metaParts, width / 2, 246)
 
-  // 7. QR Container Box (Card with rounded corners)
-  const qrBoxX = 125
-  const qrBoxY = 250
-  const qrBoxSize = 350
+  if (address) {
+    ctx.fillStyle = '#64748b'
+    ctx.font = '500 12px system-ui, -apple-system, sans-serif'
+    const cleanAddr = address.length > 50 ? address.slice(0, 50) + '...' : address
+    ctx.fillText(`📍 ${cleanAddr}`, width / 2, 268)
+  }
+
+  // 7. QR Container Box (Card with rounded corners and double border)
+  const qrBoxX = 120
+  const qrBoxY = address ? 285 : 270
+  const qrBoxSize = 360
   ctx.fillStyle = '#f8fafc'
-  ctx.strokeStyle = '#cbd5e1'
-  ctx.lineWidth = 2
+  ctx.strokeStyle = '#bfdbfe'
+  ctx.lineWidth = 3
   if (typeof ctx.roundRect === 'function') {
-    ctx.roundRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 24)
+    ctx.roundRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 28)
     ctx.fill()
     ctx.stroke()
   } else {
@@ -139,44 +171,52 @@ function createBrandedStandeeCanvas(
     ctx.strokeRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize)
   }
 
-  // Draw QR inside
-  const qrDrawSize = 290
+  // Draw QR code inside
+  const qrDrawSize = 295
   const qrDrawX = qrBoxX + (qrBoxSize - qrDrawSize) / 2
   const qrDrawY = qrBoxY + (qrBoxSize - qrDrawSize) / 2
   ctx.drawImage(sourceCanvas, qrDrawX, qrDrawY, qrDrawSize, qrDrawSize)
 
   // 8. Scanning instruction badge
+  const scanBadgeY = qrBoxY + qrBoxSize + 30
   ctx.fillStyle = '#0f172a'
   ctx.font = 'bold 18px system-ui, -apple-system, sans-serif'
-  ctx.fillText('Scan with Any Smartphone Camera or Payment App', width / 2, 642)
+  ctx.fillText('Scan with Any Smartphone Camera or Payment App', width / 2, scanBadgeY)
 
-  ctx.fillStyle = '#64748b'
-  ctx.font = '500 13px system-ui, -apple-system, sans-serif'
-  ctx.fillText('Google Lens  •  PhonePe  •  Paytm  •  GPay  •  WhatsApp Camera', width / 2, 668)
+  ctx.fillStyle = '#475569'
+  ctx.font = '600 13px system-ui, -apple-system, sans-serif'
+  ctx.fillText('PhonePe  •  Google Pay  •  Paytm  •  WhatsApp Camera  •  Google Lens', width / 2, scanBadgeY + 24)
 
-  // 9. Verified & Security Tagline
-  ctx.fillStyle = '#059669'
-  ctx.font = 'bold 14px system-ui, -apple-system, sans-serif'
-  ctx.fillText('✓ 100% Verified Local Business Listing in Choutuppal', width / 2, 725)
+  // 9. Telugu & English Guarantee
+  ctx.fillStyle = '#16a34a'
+  ctx.font = 'bold 13px system-ui, -apple-system, "Noto Sans Telugu", sans-serif'
+  ctx.fillText('✓ 100% Verified Local Business Listing in Choutuppal Mandal', width / 2, scanBadgeY + 54)
 
-  // 10. Footer Bar
+  // 10. Social Media & Channels Bar
+  const socialY = scanBadgeY + 74
   ctx.fillStyle = '#f1f5f9'
-  ctx.fillRect(8, 775, width - 16, 75)
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(40, socialY, width - 80, 32, 16)
+    ctx.fill()
+  } else {
+    ctx.fillRect(40, socialY, width - 80, 32)
+  }
 
-  ctx.strokeStyle = '#e2e8f0'
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.moveTo(8, 775)
-  ctx.lineTo(width - 8, 775)
-  ctx.stroke()
+  ctx.fillStyle = '#475569'
+  ctx.font = 'bold 11px system-ui, -apple-system, sans-serif'
+  ctx.fillText('Follow us:  Instagram @choutuppalapp   •   Facebook /Choutuppalapp   •   YouTube @choutuppalapp', width / 2, socialY + 20)
 
-  ctx.fillStyle = '#1e3a8a'
+  // 11. Footer Bar
+  ctx.fillStyle = '#0f172a'
+  ctx.fillRect(8, height - 70, width - 16, 62)
+
+  ctx.fillStyle = '#38bdf8'
   ctx.font = 'bold 16px system-ui, -apple-system, sans-serif'
-  ctx.fillText('www.choutuppal.in', width / 2, 815)
+  ctx.fillText('www.choutuppal.in', width / 2, height - 38)
 
-  ctx.fillStyle = '#64748b'
-  ctx.font = '11px system-ui, -apple-system, sans-serif'
-  ctx.fillText('Connecting Local Citizens & Businesses Across Choutuppal Mandal', width / 2, 834)
+  ctx.fillStyle = '#94a3b8'
+  ctx.font = '11px system-ui, -apple-system, "Noto Sans Telugu", sans-serif'
+  ctx.fillText('చౌటుప్పల్ ప్రజల మరియు వ్యాపారస్తుల విశ్వసనీయ వేదిక', width / 2, height - 18)
 
   return canvas
 }
@@ -186,7 +226,7 @@ function createBrandedStandeeCanvas(
  */
 function createCleanQrCanvas(sourceCanvas: HTMLCanvasElement): HTMLCanvasElement {
   const scale = 3
-  const size = 500
+  const size = 600
   const canvas = document.createElement('canvas')
   canvas.width = size * scale
   canvas.height = size * scale
@@ -195,12 +235,12 @@ function createCleanQrCanvas(sourceCanvas: HTMLCanvasElement): HTMLCanvasElement
 
   ctx.scale(scale, scale)
 
-  // White base with rounded border
+  // White base with soft border
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, size, size)
 
   // Padded QR
-  const pad = 35
+  const pad = 40
   const qrSize = size - pad * 2
   ctx.drawImage(sourceCanvas, pad, pad, qrSize, qrSize)
 
@@ -219,7 +259,6 @@ function canvasToBlobAsync(canvas: HTMLCanvasElement, type = 'image/png', qualit
             if (blob) {
               resolve(blob)
             } else {
-              // Fallback: convert dataURL to Blob
               try {
                 const dataUrl = canvas.toDataURL(type, quality)
                 const binary = atob(dataUrl.split(',')[1])
@@ -290,16 +329,36 @@ export function ListingQrCodeModal({
   villageName,
   logoUrl,
   phone,
+  whatsapp,
+  address,
   variant = 'button',
   className = '',
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
 }: ListingQrCodeProps) {
-  const [open, setOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'standee' | 'qr-only'>('standee')
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+
+  const setOpen = useCallback(
+    (val: boolean) => {
+      if (isControlled && setControlledOpen) {
+        setControlledOpen(val)
+      } else {
+        setInternalOpen(val)
+      }
+    },
+    [isControlled, setControlledOpen]
+  )
+
+  const [activeTab, setActiveTab] = useState<'standee' | 'whatsapp' | 'socials' | 'qr-only'>('standee')
   const [copiedLink, setCopiedLink] = useState(false)
+  const [copiedMessage, setCopiedMessage] = useState(false)
   const [copiedImage, setCopiedImage] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [sharing, setSharing] = useState(false)
   const [targetUrl, setTargetUrl] = useState('')
+  const [qrImageDataUrl, setQrImageDataUrl] = useState<string>('')
   const canvasWrapperRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -317,6 +376,39 @@ export function ListingQrCodeModal({
     return canvasWrapperRef.current.querySelector('canvas')
   }, [])
 
+  // Sync rendered QR canvas to image data URL so users see a true <img> element
+  useEffect(() => {
+    if (!open) return
+    const timer = setTimeout(() => {
+      const canvas = getSourceCanvas()
+      if (canvas) {
+        try {
+          const dataUrl = canvas.toDataURL('image/png')
+          setQrImageDataUrl(dataUrl)
+        } catch {
+          // Ignore
+        }
+      }
+    }, 150)
+    return () => clearTimeout(timer)
+  }, [open, targetUrl, activeTab, getSourceCanvas])
+
+  // Clean phone / whatsapp numbers for WhatsApp URL API
+  const rawWaPhone = (whatsapp || phone || '').replace(/\D/g, '')
+  const formattedWaPhone = rawWaPhone.length === 10 ? `91${rawWaPhone}` : rawWaPhone
+
+  // 1. Pre-filled text for direct customer -> merchant chat
+  const merchantPrefilledText = `Namaste! I found "${title}" on Choutuppal Super App (${targetUrl}). I would like to inquire about your products & services.`
+
+  // 2. Pre-filled text for sharing shop with friends / WhatsApp status
+  const promotionalShareText = `🏪 *${title}*
+📍 *Location:* ${villageName || 'Choutuppal'}${categoryName ? ` • ${categoryName}` : ''}${phone ? `\n📞 *Contact:* ${phone}` : ''}
+${address ? `🏠 *Address:* ${address}\n` : ''}
+✨ *View Complete Shop Catalog, Offers & Contact on Choutuppal Super App:*
+🔗 ${targetUrl}
+
+_Download Choutuppal Super App for all local businesses, services & updates!_`
+
   // 1. Copy Target URL
   const handleCopyLink = async () => {
     try {
@@ -329,7 +421,57 @@ export function ListingQrCodeModal({
     }
   }
 
-  // 2. Copy QR Image to Clipboard (for desktop pasting to WhatsApp Web, Canva, etc.)
+  // 2. Copy Promotional WhatsApp Message
+  const handleCopyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(promotionalShareText)
+      setCopiedMessage(true)
+      toast.success('Pre-filled WhatsApp message copied!')
+      setTimeout(() => setCopiedMessage(false), 2500)
+    } catch {
+      toast.error('Failed to copy message')
+    }
+  }
+
+  // 3. Direct WhatsApp Chat with Merchant
+  const handleDirectWhatsAppChat = () => {
+    if (!formattedWaPhone) {
+      toast.error('No phone number provided for this merchant.')
+      return
+    }
+    const waUrl = `https://api.whatsapp.com/send?phone=${formattedWaPhone}&text=${encodeURIComponent(merchantPrefilledText)}`
+    window.open(waUrl, '_blank')
+  }
+
+  // 4. WhatsApp Share with Pre-filled Text (To Status / Groups)
+  const handleShareWhatsAppStatus = () => {
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(promotionalShareText)}`
+    window.open(waUrl, '_blank')
+  }
+
+  // 5. Facebook Share
+  const handleShareFacebook = () => {
+    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(targetUrl)}&quote=${encodeURIComponent(`Check out ${title} on Choutuppal Super App!`)}`
+    window.open(fbUrl, '_blank', 'width=600,height=500')
+  }
+
+  // 6. Instagram Share helper
+  const handleShareInstagram = async () => {
+    try {
+      await navigator.clipboard.writeText(`${title} - Local Business in ${villageName || 'Choutuppal'}\n${targetUrl}\n\n#Choutuppal #ChoutuppalApp #${(categoryName || 'Business').replace(/\s+/g, '')} #Telangana`)
+      toast.success('Instagram caption copied! Opening Instagram...')
+      window.open(OFFICIAL_INSTAGRAM, '_blank')
+    } catch {
+      window.open(OFFICIAL_INSTAGRAM, '_blank')
+    }
+  }
+
+  // 7. YouTube Channel
+  const handleOpenYouTube = () => {
+    window.open(OFFICIAL_YOUTUBE, '_blank')
+  }
+
+  // 8. Copy QR Image to Clipboard
   const handleCopyImage = async () => {
     try {
       const source = getSourceCanvas()
@@ -340,7 +482,7 @@ export function ListingQrCodeModal({
 
       const canvasToExport =
         activeTab === 'standee'
-          ? createBrandedStandeeCanvas(source, title, categoryName, villageName, phone)
+          ? createBrandedStandeeCanvas(source, title, categoryName, villageName, phone, address)
           : createCleanQrCanvas(source)
 
       const blob = await canvasToBlobAsync(canvasToExport, 'image/png')
@@ -360,7 +502,7 @@ export function ListingQrCodeModal({
     }
   }
 
-  // 3. Download Branded Standee Poster (PNG)
+  // 9. Download Branded Standee Poster (PNG)
   const handleDownloadStandee = async () => {
     try {
       setDownloading(true)
@@ -370,13 +512,13 @@ export function ListingQrCodeModal({
         return
       }
 
-      const standee = createBrandedStandeeCanvas(source, title, categoryName, villageName, phone)
+      const standee = createBrandedStandeeCanvas(source, title, categoryName, villageName, phone, address)
       const blob = await canvasToBlobAsync(standee, 'image/png', 1.0)
       const cleanTitle = (title || 'shop').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30)
-      const filename = `${cleanTitle}-counter-standee.png`
+      const filename = `${cleanTitle}-choutuppal-standee.png`
 
       triggerBrowserDownload(blob, filename)
-      toast.success('Branded Standee Poster downloaded!')
+      toast.success('Branded Standee Poster downloaded as PNG!')
     } catch (err) {
       console.error('Download standee error:', err)
       toast.error('Download failed. You can copy the link or share via WhatsApp.')
@@ -385,7 +527,7 @@ export function ListingQrCodeModal({
     }
   }
 
-  // 4. Download Clean QR Only (PNG)
+  // 10. Download Clean QR Only (PNG)
   const handleDownloadRawQr = async () => {
     try {
       setDownloading(true)
@@ -401,7 +543,7 @@ export function ListingQrCodeModal({
       const filename = `${cleanTitle}-qr-code.png`
 
       triggerBrowserDownload(blob, filename)
-      toast.success('Clean QR Code downloaded!')
+      toast.success('QR Code downloaded as PNG!')
     } catch (err) {
       console.error('Download QR error:', err)
       toast.error('Download failed')
@@ -410,48 +552,46 @@ export function ListingQrCodeModal({
     }
   }
 
-  // 5. WhatsApp Direct Share
-  const handleShareWhatsApp = () => {
-    const message = `🏪 *${title}*\n📍 ${villageName || 'Choutuppal'}${
-      categoryName ? ` • ${categoryName}` : ''
-    }${phone ? `\n📞 ${phone}` : ''}\n\n🔍 Scan our QR Code or visit our verified shop on Choutuppal Super App:\n🔗 ${targetUrl}`
-    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`
-    window.open(waUrl, '_blank')
-  }
-
-  // 6. Mobile Web Share API with File or URL
-  const handleNativeShare = async () => {
+  // 11. Universal Web Share API on mobile devices with image and fallback
+  const handleWebShare = async () => {
     try {
       setSharing(true)
       const source = getSourceCanvas()
-      const shareTitle = `${title} - QR Code & Profile`
-      const shareText = `Check out ${title} (${villageName || 'Choutuppal'}) on Choutuppal Super App:\n${targetUrl}`
+      const shareTitle = `${title} - Choutuppal Super App`
+      const shareText = promotionalShareText
 
+      // Check for navigator.share (Web Share API)
       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-        // Attempt file sharing if supported
+        let fileToShare: File | null = null
+
         if (source && typeof navigator.canShare === 'function') {
           try {
-            const standee = createBrandedStandeeCanvas(source, title, categoryName, villageName, phone)
-            const blob = await canvasToBlobAsync(standee, 'image/png')
-            const cleanTitle = (title || 'shop').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30)
-            const file = new File([blob], `${cleanTitle}-qr.png`, { type: 'image/png' })
+            const canvasToUse =
+              activeTab === 'standee'
+                ? createBrandedStandeeCanvas(source, title, categoryName, villageName, phone, address)
+                : createCleanQrCanvas(source)
 
-            if (navigator.canShare({ files: [file] })) {
+            const blob = await canvasToBlobAsync(canvasToUse, 'image/png')
+            const cleanTitle = (title || 'shop').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30)
+            fileToShare = new File([blob], `${cleanTitle}-choutuppal-qr.png`, { type: 'image/png' })
+
+            if (navigator.canShare({ files: [fileToShare] })) {
               await navigator.share({
                 title: shareTitle,
                 text: shareText,
-                files: [file],
+                url: targetUrl,
+                files: [fileToShare],
               })
               toast.success('Shared successfully!')
               return
             }
           } catch (fileErr: any) {
             if (fileErr?.name === 'AbortError') return
-            console.warn('File share failed, falling back to URL share:', fileErr)
+            console.warn('File share check failed, proceeding to URL share:', fileErr)
           }
         }
 
-        // Standard link / text share
+        // Share text + URL if file sharing is not supported by target
         try {
           await navigator.share({
             title: shareTitle,
@@ -462,22 +602,22 @@ export function ListingQrCodeModal({
           return
         } catch (shareErr: any) {
           if (shareErr?.name === 'AbortError') return
-          console.warn('Text share failed, falling back to WhatsApp:', shareErr)
-          handleShareWhatsApp()
+          handleShareWhatsAppStatus()
         }
       } else {
-        handleShareWhatsApp()
+        // Fallback for desktop / unsupported browsers: WhatsApp Status & Chats
+        handleShareWhatsAppStatus()
       }
     } catch (err: any) {
       if (err?.name !== 'AbortError') {
-        handleShareWhatsApp()
+        handleShareWhatsAppStatus()
       }
     } finally {
       setSharing(false)
     }
   }
 
-  // 7. Print Standee
+  // 12. Print Standee
   const handlePrint = () => {
     try {
       const source = getSourceCanvas()
@@ -486,7 +626,7 @@ export function ListingQrCodeModal({
         return
       }
 
-      const standee = createBrandedStandeeCanvas(source, title, categoryName, villageName, phone)
+      const standee = createBrandedStandeeCanvas(source, title, categoryName, villageName, phone, address)
       const dataUrl = standee.toDataURL('image/png', 1.0)
       const printWindow = window.open('', '_blank')
       if (!printWindow) {
@@ -499,24 +639,25 @@ export function ListingQrCodeModal({
         <html>
           <head>
             <meta charset="utf-8" />
-            <title>Print Standee - ${title}</title>
+            <title>Choutuppal Standee - ${title}</title>
             <style>
-              @page { size: auto; margin: 8mm; }
+              @page { size: auto; margin: 6mm; }
               body {
                 margin: 0;
-                padding: 20px;
+                padding: 16px;
                 display: flex;
+                flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                min-height: 95vh;
+                min-height: 96vh;
                 background: #f8fafc;
                 font-family: system-ui, -apple-system, sans-serif;
               }
               img {
                 max-width: 100%;
                 max-height: 94vh;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-                border-radius: 12px;
+                box-shadow: 0 10px 35px rgba(0,0,0,0.18);
+                border-radius: 14px;
               }
               @media print {
                 body { background: transparent; padding: 0; }
@@ -536,126 +677,527 @@ export function ListingQrCodeModal({
     }
   }
 
+  const handleOpenClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(true)
+  }
+
   return (
     <>
+      {/* Trigger element based on variant */}
+      {variant === 'button' ? (
+        <Button
+          type="button"
+          onClick={handleOpenClick}
+          variant="outline"
+          size="sm"
+          className={`gap-1.5 rounded-xl border-slate-200 bg-white font-bold text-slate-700 shadow-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition ${className}`}
+        >
+          <QrCode className="h-4 w-4 text-blue-700" />
+          <span>QR Code</span>
+        </Button>
+      ) : variant === 'card' ? (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={handleOpenClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setOpen(true)
+            }
+          }}
+          className={`group flex cursor-pointer items-center justify-between rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50/40 to-indigo-50/30 p-4 shadow-xs transition hover:border-blue-300 hover:shadow-md ${className}`}
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-700 to-indigo-800 text-white shadow-md group-hover:scale-105 transition-transform">
+              <QrCode className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-sm font-black text-slate-900 group-hover:text-blue-700 transition">
+                  Shop QR Code & Standee
+                </h4>
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                  Verified
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Scan, WhatsApp API, Insta & Print Standee
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="text-xs font-bold text-blue-700 hover:bg-blue-100/50 rounded-xl"
+            onClick={handleOpenClick}
+          >
+            Open Standee
+          </Button>
+        </div>
+      ) : variant === 'badge' ? (
+        <button
+          type="button"
+          onClick={handleOpenClick}
+          className={`inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 border border-blue-200 hover:bg-blue-100 transition ${className}`}
+        >
+          <QrCode className="h-3.5 w-3.5" />
+          <span>QR Standee</span>
+        </button>
+      ) : variant === 'icon' ? (
+        <button
+          type="button"
+          onClick={handleOpenClick}
+          className={`p-1.5 text-slate-500 hover:text-blue-700 rounded-md hover:bg-blue-50 transition ${className}`}
+          title="View & Download Shop QR Code"
+        >
+          <QrCode className="h-4 w-4" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleOpenClick}
+          className={`inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-800 hover:underline ${className}`}
+        >
+          <QrCode className="h-3.5 w-3.5" />
+          QR Code
+        </button>
+      )}
+
+      {/* Main Dialog Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          {variant === 'button' ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className={`gap-1.5 rounded-xl border-slate-200 bg-white font-bold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-blue-700 transition ${className}`}
-            >
-              <QrCode className="h-4 w-4 text-blue-700" />
-              <span>QR Code</span>
-            </Button>
-          ) : variant === 'card' ? (
-            <div
-              className={`group flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-blue-50/50 p-4 shadow-xs transition hover:border-blue-300 hover:shadow-md ${className}`}
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-700 text-white shadow-xs group-hover:scale-105 transition-transform">
-                  <QrCode className="h-6 w-6" />
+        <DialogContent className="max-w-xl rounded-3xl p-0 overflow-hidden border-slate-200 bg-white shadow-2xl max-h-[94vh] flex flex-col">
+          {/* Header Banner with Choutuppal App Branding */}
+          <div className="bg-gradient-to-r from-slate-950 via-blue-950 to-indigo-950 p-5 text-white relative shrink-0">
+            {/* Top Bar with Logo & Verification */}
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="relative h-9 w-28 bg-white/10 rounded-xl p-1 backdrop-blur-xs border border-white/20 flex items-center justify-center overflow-hidden">
+                  <Image
+                    src={CHOUTUPPAL_APP_LOGO}
+                    alt="Choutuppal App Logo"
+                    width={100}
+                    height={28}
+                    className="h-7 w-auto object-contain"
+                    priority
+                  />
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition">
-                    Shop QR Code
-                  </h4>
-                  <p className="text-xs text-slate-500">
-                    Scan on mobile, download standee & share
+                <div className="text-left">
+                  <p className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">
+                    Official App Platform
+                  </p>
+                  <p className="text-xs font-black text-white">
+                    చౌటుప్పల్ యాప్
                   </p>
                 </div>
               </div>
-              <Button size="sm" variant="ghost" className="text-xs font-bold text-blue-700">
-                View & Share
-              </Button>
-            </div>
-          ) : variant === 'icon' ? (
-            <button
-              type="button"
-              className={`p-1.5 text-slate-500 hover:text-blue-700 rounded-lg hover:bg-slate-100 transition ${className}`}
-              title="View & Download QR Code"
-            >
-              <QrCode className="h-4 w-4" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              className={`inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-800 ${className}`}
-            >
-              <QrCode className="h-3.5 w-3.5" />
-              QR Code
-            </button>
-          )}
-        </DialogTrigger>
 
-        <DialogContent className="max-w-md rounded-3xl p-0 overflow-hidden border-slate-200 bg-white shadow-2xl max-h-[92vh] overflow-y-auto">
-          {/* Header Banner */}
-          <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-950 p-6 text-white text-center relative overflow-hidden">
-            <div className="relative z-10">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/20 px-3 py-1 text-[11px] font-bold text-blue-300 border border-blue-400/30 mb-2">
-                <Sparkles className="h-3 w-3" /> Choutuppal Instant QR
-              </span>
-              <DialogTitle className="text-xl font-black text-white">
+              <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-[11px] font-bold text-emerald-300 border border-emerald-400/30">
+                <BadgeCheck className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Verified Merchant</span>
+              </div>
+            </div>
+
+            {/* Shop Title & Details */}
+            <div className="text-left">
+              <DialogTitle className="text-lg sm:text-xl font-black text-white leading-tight">
                 {title}
               </DialogTitle>
-              <DialogDescription className="text-xs text-slate-300 mt-1">
-                {[categoryName, villageName].filter(Boolean).join(' • ') || 'Verified Local Business in Choutuppal'}
+              <DialogDescription className="text-xs text-blue-100/90 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                {categoryName && <span>🏢 {categoryName}</span>}
+                {villageName && <span>📍 {villageName}</span>}
+                {phone && <span>📞 {phone}</span>}
               </DialogDescription>
             </div>
           </div>
 
-          {/* Mode Switcher Tabs (Standee Poster vs Clean QR) */}
-          <div className="px-5 pt-4">
-            <div className="grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-bold">
+          {/* Navigation Sub-Tabs */}
+          <div className="px-5 pt-3 border-b border-slate-100 bg-slate-50/50 shrink-0">
+            <div className="grid grid-cols-4 gap-1 rounded-2xl bg-slate-200/70 p-1 text-xs font-bold">
               <button
                 type="button"
                 onClick={() => setActiveTab('standee')}
-                className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition ${
+                className={`flex items-center justify-center gap-1 py-2 px-1 rounded-xl transition text-[11px] sm:text-xs ${
                   activeTab === 'standee'
-                    ? 'bg-white text-blue-700 shadow-xs'
+                    ? 'bg-white text-blue-700 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Layers className="h-3.5 w-3.5" />
-                <span>Branded Standee</span>
+                <Layers className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Standee Poster</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => setActiveTab('qr-only')}
-                className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition ${
+                className={`flex items-center justify-center gap-1 py-2 px-1 rounded-xl transition text-[11px] sm:text-xs ${
                   activeTab === 'qr-only'
-                    ? 'bg-white text-blue-700 shadow-xs'
+                    ? 'bg-white text-blue-700 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <QrCode className="h-3.5 w-3.5" />
-                <span>Clean QR Code</span>
+                <QrCode className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">QR Code PNG</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('whatsapp')}
+                className={`flex items-center justify-center gap-1 py-2 px-1 rounded-xl transition text-[11px] sm:text-xs ${
+                  activeTab === 'whatsapp'
+                    ? 'bg-white text-emerald-700 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <MessageCircle className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                <span className="truncate">WhatsApp API</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('socials')}
+                className={`flex items-center justify-center gap-1 py-2 px-1 rounded-xl transition text-[11px] sm:text-xs ${
+                  activeTab === 'socials'
+                    ? 'bg-white text-pink-700 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Share2 className="h-3.5 w-3.5 shrink-0 text-pink-600" />
+                <span className="truncate">Social Media</span>
               </button>
             </div>
           </div>
 
-          {/* QR Canvas Display */}
-          <div className="p-5 flex flex-col items-center">
-            <div
-              ref={canvasWrapperRef}
-              className="relative p-5 rounded-3xl border-2 border-slate-100 bg-white shadow-lg flex flex-col items-center justify-center transition-transform hover:scale-[1.01]"
-            >
-              <QRCodeCanvas
-                value={targetUrl || 'https://www.choutuppal.in'}
-                size={210}
-                level="H"
-                includeMargin={false}
-              />
+          {/* Scrollable Tab Content Body */}
+          <div className="p-5 overflow-y-auto flex-1 space-y-4">
+            {/* Visual QR Code Image & Canvas Container */}
+            <div className="flex flex-col items-center justify-center">
+              <div
+                ref={canvasWrapperRef}
+                className="relative p-4 rounded-3xl border-2 border-slate-200/80 bg-white shadow-md flex flex-col items-center justify-center group"
+              >
+                {/* 1. Underlying QR Canvas Engine */}
+                <div className="relative">
+                  <QRCodeCanvas
+                    value={targetUrl || 'https://www.choutuppal.in'}
+                    size={activeTab === 'standee' ? 180 : 200}
+                    level="H"
+                    includeMargin={false}
+                  />
 
-              <div className="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                <Smartphone className="h-3.5 w-3.5 text-blue-700" />
-                <span>Scan with Camera / PhonePe / GPay</span>
+                  {/* Center Monogram Logo Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="h-10 w-10 rounded-full bg-white p-1 shadow-md border border-slate-200 flex items-center justify-center">
+                      <div className="h-full w-full rounded-full bg-gradient-to-tr from-blue-700 via-indigo-600 to-sky-500 text-white flex items-center justify-center font-black text-xs">
+                        C
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-2.5 flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-blue-50/70 px-3 py-1 rounded-full border border-blue-100">
+                  <Smartphone className="h-3 w-3 text-blue-700" />
+                  <span>Scan with PhonePe, Google Pay, Camera & Lens</span>
+                </div>
+              </div>
+
+              {/* Instant Action Bar: Download PNG & Web Share */}
+              <div className="w-full grid grid-cols-2 gap-2.5 mt-3.5">
+                <Button
+                  onClick={activeTab === 'standee' ? handleDownloadStandee : handleDownloadRawQr}
+                  disabled={downloading}
+                  className="h-11 rounded-2xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98]"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>{downloading ? 'Downloading...' : 'Download PNG'}</span>
+                </Button>
+
+                <Button
+                  onClick={handleWebShare}
+                  disabled={sharing}
+                  className="h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98]"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span>{sharing ? 'Opening Share...' : 'Share QR & Link'}</span>
+                </Button>
               </div>
             </div>
 
-            {/* Quick URL Bar */}
-            <div className="mt-4 w-full flex items-center gap-2 rounded-2xl bg-slate-50 p-2 border border-slate-200">
+            {/* TAB 1: BRANDED STANDEE POSTER */}
+            {activeTab === 'standee' && (
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-3.5 text-xs text-slate-700 flex items-start gap-3">
+                  <div className="h-8 w-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900">
+                      Official Merchant Standee Poster with Choutuppal Branding
+                    </p>
+                    <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                      Download or print this verified merchant standee poster for your shop counter. Customers can scan it with any camera or payment app to view products, services & direct WhatsApp!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Standee Action Grid */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <Button
+                    onClick={handlePrint}
+                    variant="outline"
+                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition"
+                  >
+                    <Printer className="h-4 w-4 text-blue-700" />
+                    <span>Print A4 Poster</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleCopyImage}
+                    variant="outline"
+                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition"
+                  >
+                    {copiedImage ? (
+                      <>
+                        <Check className="h-4 w-4 text-emerald-600" />
+                        <span>Copied Image!</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileImage className="h-4 w-4 text-slate-600" />
+                        <span>Copy Image</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: CLEAN QR CODE ONLY (PNG & IMAGE RENDER) */}
+            {activeTab === 'qr-only' && (
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+                  <p className="font-bold text-slate-900">
+                    High-Resolution Clean QR Code Image (PNG)
+                  </p>
+                  <p className="text-[11px] mt-0.5">
+                    Crisp transparent/white background QR code perfect for custom visiting cards, flex banners, pamphlets, packaging, and stickers.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <Button
+                    onClick={handleDownloadRawQr}
+                    disabled={downloading}
+                    variant="outline"
+                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50"
+                  >
+                    <Download className="h-4 w-4 text-blue-700" />
+                    <span>Save Clean PNG</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleCopyImage}
+                    variant="outline"
+                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50"
+                  >
+                    {copiedImage ? (
+                      <>
+                        <Check className="h-4 w-4 text-emerald-600" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 text-slate-600" />
+                        <span>Copy Image</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: WHATSAPP API WITH PREFILLED TEXT */}
+            {activeTab === 'whatsapp' && (
+              <div className="space-y-3.5">
+                {/* 1. Direct Customer -> Merchant Chat */}
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                        <MessageCircle className="h-4 w-4 fill-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-emerald-950">
+                          1-Click Direct WhatsApp API Chat
+                        </h4>
+                        <p className="text-[11px] text-emerald-700">
+                          Directly message shop owner on {phone || formattedWaPhone || 'WhatsApp'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl bg-white p-2.5 border border-emerald-100 text-xs font-mono text-slate-700 select-all">
+                    &ldquo;{merchantPrefilledText}&rdquo;
+                  </div>
+
+                  <Button
+                    onClick={handleDirectWhatsAppChat}
+                    className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4 fill-white" />
+                    <span>Open Pre-filled WhatsApp Chat</span>
+                  </Button>
+                </div>
+
+                {/* 2. Share Shop Promotional Message */}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-7 w-7 rounded-lg bg-slate-800 text-white flex items-center justify-center">
+                        <Share2 className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900">
+                          Share Shop Card to WhatsApp Groups & Status
+                        </h4>
+                        <p className="text-[11px] text-slate-500">
+                          Pre-formatted card with address, link & Choutuppal verified badge
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCopyMessage}
+                      className="h-7 text-[11px] font-bold gap-1 rounded-lg"
+                    >
+                      {copiedMessage ? (
+                        <>
+                          <Check className="h-3 w-3 text-emerald-600" /> Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3" /> Copy Text
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  <pre className="rounded-xl bg-white p-2.5 border border-slate-200 text-[11px] text-slate-700 whitespace-pre-wrap font-sans max-h-24 overflow-y-auto">
+                    {promotionalShareText}
+                  </pre>
+
+                  <Button
+                    onClick={handleShareWhatsAppStatus}
+                    className="w-full h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    <span>Share to WhatsApp Status & Chats</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: SOCIAL ECOSYSTEM (INSTAGRAM, FACEBOOK, YOUTUBE) */}
+            {activeTab === 'socials' && (
+              <div className="space-y-3.5">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3.5 text-xs text-slate-600">
+                  <p className="font-bold text-slate-900 mb-1">
+                    Promote across Choutuppal Social Ecosystem
+                  </p>
+                  <p className="text-[11px]">
+                    Connect with thousands of daily active Choutuppal residents across our official channels.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {/* Instagram */}
+                  <div className="rounded-2xl border border-pink-200 bg-gradient-to-br from-pink-50/60 to-rose-50/30 p-3 flex flex-col justify-between space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-amber-500 via-pink-600 to-purple-600 text-white flex items-center justify-center shadow-xs">
+                        <Instagram className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900">Instagram</h4>
+                        <p className="text-[10px] text-pink-700 font-bold">@choutuppalapp</p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={handleShareInstagram}
+                      className="w-full h-8 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-[11px]"
+                    >
+                      Copy & Open Insta
+                    </Button>
+                  </div>
+
+                  {/* Facebook */}
+                  <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50/60 to-sky-50/30 p-3 flex flex-col justify-between space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                        <Facebook className="h-4 w-4 fill-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900">Facebook</h4>
+                        <p className="text-[10px] text-blue-700 font-bold">/Choutuppalapp</p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={handleShareFacebook}
+                      className="w-full h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px]"
+                    >
+                      Share on Facebook
+                    </Button>
+                  </div>
+
+                  {/* YouTube */}
+                  <div className="rounded-2xl border border-red-200 bg-gradient-to-br from-red-50/60 to-orange-50/30 p-3 flex flex-col justify-between space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-xs">
+                        <Youtube className="h-4 w-4 fill-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-900">YouTube</h4>
+                        <p className="text-[10px] text-red-700 font-bold">@choutuppalapp</p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={handleOpenYouTube}
+                      className="w-full h-8 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-[11px]"
+                    >
+                      Watch Channel
+                    </Button>
+                  </div>
+                </div>
+
+                {/* WhatsApp Community & Channel Links */}
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/30 p-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Megaphone className="h-4 w-4 text-emerald-700 shrink-0" />
+                    <p className="text-xs font-bold text-slate-800">
+                      Join Official Choutuppal WhatsApp Channel
+                    </p>
+                  </div>
+                  <a
+                    href={OFFICIAL_WA_CHANNEL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+                  >
+                    Join Channel
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Quick URL Bar & Copy Link */}
+            <div className="w-full flex items-center gap-2 rounded-2xl bg-slate-100/80 p-2 border border-slate-200/80">
               <span className="truncate font-mono text-xs text-slate-600 pl-2 flex-1 select-all">
                 {targetUrl}
               </span>
@@ -664,7 +1206,7 @@ export function ListingQrCodeModal({
                 size="sm"
                 variant="outline"
                 onClick={handleCopyLink}
-                className="h-8 rounded-xl text-xs font-bold gap-1 shrink-0 bg-white hover:bg-slate-100"
+                className="h-8 rounded-xl text-xs font-bold gap-1 shrink-0 bg-white hover:bg-slate-50 border-slate-200 shadow-xs"
               >
                 {copiedLink ? (
                   <>
@@ -677,85 +1219,24 @@ export function ListingQrCodeModal({
                 )}
               </Button>
             </div>
+          </div>
 
-            {/* Primary Action Buttons */}
-            <div className="mt-4 grid grid-cols-2 gap-2.5 w-full">
-              {/* WhatsApp Share */}
-              <Button
-                onClick={handleShareWhatsApp}
-                className="h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2 transition"
-              >
-                <MessageCircle className="h-4 w-4 fill-white" />
-                <span>WhatsApp Share</span>
-              </Button>
-
-              {/* Native Mobile Share Sheet */}
-              <Button
-                onClick={handleNativeShare}
-                disabled={sharing}
-                variant="outline"
-                className="h-11 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition"
-              >
-                <Share2 className="h-4 w-4 text-blue-700" />
-                <span>Share QR Poster</span>
-              </Button>
-
-              {/* Download Active Version */}
-              <Button
-                onClick={activeTab === 'standee' ? handleDownloadStandee : handleDownloadRawQr}
-                disabled={downloading}
-                className="h-11 rounded-2xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2 transition"
-              >
-                <Download className="h-4 w-4" />
-                <span>
-                  {activeTab === 'standee' ? 'Download Standee (PNG)' : 'Download QR (PNG)'}
-                </span>
-              </Button>
-
-              {/* Copy Image to Clipboard */}
-              <Button
-                onClick={handleCopyImage}
-                variant="outline"
-                className="h-11 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition"
-              >
-                {copiedImage ? (
-                  <>
-                    <Check className="h-4 w-4 text-emerald-600" />
-                    <span>Image Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <FileImage className="h-4 w-4 text-slate-600" />
-                    <span>Copy QR Image</span>
-                  </>
-                )}
-              </Button>
+          {/* Footer Bottom Bar */}
+          <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <span>Choutuppal Verified Merchant</span>
             </div>
 
-            {/* Secondary Actions: Print & View Page */}
-            <div className="mt-3 w-full flex items-center justify-between px-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={handlePrint}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-700 transition"
-              >
-                <Printer className="h-3.5 w-3.5 text-blue-700" />
-                <span>Print Standee (A4)</span>
-              </button>
-              <a
-                href={targetUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline"
-              >
-                <span>Visit Page</span>
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-
-            <p className="mt-3 text-[11px] text-center text-slate-400">
-              Print this QR code for your shop counter or share on WhatsApp status so customers can instantly view your catalog & call you.
-            </p>
+            <a
+              href={targetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:text-blue-800 hover:underline"
+            >
+              <span>Visit Shop Page</span>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
           </div>
         </DialogContent>
       </Dialog>

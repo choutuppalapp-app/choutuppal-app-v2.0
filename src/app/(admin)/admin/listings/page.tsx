@@ -25,6 +25,8 @@ import {
   Upload,
   Layers,
   Image as ImageIcon,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { BulkImportModal } from '@/components/admin/bulk-import-modal'
@@ -238,6 +240,93 @@ export default function AdminListingsPage() {
     }
   }
 
+  const handleExportCSV = (onlyFiltered: boolean = false) => {
+    const dataToExport = onlyFiltered ? filteredListings : listings
+    if (!dataToExport || dataToExport.length === 0) {
+      toast({
+        title: 'No Listings to Export',
+        description: 'There are currently no listings available to download.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const headers = [
+      'Listing ID',
+      'Business Title',
+      'Type',
+      'Category Name',
+      'Category ID',
+      'Village / Area',
+      'Phone Number',
+      'WhatsApp Number',
+      'Email',
+      'Address',
+      'Status',
+      'Is Featured',
+      'Is Premium',
+      'Views',
+      'Clicks',
+      'WhatsApp Clicks',
+      'Average Rating',
+      'Owner / Merchant',
+      'Created Date',
+    ]
+
+    const escapeVal = (val: any) => {
+      if (val === null || val === undefined) return '""'
+      const sanitized = String(val).replace(/"/g, '""').replace(/\r?\n/g, ' ')
+      return `"${sanitized}"`
+    }
+
+    const rows = dataToExport.map((item) => {
+      const catName = item.category?.name || item.categoryId || ''
+      const catId = item.categoryId || item.category?.id || ''
+      const vilName = item.village?.name || item.villageId || ''
+      const ownerName = item.owner?.name || item.owner?.username || 'Admin'
+      const createdStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-IN') : ''
+
+      return [
+        escapeVal(item.id),
+        escapeVal(item.title),
+        escapeVal(item.type || 'BUSINESS'),
+        escapeVal(catName),
+        escapeVal(catId),
+        escapeVal(vilName),
+        escapeVal(item.phone || ''),
+        escapeVal(item.whatsapp || item.phone || ''),
+        escapeVal(item.email || ''),
+        escapeVal(item.address || ''),
+        escapeVal(item.status || 'APPROVED'),
+        escapeVal(item.isFeatured ? 'YES' : 'NO'),
+        escapeVal(item.isPremium ? 'PREMIUM' : 'STANDARD'),
+        escapeVal(item.views || 0),
+        escapeVal(item.clicks || 0),
+        escapeVal(item.whatsappClicks || 0),
+        escapeVal(item.avgRating ? Number(item.avgRating).toFixed(1) : '5.0'),
+        escapeVal(ownerName),
+        escapeVal(createdStr),
+      ].join(',')
+    })
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const dateStr = new Date().toISOString().slice(0, 10)
+    link.href = url
+    link.download = `choutuppal_listings_export_${dateStr}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    toast({
+      title: 'CSV Export Generated',
+      description: `Successfully downloaded ${dataToExport.length} listings as CSV report.`,
+    })
+  }
+
   const handleCreateListing = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -270,6 +359,13 @@ export default function AdminListingsPage() {
           icon: Upload,
           onClick: () => setBulkImportOpen(true),
         }}
+        extraActions={[
+          {
+            label: 'Export CSV',
+            icon: Download,
+            onClick: () => handleExportCSV(false),
+          },
+        ]}
         actionButton={{
           label: 'Add Business',
           onClick: () => {
@@ -342,6 +438,15 @@ export default function AdminListingsPage() {
                 </option>
               ))}
             </select>
+
+            <button
+              onClick={() => handleExportCSV(true)}
+              title={`Export ${filteredListings.length} filtered listings to CSV`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer"
+            >
+              <Download className="h-3.5 w-3.5 text-slate-500" />
+              <span>Export CSV</span>
+            </button>
 
             <button
               onClick={fetchListings}
@@ -538,6 +643,8 @@ export default function AdminListingsPage() {
                             categoryName={item.category?.name}
                             villageName={item.village?.name}
                             phone={item.phone}
+                            whatsapp={item.whatsapp}
+                            address={item.address}
                             variant="icon"
                           />
 

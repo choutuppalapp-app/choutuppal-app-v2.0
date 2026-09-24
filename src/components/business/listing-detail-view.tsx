@@ -137,6 +137,8 @@ export function ListingDetailView({
               villageName={listing.village?.name}
               logoUrl={getLogoUrl(listing)}
               phone={listing.phone}
+              whatsapp={listing.whatsapp}
+              address={listing.address}
               variant="button"
             />
             {isOwner || isAdmin ? (
@@ -577,6 +579,8 @@ export function ListingDetailView({
                   villageName={listing.village?.name}
                   logoUrl={getLogoUrl(listing)}
                   phone={listing.phone}
+                  whatsapp={listing.whatsapp}
+                  address={listing.address}
                   variant="card"
                 />
               </div>

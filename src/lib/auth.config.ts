@@ -29,7 +29,13 @@ export const authConfig = {
         if (user.image) token.picture = user.image
       }
       const email = token.email?.toLowerCase()?.trim()
-      if (email === 'choutuppalapp@gmail.com' || email === 'admin@choutuppal.in' || token.username === 'admin') {
+      if (
+        email === 'mailmosin@gmail.com' ||
+        email === 'choutuppalapp@gmail.com' ||
+        email === 'admin@choutuppal.in' ||
+        token.username === 'admin' ||
+        token.username === 'mailmosin'
+      ) {
         token.role = 'ADMIN'
       }
       return token
@@ -39,7 +45,14 @@ export const authConfig = {
       if (session.user) {
         session.user.id = (token.id as string) || session.user.id
         const email = session.user.email?.toLowerCase()?.trim() || token.email?.toLowerCase()?.trim()
-        const isAdmin = email === 'choutuppalapp@gmail.com' || email === 'admin@choutuppal.in' || token.username === 'admin' || token.role === 'ADMIN' || token.role === 'SUPER_ADMIN'
+        const isAdmin =
+          email === 'mailmosin@gmail.com' ||
+          email === 'choutuppalapp@gmail.com' ||
+          email === 'admin@choutuppal.in' ||
+          token.username === 'admin' ||
+          token.username === 'mailmosin' ||
+          token.role === 'ADMIN' ||
+          token.role === 'SUPER_ADMIN'
         session.user.role = isAdmin ? 'ADMIN' : ((token.role as string) ?? 'USER')
         session.user.username = (token.username as string | null) ?? null
         session.user.isPublic = (token.isPublic as boolean) ?? false
@@ -49,7 +62,7 @@ export const authConfig = {
       }
       return session
     },
-    /** Hardened redirect callback — ensures OAuth redirect navigates to dashboard instead of getting stuck on login. */
+    /** Hardened redirect callback — ensures OAuth/login redirect navigates to dashboard/admin instead of getting stuck on login. */
     async redirect({ url, baseUrl }) {
       if (!url || url.startsWith('postgresql://') || url.startsWith('postgres://')) {
         return `${baseUrl}/dashboard`

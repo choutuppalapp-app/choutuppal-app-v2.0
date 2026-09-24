@@ -135,6 +135,8 @@ export function MyListings({
                       villageName={l.village?.name}
                       logoUrl={l.logo}
                       phone={l.phone}
+                      whatsapp={l.whatsapp}
+                      address={l.address}
                       variant="button"
                       className="flex-1"
                     />

@@ -1,0 +1,461 @@
+{
+  "listings": [
+    {
+      "id": "ch-feat-1",
+      "title": "శ్రీ సాయి ఆటోమొబైల్ సర్వీసెస్ & గ్యారేజ్",
+      "slug": "sri-sai-automobile-choutuppal",
+      "description": "ఆల్ బైక్ & కార్ రిపేరింగ్, వాషింగ్, ఆయిల్ ఛేంజ్, స్పేర్ పార్ట్స్ మరియు ఎమర్జెన్సీ బ్రేక్‌డౌన్ సర్వీస్. చౌటుప్పల్ లో నంబర్ 1 గ్యారేజ్.",
+      "type": "BUSINESS",
+      "status": "APPROVED",
+      "isFeatured": true,
+      "isPremium": true,
+      "coverImage": "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80",
+      "phone": "9494348175",
+      "whatsapp": "9494348175",
+      "address": "NH 65 హైవే, బస్టాండ్ దగ్గర, చౌటుప్పల్",
+      "avgRating": 4.9,
+      "views": 1420,
+      "clicks": 340,
+      "whatsappClicks": 180,
+      "categoryId": "cat-automobile",
+      "villageId": "v-choutuppal",
+      "category": {
+        "id": "cat-automobile",
+        "name": "Automobile & Garage",
+        "slug": "automobile",
+        "icon": "Car",
+        "telugu": "ఆటోమొబైల్ & గ్యారేజ్"
+      },
+      "village": {
+        "id": "v-choutuppal",
+        "name": "Choutuppal Town",
+        "slug": "choutuppal"
+      },
+      "owner": {
+        "id": "cms0du1m40000v32slild2p1s",
+        "name": "శ్రీనివాస్ రెడ్డి",
+        "username": "admin",
+        "phone": "9494348175"
+      },
+      "createdAt": "2026-01-10T10:00:00.000Z",
+      "updatedAt": "2026-09-24T10:00:00.000Z"
+    },
+    {
+      "id": "ch-feat-2",
+      "title": "చౌటుప్పల్ డిజిటల్ మీసేవ & ఇంటర్నెట్ సెంటర్",
+      "slug": "choutuppal-meeseva-internet-center",
+      "description": "ఆధార్ అప్‌డేట్, పాన్ కార్డ్, పాస్‌పోర్ట్ అప్లికేషన్లు, ప్రభుత్వ ఉద్యోగాల దరఖాస్తులు, కలర్ జిరాక్స్, ల్యామినేషన్ & ఆన్‌లైన్ పేమెంట్స్.",
+      "type": "SERVICE",
+      "status": "APPROVED",
+      "isFeatured": true,
+      "isPremium": true,
+      "coverImage": "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80",
+      "phone": "9494348175",
+      "whatsapp": "9494348175",
+      "address": "మెయిన్ రోడ్, బ్యాంక్ కాలనీ, చౌటుప్పల్",
+      "avgRating": 4.8,
+      "views": 1180,
+      "clicks": 290,
+      "whatsappClicks": 140,
+      "categoryId": "cat-internet",
+      "villageId": "v-choutuppal",
+      "category": {
+        "id": "cat-internet",
+        "name": "Internet & MeeSeva",
+        "slug": "internet-cyber-cafe",
+        "icon": "Globe",
+        "telugu": "మీసేవ & నెట్ సెంటర్"
+      },
+      "village": {
+        "id": "v-choutuppal",
+        "name": "Choutuppal Town",
+        "slug": "choutuppal"
+      },
+      "owner": {
+        "id": "cms0du1m40000v32slild2p1s",
+        "name": "రమేష్ కుమార్",
+        "username": "admin",
+        "phone": "9494348175"
+      },
+      "createdAt": "2026-01-12T10:00:00.000Z",
+      "updatedAt": "2026-09-24T10:00:00.000Z"
+    },
+    {
+      "id": "ch-feat-3",
+      "title": "శ్రీ లక్ష్మి టిఫిన్స్ & ఫ్యామిలీ రెస్టారెంట్",
+      "slug": "sri-laxmi-tiffins-choutuppal",
+      "description": "రుచికరమైన వేడి వేడి ఇడ్లీ, దోశ, వడ, పూరి, చట్నీలు మరియు మధ్యాహ్నం భోజనం, బిర్యానీ. పరిశుభ్రమైన వాతావరణం, ఫ్యామిలీ సెక్షన్ అందుబాటులో ఉంది.",
+      "type": "BUSINESS",
+      "status": "APPROVED",
+      "isFeatured": true,
+      "isPremium": true,
+      "coverImage": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80",
+      "phone": "9494348175",
+      "whatsapp": "9494348175",
+      "address": "NH 65 క్రాస్ రోడ్స్, చౌటుప్పల్",
+      "avgRating": 4.9,
+      "views": 2350,
+      "clicks": 580,
+      "whatsappClicks": 210,
+      "categoryId": "cat-food",
+      "villageId": "v-choutuppal",
+      "category": {
+        "id": "cat-food",
+        "name": "Food & Dining",
+        "slug": "food-dining",
+        "icon": "UtensilsCrossed",
+        "telugu": "హోటల్స్ & రెస్టారెంట్లు"
+      },
+      "village": {
+        "id": "v-choutuppal",
+        "name": "Choutuppal Town",
+        "slug": "choutuppal"
+      },
+      "owner": {
+        "id": "cms0du1m40000v32slild2p1s",
+        "name": "లక్ష్మయ్య",
+        "username": "admin",
+        "phone": "9494348175"
+      },
+      "createdAt": "2026-01-15T10:00:00.000Z",
+      "updatedAt": "2026-09-24T10:00:00.000Z"
+    },
+    {
+      "id": "ch-feat-4",
+      "title": "బాలాజీ ఎలక్ట్రికల్స్, మోటార్స్ & హార్డ్‌వేర్",
+      "slug": "balaji-electricals-choutuppal",
+      "description": "అన్ని రకాల సబ్‌మెర్సిబుల్ మోటార్లు, వైరింగ్ కేబుల్స్, పైపులు, స్విచ్‌లు, ఫ్యాన్లు, లైటింగ్స్ మరియు హార్డ్‌వేర్ సామాగ్రి హోల్‌సేల్ & రీటైల్ అమ్మకాలు.",
+      "type": "BUSINESS",
+      "status": "APPROVED",
+      "isFeatured": true,
+      "isPremium": true,
+      "coverImage": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80",
+      "phone": "9494348175",
+      "whatsapp": "9494348175",
+      "address": "గాంధీ చౌక్, చౌటుప్పల్",
+      "avgRating": 4.7,
+      "views": 940,
+      "clicks": 180,
+      "whatsappClicks": 95,
+      "categoryId": "cat-electrical",
+      "villageId": "v-choutuppal",
+      "category": {
+        "id": "cat-electrical",
+        "name": "Electrical & Hardware",
+        "slug": "electrical-hardware",
+        "icon": "Zap",
+        "telugu": "ఎలక్ట్రికల్ & హార్డ్‌వేర్"
+      },
+      "village": {
+        "id": "v-choutuppal",
+        "name": "Choutuppal Town",
+        "slug": "choutuppal"
+      },
+      "owner": {
+        "id": "cms0du1m40000v32slild2p1s",
+        "name": "బాలాజీ రావు",
+        "username": "admin",
+        "phone": "9494348175"
+      },
+      "createdAt": "2026-01-18T10:00:00.000Z",
+      "updatedAt": "2026-09-24T10:00:00.000Z"
+    },
+    {
+      "id": "ch-feat-5",
+      "title": "శ్రీ వేంకటేశ్వర మెడికల్ & జనరల్ స్టోర్స్ (24x7)",
+      "slug": "sri-venkateshwara-medical-choutuppal",
+      "description": "అన్ని రకాల నాణ్యమైన అల్లోపతిక్, ఆయుర్వేదిక్ మందులు, సర్జికల్ వస్తువులు, బేబీ కేర్ ప్రొడక్ట్స్ మరియు 24 గంటల ఎమర్జెన్సీ హోమ్ డెలివరీ.",
+      "type": "BUSINESS",
+      "status": "APPROVED",
+      "isFeatured": true,
+      "isPremium": true,
+      "coverImage": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80",
+      "phone": "9494348175",
+      "whatsapp": "9494348175",
+      "address": "గవర్నమెంట్ హాస్పిటల్ రోడ్, చౌటుప్పల్",
+      "avgRating": 4.9,
+      "views": 1650,
+      "clicks": 410,
+      "whatsappClicks": 190,
+      "categoryId": "cat-health",
+      "villageId": "v-choutuppal",
+      "category": {
+        "id": "cat-health",
+        "name": "Health & Medical",
+        "slug": "health-medical",
+        "icon": "HeartPulse",
+        "telugu": "వైద్యం & ఫార్మసీ"
+      },
+      "village": {
+        "id": "v-choutuppal",
+        "name": "Choutuppal Town",
+        "slug": "choutuppal"
+      },
+      "owner": {
+        "id": "cms0du1m40000v32slild2p1s",
+        "name": "డాక్టర్ సురేష్",
+        "username": "admin",
+        "phone": "9494348175"
+      },
+      "createdAt": "2026-01-20T10:00:00.000Z",
+      "updatedAt": "2026-09-24T10:00:00.000Z"
+    },
+    {
+      "id": "ch-feat-6",
+      "title": "మహా లక్ష్మి బిల్డింగ్ మెటీరియల్స్ & సిమెంట్ సప్లయర్స్",
+      "slug": "maha-laxmi-building-materials-choutuppal",
+      "description": "అల్ట్రాటెక్ సిమెంట్, టాటా టిస్కాన్ స్టీల్, ఇసుక, కంకర, రెడ్ బ్రిక్స్ మరియు బిల్డింగ్ కన్‌స్ట్రక్షన్ మెటీరియల్స్ హోల్‌సేల్ సప్లై.",
+      "type": "BUSINESS",
+      "status": "APPROVED",
+      "isFeatured": false,
+      "isPremium": true,
+      "coverImage": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80",
+      "phone": "9494348175",
+      "whatsapp": "9494348175",
+      "address": "పంతంగి రోడ్, చౌటుప్పల్",
+      "avgRating": 4.8,
+      "views": 820,
+      "clicks": 160,
+      "whatsappClicks": 85,
+      "categoryId": "cat-building",
+      "villageId": "v-panthangi",
+      "category": {
+        "id": "cat-building",
+        "name": "Building Materials",
+        "slug": "building-materials",
+        "icon": "BrickWall",
+        "telugu": "భవన నిర్మాణ సామాగ్రి"
+      },
+      "village": {
+        "id": "v-panthangi",
+        "name": "Panthangi",
+        "slug": "panthangi"
+      },
+      "owner": {
+        "id": "cms0du1m40000v32slild2p1s",
+        "name": "వెంకటయ్య గౌడ్",
+        "username": "admin",
+        "phone": "9494348175"
+      },
+      "createdAt": "2026-01-22T10:00:00.000Z",
+      "updatedAt": "2026-09-24T10:00:00.000Z"
+    }
+  ],
+  "realEstates": [
+    {
+      "id": "re-1",
+      "title": "హైవే ఫేసింగ్ ఓపెన్ ప్లాట్లు (HMDA / DTCP Approved)",
+      "slug": "highway-facing-open-plots-choutuppal",
+      "description": "NH 65 హైదరాబాద్-విజయవాడ హైవే ఫేసింగ్ లో 150 & 200 గజాల అద్భుతమైన రెసిడెన్షియల్ ఓపెన్ ప్లాట్లు. 100% క్లియర్ టైటిల్, స్పాట్ రిజిస్ట్రేషన్ మరియు బ్యాంక్ లోన్ సదుపాయం కలదు.",
+      "price": 1500000,
+      "negotiable": true,
+      "type": "PLOT",
+      "listingType": "SALE",
+      "bedrooms": null,
+      "bathrooms": null,
+      "areaSqft": 1800,
+      "coverImage": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
+      "address": "హైవే జంక్షన్, చౌటుప్పల్ టౌన్",
+      "contactPhone": "9494348175",
+      "contactWhatsapp": "9494348175",
+      "status": "APPROVED",
+      "views": 1240,
+      "villageId": "v-choutuppal",
+      "village": {
+        "id": "v-choutuppal",
+        "name": "Choutuppal Town",
+        "slug": "choutuppal"
+      },
+      "createdAt": "2026-01-15T10:00:00.000Z"
+    },
+    {
+      "id": "re-2",
+      "title": "2BHK ఇండిపెండెంట్ లగ్జరీ హౌస్ అమ్మకానికి",
+      "slug": "2bhk-independent-luxury-house-lingojiguda",
+      "description": "150 గజాల విస్తీర్ణంలో నూతనంగా నిర్మించిన 2BHK ఇండిపెండెంట్ హౌస్. 100% వాస్తు, బోరు వాటర్, కార్ పార్కింగ్ మరియు ప్రశాంతమైన వాతావరణం.",
+      "price": 4200000,
+      "negotiable": true,
+      "type": "HOUSE",
+      "listingType": "SALE",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "areaSqft": 1350,
+      "coverImage": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80",
+      "address": "లింగోజిగూడ రోడ్, చౌటుప్పల్",
+      "contactPhone": "9494348175",
+      "contactWhatsapp": "9494348175",
+      "status": "APPROVED",
+      "views": 980,
+      "villageId": "v-lingojiguda",
+      "village": {
+        "id": "v-lingojiguda",
+        "name": "Lingoji Guda",
+        "slug": "lingoji-guda"
+      },
+      "createdAt": "2026-01-20T10:00:00.000Z"
+    }
+  ],
+  "banners": [
+    {
+      "id": "banner_1",
+      "title": "చౌటుప్పల్ బిజినెస్ ఎక్స్‌పో 2026",
+      "imageUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80",
+      "link": "/explore",
+      "position": "HOME_TOP",
+      "status": "APPROVED",
+      "isActive": true,
+      "createdAt": "2026-09-24T13:29:37.771Z"
+    }
+  ],
+  "stories": [
+    {
+      "id": "story_1",
+      "caption": "చౌటుప్పల్ సూపర్ యాప్ — వ్యాపారాలు & సేవలు",
+      "mediaUrl": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80",
+      "mediaType": "IMAGE",
+      "link": "/explore",
+      "isActive": true,
+      "createdAt": "2026-09-24T13:29:37.771Z"
+    }
+  ],
+  "shorts": [
+    {
+      "id": "short_1",
+      "title": "చౌటుప్పల్ హైవే డెవలప్‌మెంట్ డ్రోన్ వీడియో",
+      "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "youtubeId": "dQw4w9WgXcQ",
+      "thumbnail": "https://images.unsplash.com/photo-1545459720-aac8509eb02c?auto=format&fit=crop&w=600&q=80",
+      "views": 1240,
+      "likes": 180,
+      "createdAt": "2026-09-24T13:29:37.771Z"
+    }
+  ],
+  "news": [
+    {
+      "id": "news-1",
+      "title": "చౌటుప్పల్ - హైదరాబాద్ జాతీయ రహదారి 65 విస్తరణ పనులు ముమ్మరం",
+      "slug": "choutuppal-nh65-highway-expansion-update",
+      "summary": "హైదరాబాద్-విజయవాడ జాతీయ రహదారిపై ట్రాఫిక్ సమస్యల నివారణకు అండర్‌పాస్ మరియు ఫ్లైఓవర్ పనులు వేగవంతం చేశారు.",
+      "content": "హైదరాబాద్-విజయవాడ జాతీయ రహదారిపై ట్రాఫిక్ సమస్యల నివారణకు అండర్‌పాస్ మరియు ఫ్లైఓవర్ పనులు వేగవంతం చేశారు. స్థానిక ప్రజలకు మరియు వాహనదారులకు సురక్షితమైన ప్రయాణం కల్పించడానికి అధికారులు చర్యలు చేపట్టారు.",
+      "image": "https://images.unsplash.com/photo-1545459720-aac8509eb02c?auto=format&fit=crop&w=800&q=80",
+      "tags": [
+        "Choutuppal",
+        "NH65",
+        "Development"
+      ],
+      "isPublished": true,
+      "views": 890,
+      "createdAt": "2026-09-24T13:29:37.771Z",
+      "updatedAt": "2026-09-24T13:29:37.771Z",
+      "author": {
+        "name": "చౌటుప్పల్ న్యూస్ డెస్క్"
+      }
+    }
+  ],
+  "blogs": [
+    {
+      "id": "blog-1",
+      "title": "చౌటుప్పల్ పరిసరాల్లో ఓపెన్ ప్లాట్లు కొనేముందు తెలుసుకోవాల్సిన 5 విషయాలు",
+      "slug": "5-things-to-know-before-buying-plots-in-choutuppal",
+      "excerpt": "హెచ్‌ఎండిఏ/డిటిసిపి లేఅవుట్ అనుమతులు, లింక్ డాక్యుమెంట్లు మరియు ఫ్యూచర్ గ్రోత్ విశ్లేషణ పూర్తి గైడ్.",
+      "content": "హెచ్‌ఎండిఏ/డిటిసిపి లేఅవుట్ అనుమతులు, లింక్ డాక్యుమెంట్లు మరియు ఫ్యూచర్ గ్రోత్ విశ్లేషణ పూర్తి గైడ్. పెట్టుబడి పెట్టే ముందు సరైన పత్రాలు ఎలా సరిచూసుకోవాలో తెలుసుకోండి.",
+      "coverImage": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
+      "category": "Real Estate",
+      "tags": [
+        "Real Estate",
+        "Choutuppal",
+        "Investment"
+      ],
+      "isPublished": true,
+      "views": 650,
+      "createdAt": "2026-09-24T13:29:37.771Z",
+      "updatedAt": "2026-09-24T13:29:37.771Z",
+      "author": {
+        "name": "చౌటుప్పల్ బ్లాగ్ డెస్క్"
+      }
+    }
+  ],
+  "settings": [
+    {
+      "key": "spin_enabled",
+      "value": "true"
+    },
+    {
+      "key": "pricing_free",
+      "value": "true"
+    },
+    {
+      "key": "banner_free",
+      "value": "true"
+    },
+    {
+      "key": "ads_paid",
+      "value": "false"
+    },
+    {
+      "key": "banner_price",
+      "value": "99"
+    },
+    {
+      "key": "announcement_ticker",
+      "value": "చౌటుప్పల్ సూపర్ యాప్‌లోకి స్వాగతం! మీ షాపును ఉచితంగా నమోదు చేసుకోండి."
+    },
+    {
+      "key": "hero_title",
+      "value": "చౌటుప్పల్ సూపర్ యాప్"
+    },
+    {
+      "key": "hero_subtitle",
+      "value": "మీ పట్టణం, మీ వ్యాపారాలు - అన్నీ ఒకే యాప్‌లో"
+    },
+    {
+      "key": "hero_bg_image",
+      "value": ""
+    }
+  ],
+  "users": [
+    {
+      "id": "cms0du1m40000v32slild2p1s_mosin",
+      "name": "Mosin Admin",
+      "email": "mailmosin@gmail.com",
+      "username": "mailmosin",
+      "phone": "9494348175",
+      "passwordHash": "$2b$10$eKgBR72xp3KfFQMMGtD/1edRXRft8EmWoxePGQ1ukYtpabWVBneoO",
+      "role": "ADMIN",
+      "planTier": "PREMIUM",
+      "villageId": "v-choutuppal",
+      "isPublic": true,
+      "isBanned": false,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "cms0du1m40000v32slild2p1s",
+      "name": "Super Admin",
+      "email": "admin@choutuppal.in",
+      "username": "admin",
+      "phone": "9494348175",
+      "passwordHash": "$2b$10$eKgBR72xp3KfFQMMGtD/1edRXRft8EmWoxePGQ1ukYtpabWVBneoO",
+      "role": "ADMIN",
+      "planTier": "PREMIUM",
+      "villageId": "v-choutuppal",
+      "isPublic": true,
+      "isBanned": false,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "cms0du1m40000v32slild2p1s_alt",
+      "name": "Choutuppal Admin",
+      "email": "choutuppalapp@gmail.com",
+      "username": "choutuppalapp",
+      "phone": "9494348175",
+      "passwordHash": "$2b$10$eKgBR72xp3KfFQMMGtD/1edRXRft8EmWoxePGQ1ukYtpabWVBneoO",
+      "role": "ADMIN",
+      "planTier": "PREMIUM",
+      "villageId": "v-choutuppal",
+      "isPublic": true,
+      "isBanned": false,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "lastUpdated": "2026-09-24T13:29:37.771Z"
+}
