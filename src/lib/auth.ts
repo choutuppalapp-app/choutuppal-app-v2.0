@@ -7,26 +7,15 @@ import { prisma, safeDbQuery } from '@/lib/prisma'
 import { authConfig } from '@/lib/auth.config'
 import { getOfflineUsers } from '@/lib/offline-data'
 
-const useSecure = process.env.NODE_ENV === 'production' || process.env.NEXTAUTH_URL?.startsWith('https://')
-const isChoutuppalHost = (process.env.NEXTAUTH_URL || '').includes('choutuppal.in')
-const cookieDomain = isChoutuppalHost ? '.choutuppal.in' : undefined
+const useSecure = process.env.NODE_ENV === 'production' && process.env.NEXTAUTH_URL?.startsWith('https://')
 
 export const authOptions: NextAuthOptions = {
   ...authConfig,
   secret: process.env.NEXTAUTH_SECRET || 'ChoutuppalAppV2SecretKey2026StableAndPersistentValueX9m2k7p4q',
-  adapter: PrismaAdapter(prisma),
-  useSecureCookies: useSecure,
-  cookies: {
-    sessionToken: {
-      name: useSecure ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: useSecure,
-        domain: cookieDomain,
-      },
-    },
+  useSecureCookies: false, // ensures cookie works seamlessly across preview domains, localhost, and custom domains
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   providers: [
     GoogleProvider({

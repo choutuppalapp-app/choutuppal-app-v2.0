@@ -29,6 +29,7 @@ import {
 import { AdminHeader } from '@/components/admin/admin-header'
 import { BulkImportModal } from '@/components/admin/bulk-import-modal'
 import { ListingQrCodeModal } from '@/components/business/listing-qr-code'
+import { ListingPreviewCard } from '@/components/admin/listing-preview-card'
 import { toast } from '@/hooks/use-toast'
 import {
   Dialog,
@@ -570,360 +571,393 @@ export default function AdminListingsPage() {
 
       {/* Edit Listing Modal */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-900">
-              Edit Listing
+        <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-2xl">
+          <DialogHeader className="border-b border-slate-100 pb-3">
+            <DialogTitle className="text-lg font-bold text-slate-900 flex items-center justify-between">
+              <span>Edit Listing</span>
+              <span className="text-xs font-normal text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+                Live Preview Enabled
+              </span>
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Update details, type, phone contacts, village, category, and approval status.
+              Update details, type, phone contacts, village, category, and approval status with real-time site preview.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveEdit} className="space-y-4 pt-3">
-            <div>
-              <label className="text-xs font-bold text-slate-700">Shop / Business Name *</label>
-              <input
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+            {/* Left Column: Form Inputs */}
+            <form onSubmit={handleSaveEdit} className="lg:col-span-7 space-y-4">
               <div>
-                <label className="text-xs font-bold text-slate-700">Listing Type</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none font-semibold text-slate-800"
-                >
-                  <option value="BUSINESS">Business / Shop (వ్యాపారం)</option>
-                  <option value="SERVICE">Service / Technician (సేవ)</option>
-                  <option value="REAL_ESTATE">Real Estate (రియల్ ఎస్టేట్)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  <option value="APPROVED">APPROVED (ఆమోదించినవి)</option>
-                  <option value="PENDING">PENDING (పెండింగ్)</option>
-                  <option value="REJECTED">REJECTED (తిరస్కరించినవి)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700">Phone Number *</label>
+                <label className="text-xs font-bold text-slate-700">Shop / Business Name *</label>
                 <input
                   type="text"
                   required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Listing Type</label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none font-semibold text-slate-800"
+                  >
+                    <option value="BUSINESS">Business / Shop (వ్యాపారం)</option>
+                    <option value="SERVICE">Service / Technician (సేవ)</option>
+                    <option value="REAL_ESTATE">Real Estate (రియల్ ఎస్టేట్)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  >
+                    <option value="APPROVED">APPROVED (ఆమోదించినవి)</option>
+                    <option value="PENDING">PENDING (పెండింగ్)</option>
+                    <option value="REJECTED">REJECTED (తిరస్కరించినవి)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Phone Number *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700">WhatsApp</label>
+                  <input
+                    type="text"
+                    value={formData.whatsapp}
+                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Category</label>
+                  <select
+                    value={formData.categoryId}
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id || c.slug} value={c.id || c.slug}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Village / Town</label>
+                  <select
+                    value={formData.villageId}
+                    onChange={(e) => setFormData({ ...formData, villageId: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  >
+                    {villages.map((v) => (
+                      <option key={v.id || v.slug} value={v.id || v.slug}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div>
-                <label className="text-xs font-bold text-slate-700">WhatsApp</label>
+                <label className="text-xs font-bold text-slate-700">Cover Image URL</label>
                 <input
                   type="text"
-                  value={formData.whatsapp}
-                  onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                  value={formData.coverImage}
+                  onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700">Category</label>
-                <select
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id || c.slug} value={c.id || c.slug}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                <label className="text-xs font-bold text-slate-700">Address / Landmark</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700">Village / Town</label>
-                <select
-                  value={formData.villageId}
-                  onChange={(e) => setFormData({ ...formData, villageId: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  {villages.map((v) => (
-                    <option key={v.id || v.slug} value={v.id || v.slug}>
-                      {v.name}
-                    </option>
-                  ))}
-                </select>
+                <label className="text-xs font-bold text-slate-700">Description / Telugu Details</label>
+                <textarea
+                  rows={3}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                />
               </div>
-            </div>
 
-            <div>
-              <label className="text-xs font-bold text-slate-700">Cover Image URL</label>
-              <input
-                type="text"
-                value={formData.coverImage}
-                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+              <div className="flex items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPremium}
+                    onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
+                    className="rounded border-slate-300 text-blue-700 focus:ring-blue-700 h-4 w-4"
+                  />
+                  <span>Gold Premium Badge</span>
+                </label>
+
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isFeatured}
+                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                    className="rounded border-slate-300 text-blue-700 focus:ring-blue-700 h-4 w-4"
+                  />
+                  <span>Feature on Homepage</span>
+                </label>
+              </div>
+
+              <DialogFooter className="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditModalOpen(false)}
+                  className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-blue-700 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 shadow-xs"
+                >
+                  Save Changes
+                </button>
+              </DialogFooter>
+            </form>
+
+            {/* Right Column: Instant Card Preview */}
+            <div className="lg:col-span-5 h-full">
+              <ListingPreviewCard
+                formData={formData}
+                categories={categories}
+                villages={villages}
+                onSelectCoverPreset={(url) => setFormData((prev) => ({ ...prev, coverImage: url }))}
               />
             </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700">Address / Landmark</label>
-              <input
-                type="text"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700">Description / Telugu Details</label>
-              <textarea
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-              />
-            </div>
-
-            <div className="flex items-center gap-6 pt-2">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isPremium}
-                  onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
-                  className="rounded border-slate-300 text-blue-700 focus:ring-blue-700 h-4 w-4"
-                />
-                <span>Gold Premium Badge</span>
-              </label>
-
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isFeatured}
-                  onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                  className="rounded border-slate-300 text-blue-700 focus:ring-blue-700 h-4 w-4"
-                />
-                <span>Feature on Homepage</span>
-              </label>
-            </div>
-
-            <DialogFooter className="pt-4 flex justify-end gap-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setEditModalOpen(false)}
-                className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="rounded-lg bg-blue-700 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 shadow-xs"
-              >
-                Save Changes
-              </button>
-            </DialogFooter>
-          </form>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Create New Listing Modal */}
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-slate-900">
-              Register New Listing
+        <DialogContent className="max-w-5xl max-h-[92vh] overflow-y-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-2xl">
+          <DialogHeader className="border-b border-slate-100 pb-3">
+            <DialogTitle className="text-lg font-bold text-slate-900 flex items-center justify-between">
+              <span>Register New Listing</span>
+              <span className="text-xs font-normal text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live Card Preview
+              </span>
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Directly add a business, service, or real estate listing to Choutuppal Directory.
+              Directly add a business, service, or real estate listing to Choutuppal Directory with real-time visual preview.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateListing} className="space-y-4 pt-3">
-            <div>
-              <label className="text-xs font-bold text-slate-700">Listing Title / Business Name *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Sri Balaji Hardware & Electricals"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+            {/* Left Column: Form Inputs */}
+            <form onSubmit={handleCreateListing} className="lg:col-span-7 space-y-4">
               <div>
-                <label className="text-xs font-bold text-slate-700">Listing Type</label>
-                <select
-                  value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none font-semibold text-slate-800"
-                >
-                  <option value="BUSINESS">Business / Shop (వ్యాపారం)</option>
-                  <option value="SERVICE">Service / Technician (సేవ)</option>
-                  <option value="REAL_ESTATE">Real Estate (రియల్ ఎస్టేట్)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  <option value="APPROVED">APPROVED (ఆమోదించినవి)</option>
-                  <option value="PENDING">PENDING (పెండింగ్)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-slate-700">Phone Number *</label>
+                <label className="text-xs font-bold text-slate-700">Listing Title / Business Name *</label>
                 <input
-                  type="tel"
+                  type="text"
                   required
-                  placeholder="9876543210"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="e.g. Sri Balaji Hardware & Electricals"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Listing Type</label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none font-semibold text-slate-800"
+                  >
+                    <option value="BUSINESS">Business / Shop (వ్యాపారం)</option>
+                    <option value="SERVICE">Service / Technician (సేవ)</option>
+                    <option value="REAL_ESTATE">Real Estate (రియల్ ఎస్టేట్)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  >
+                    <option value="APPROVED">APPROVED (ఆమోదించినవి)</option>
+                    <option value="PENDING">PENDING (పెండింగ్)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Phone Number *</label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="9876543210"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700">WhatsApp</label>
+                  <input
+                    type="tel"
+                    placeholder="WhatsApp number"
+                    value={formData.whatsapp}
+                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Category</label>
+                  <select
+                    value={formData.categoryId}
+                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id || c.slug} value={c.id || c.slug}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Village / Town</label>
+                  <select
+                    value={formData.villageId}
+                    onChange={(e) => setFormData({ ...formData, villageId: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                  >
+                    {villages.map((v) => (
+                      <option key={v.id || v.slug} value={v.id || v.slug}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div>
-                <label className="text-xs font-bold text-slate-700">WhatsApp</label>
+                <label className="text-xs font-bold text-slate-700">Cover Image URL</label>
                 <input
-                  type="tel"
-                  placeholder="WhatsApp number"
-                  value={formData.whatsapp}
-                  onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                  type="text"
+                  placeholder="https://images.unsplash.com/photo-..."
+                  value={formData.coverImage}
+                  onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700">Category</label>
-                <select
-                  value={formData.categoryId}
-                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id || c.slug} value={c.id || c.slug}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                <label className="text-xs font-bold text-slate-700">Address / Location</label>
+                <input
+                  type="text"
+                  placeholder="Main Road, Near Bus Stand, Choutuppal"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700">Village / Town</label>
-                <select
-                  value={formData.villageId}
-                  onChange={(e) => setFormData({ ...formData, villageId: e.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-                >
-                  {villages.map((v) => (
-                    <option key={v.id || v.slug} value={v.id || v.slug}>
-                      {v.name}
-                    </option>
-                  ))}
-                </select>
+                <label className="text-xs font-bold text-slate-700">Description / Services Offered</label>
+                <textarea
+                  rows={3}
+                  placeholder="Business details, timings, specialities..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                />
               </div>
-            </div>
 
-            <div>
-              <label className="text-xs font-bold text-slate-700">Cover Image URL</label>
-              <input
-                type="text"
-                placeholder="https://images.unsplash.com/photo-..."
-                value={formData.coverImage}
-                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+              <div className="flex items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPremium}
+                    onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
+                    className="rounded border-slate-300 text-blue-700 focus:ring-blue-700 h-4 w-4"
+                  />
+                  <span>Gold Premium Badge</span>
+                </label>
+
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isFeatured}
+                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                    className="rounded border-slate-300 text-blue-700 focus:ring-blue-700 h-4 w-4"
+                  />
+                  <span>Feature on Homepage</span>
+                </label>
+              </div>
+
+              <DialogFooter className="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setCreateModalOpen(false)}
+                  className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-blue-700 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 shadow-xs"
+                >
+                  Add Listing
+                </button>
+              </DialogFooter>
+            </form>
+
+            {/* Right Column: Instant Card Preview */}
+            <div className="lg:col-span-5 h-full">
+              <ListingPreviewCard
+                formData={formData}
+                categories={categories}
+                villages={villages}
+                onSelectCoverPreset={(url) => setFormData((prev) => ({ ...prev, coverImage: url }))}
               />
             </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700">Address / Location</label>
-              <input
-                type="text"
-                placeholder="Main Road, Near Bus Stand, Choutuppal"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700">Description / Services Offered</label>
-              <textarea
-                rows={3}
-                placeholder="Business details, timings, specialities..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-              />
-            </div>
-
-            <div className="flex items-center gap-6 pt-2">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isPremium}
-                  onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
-                  className="rounded border-slate-300 text-blue-700 focus:ring-blue-700 h-4 w-4"
-                />
-                <span>Gold Premium Badge</span>
-              </label>
-
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isFeatured}
-                  onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                  className="rounded border-slate-300 text-blue-700 focus:ring-blue-700 h-4 w-4"
-                />
-                <span>Feature on Homepage</span>
-              </label>
-            </div>
-
-            <DialogFooter className="pt-4 flex justify-end gap-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setCreateModalOpen(false)}
-                className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="rounded-lg bg-blue-700 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 shadow-xs"
-              >
-                Add Listing
-              </button>
-            </DialogFooter>
-          </form>
+          </div>
         </DialogContent>
       </Dialog>
 

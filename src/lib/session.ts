@@ -9,85 +9,95 @@ import type { User } from '@prisma/client'
  * read the authenticated user without touching the edge runtime.
  */
 export async function getSession() {
-  return getServerSession(authOptions)
+  try {
+    return await getServerSession(authOptions)
+  } catch (err) {
+    console.error('[getSession] error:', err)
+    return null
+  }
 }
 
 /** Returns the full DB User row for the current session, or null. */
 export async function getCurrentUser(): Promise<User | null> {
-  const session = await getSession()
-  if (!session?.user) return null
+  try {
+    const session = await getSession()
+    if (!session?.user) return null
 
-  // 1. Try DB lookup by user.id, email, or username (fast 1000ms max)
-  let dbUser: any = null
-  if (session.user.id) {
-    dbUser = await safeDbQuery(
-      () => prisma.user.findUnique({ where: { id: session.user.id } }),
-      null,
-      1,
-      50,
-      1000
-    )
-  }
-  if (!dbUser && session.user.email) {
-    dbUser = await safeDbQuery(
-      () => prisma.user.findFirst({ where: { email: session.user.email! } }),
-      null,
-      1,
-      50,
-      1000
-    )
-  }
-  if (!dbUser && session.user.username) {
-    dbUser = await safeDbQuery(
-      () => prisma.user.findFirst({ where: { username: session.user.username! } }),
-      null,
-      1,
-      50,
-      1000
-    )
-  }
-
-  // 2. Fallback to offline users store
-  if (!dbUser) {
-    const offlineList = getOfflineUsers()
-    dbUser = offlineList.find(
-      (u) =>
-        (session.user.id && u.id === session.user.id) ||
-        (session.user.email && u.email?.toLowerCase() === session.user.email.toLowerCase()) ||
-        (session.user.username && u.username?.toLowerCase() === session.user.username.toLowerCase())
-    )
-  }
-
-  // 3. If still null, synthesize the user directly from the valid session JWT token
-  if (!dbUser) {
-    dbUser = {
-      id: session.user.id || `user_${Date.now()}`,
-      name: session.user.name || session.user.username || 'User',
-      email: session.user.email || null,
-      username: session.user.username || 'user',
-      phone: null,
-      passwordHash: null,
-      role: session.user.role || 'USER',
-      planTier: 'FREE',
-      planExpiresAt: null,
-      villageId: 'cmsepb40r0000jv04tdwwd5cw',
-      bio: null,
-      image: session.user.image || null,
-      coverImage: null,
-      isPublic: session.user.isPublic ?? true,
-      isBanned: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    // 1. Try DB lookup by user.id, email, or username (fast 1000ms max)
+    let dbUser: any = null
+    if (session.user.id) {
+      dbUser = await safeDbQuery(
+        () => prisma.user.findUnique({ where: { id: session.user.id } }),
+        null,
+        1,
+        50,
+        1000
+      )
     }
-  }
+    if (!dbUser && session.user.email) {
+      dbUser = await safeDbQuery(
+        () => prisma.user.findFirst({ where: { email: session.user.email! } }),
+        null,
+        1,
+        50,
+        1000
+      )
+    }
+    if (!dbUser && session.user.username) {
+      dbUser = await safeDbQuery(
+        () => prisma.user.findFirst({ where: { username: session.user.username! } }),
+        null,
+        1,
+        50,
+        1000
+      )
+    }
 
-  // Guarantee Admin role for official admin emails
-  const userEmail = dbUser.email?.toLowerCase() || session.user.email?.toLowerCase()
-  if (userEmail === 'choutuppalapp@gmail.com' || userEmail === 'admin@choutuppal.in' || dbUser.username === 'admin') {
-    dbUser.role = 'ADMIN'
-  }
+    // 2. Fallback to offline users store
+    if (!dbUser) {
+      const offlineList = getOfflineUsers()
+      dbUser = offlineList.find(
+        (u) =>
+          (session.user.id && u.id === session.user.id) ||
+          (session.user.email && u.email?.toLowerCase() === session.user.email.toLowerCase()) ||
+          (session.user.username && u.username?.toLowerCase() === session.user.username.toLowerCase())
+      )
+    }
 
-  return dbUser as User
+    // 3. If still null, synthesize the user directly from the valid session JWT token
+    if (!dbUser) {
+      dbUser = {
+        id: session.user.id || `user_${Date.now()}`,
+        name: session.user.name || session.user.username || 'User',
+        email: session.user.email || null,
+        username: session.user.username || 'user',
+        phone: null,
+        passwordHash: null,
+        role: session.user.role || 'USER',
+        planTier: 'FREE',
+        planExpiresAt: null,
+        villageId: 'cmsepb40r0000jv04tdwwd5cw',
+        bio: null,
+        image: session.user.image || null,
+        coverImage: null,
+        isPublic: session.user.isPublic ?? true,
+        isBanned: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    }
+
+    // Guarantee Admin role for official admin emails
+    const userEmail = dbUser.email?.toLowerCase() || session.user.email?.toLowerCase()
+    if (userEmail === 'choutuppalapp@gmail.com' || userEmail === 'admin@choutuppal.in' || dbUser.username === 'admin') {
+      dbUser.role = 'ADMIN'
+    }
+
+    return dbUser as User
+  } catch (err) {
+    console.error('[getCurrentUser] top-level error:', err)
+    return null
+  }
 }
 
 /** Require auth in a Server Component — redirects to /login when unauthenticated. */

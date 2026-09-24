@@ -1,7 +1,7 @@
 import React from 'react'
-import { redirect } from 'next/navigation'
 import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
+import { AdminAccessGate } from '@/components/admin/admin-access-gate'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,14 +15,28 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = await getCurrentUser()
-
-  if (!user) {
-    redirect('/login?callbackUrl=/admin')
+  let user = null
+  try {
+    user = await getCurrentUser()
+  } catch (err) {
+    console.error('[AdminLayout] Failed to read current session:', err)
   }
 
-  if (!isAdminRole(user.role)) {
-    redirect('/')
+  // If user is not authenticated or not an admin, render the elegant Admin Access Gate directly
+  if (!user || !isAdminRole(user.role)) {
+    return (
+      <AdminAccessGate
+        currentUser={
+          user
+            ? {
+                name: user.name,
+                email: user.email,
+                role: user.role,
+              }
+            : null
+        }
+      />
+    )
   }
 
   const safeUser = {
