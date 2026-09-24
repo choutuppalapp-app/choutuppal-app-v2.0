@@ -36,7 +36,10 @@ export async function getCurrentUser(): Promise<User | null> {
     }
     if (!dbUser && session.user.email) {
       dbUser = await safeDbQuery(
-        () => prisma.user.findFirst({ where: { email: session.user.email! } }),
+        () =>
+          prisma.user.findFirst({
+            where: { email: { equals: session.user.email!, mode: 'insensitive' } },
+          }),
         null,
         1,
         50,
@@ -45,7 +48,10 @@ export async function getCurrentUser(): Promise<User | null> {
     }
     if (!dbUser && session.user.username) {
       dbUser = await safeDbQuery(
-        () => prisma.user.findFirst({ where: { username: session.user.username! } }),
+        () =>
+          prisma.user.findFirst({
+            where: { username: { equals: session.user.username!, mode: 'insensitive' } },
+          }),
         null,
         1,
         50,

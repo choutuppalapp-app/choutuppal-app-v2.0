@@ -86,30 +86,26 @@ function LoginFallback() {
 function LoginInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl')
 
-  // ---- Google OAuth callback redirect ---------------------------------------
-  // When Google OAuth completes, NextAuth sends the browser to /login?google=1.
-  // Detect that, read the now-active session, and redirect to the role-
-  // appropriate destination (admin -> /admin, user -> /dashboard).
+  // ---- Session check & OAuth callback redirect -------------------------------
+  // Detect active session or Google OAuth redirect, and immediately navigate
+  // to the role-appropriate destination (admin -> /admin, user -> /dashboard).
   useEffect(() => {
-    if (searchParams.get('google') !== '1') return
     let active = true
     fetch('/api/auth/session', { cache: 'no-store' })
       .then((r) => r.json())
       .then(async (data) => {
         if (!active) return
         if (data?.user) {
-          const dest = await fetchRoleRedirect()
-          if (dest.startsWith('http')) {
-            window.location.href = dest
-          } else {
-            router.replace(dest)
-          }
+          const roleDest = roleRedirectPath(data.user.role)
+          const target = callbackUrl && !callbackUrl.startsWith('/login') ? callbackUrl : roleDest
+          window.location.replace(target)
         }
       })
       .catch(() => {})
     return () => { active = false }
-  }, [searchParams, router])
+  }, [searchParams, callbackUrl])
 
   // ---- Fetch villages for the signup form -----------------------------------
   useEffect(() => {
@@ -185,13 +181,10 @@ function LoginInner() {
         toast.success('Logged in! Redirecting…')
         try {
           const dest = await fetchRoleRedirect()
-          if (dest.startsWith('http')) {
-            window.location.href = dest
-          } else {
-            router.replace(dest || '/dashboard')
-          }
+          const target = callbackUrl && !callbackUrl.startsWith('/login') ? callbackUrl : (dest || '/dashboard')
+          window.location.replace(target)
         } catch {
-          router.replace('/dashboard')
+          window.location.replace(callbackUrl || '/dashboard')
         }
         return
       }
@@ -209,11 +202,8 @@ function LoginInner() {
     const setter = which === 'login' ? setGoogleLoading : setSuGoogleLoading
     setter(true)
     try {
-      // Redirect to Google OAuth. After the callback completes, NextAuth sends
-      // the browser to the callbackUrl; we use /login?google=1 which then reads
-      // the session and redirects to the role-appropriate destination. If env
-      // vars aren't set, NextAuth surfaces an error page (acceptable for demo).
-      await signIn('google', { callbackUrl: '/login?google=1' })
+      const target = callbackUrl && !callbackUrl.startsWith('/login') ? callbackUrl : '/dashboard'
+      await signIn('google', { callbackUrl: target })
     } catch {
       toast.error('Google sign-in failed to start.')
       setter(false)
@@ -268,13 +258,10 @@ function LoginInner() {
         toast.success('Account created! Redirecting…')
         try {
           const dest = await fetchRoleRedirect()
-          if (dest.startsWith('http')) {
-            window.location.href = dest
-          } else {
-            router.replace(dest || '/dashboard')
-          }
+          const target = callbackUrl && !callbackUrl.startsWith('/login') ? callbackUrl : (dest || '/dashboard')
+          window.location.replace(target)
         } catch {
-          router.replace('/dashboard')
+          window.location.replace(callbackUrl || '/dashboard')
         }
         return
       }
@@ -535,36 +522,6 @@ function LoginInner() {
                   )}
                   Continue with Google
                 </Button>
-
-                {/* Quick login demo helpers */}
-                <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/70 p-3 text-xs">
-                  <p className="font-semibold text-blue-900 mb-1.5 flex items-center justify-between">
-                    <span>Quick Demo Login:</span>
-                    <span className="text-[10px] text-blue-600 font-normal">Tap to fill</span>
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLoginIdentifier('choutuppal_user')
-                        setLoginPassword('User@123')
-                      }}
-                      className="rounded-lg border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 transition shadow-xs"
-                    >
-                      👤 Citizen: <span className="font-semibold">choutuppal_user</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLoginIdentifier('choutuppalapp@gmail.com')
-                        setLoginPassword('123456')
-                      }}
-                      className="rounded-lg border border-amber-200 bg-white px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50 transition shadow-xs"
-                    >
-                      🛡️ Admin: <span className="font-semibold">choutuppalapp</span>
-                    </button>
-                  </div>
-                </div>
               </form>
             </TabsContent>
 
