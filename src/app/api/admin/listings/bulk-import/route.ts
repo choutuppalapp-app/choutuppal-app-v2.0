@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
-import { getOfflineCategories, getOfflineVillages } from '@/lib/offline-data'
+import { getOfflineCategories, getOfflineVillages, saveOfflineListing } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
     }
 
     const defaultVillageId =
-      villageLookup.get('choutuppal') || dbVillages[0]?.id || 'cmsepb40r0000jv04tdwwd5cw'
+      villageLookup.get('choutuppal') || dbVillages[0]?.id || 'v-choutuppal'
     const defaultCategoryId =
       categoryLookup.get('services') || dbCategories[0]?.id || 'cat-services'
 
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
       const status = (item.status || 'APPROVED').toUpperCase()
       const isPremium = Boolean(item.isPremium || item.is_premium)
       const isFeatured = Boolean(item.isFeatured || item.is_featured)
-      const coverImage = item.coverImage || item.image || item.imageUrl || null
+      const coverImage = item.coverImage || item.image || item.imageUrl || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80'
 
       // Resolve category
       const rawCat = (item.category || item.categoryName || '').toLowerCase().trim()
@@ -172,14 +172,22 @@ export async function POST(req: NextRequest) {
         ? `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`
         : `shop-${Date.now()}-${index}`
 
+      let listingType = 'BUSINESS'
+      if (['services', 'automobile', 'transport', 'education'].includes(mappedSlug)) {
+        listingType = 'SERVICE'
+      } else if (mappedSlug === 'real-estate') {
+        listingType = 'REAL_ESTATE'
+      }
+
       try {
-        const result = await safeDbQuery(
+        await safeDbQuery(
           () =>
             prisma.listing.create({
               data: {
                 title,
                 slug,
                 description,
+                type: listingType,
                 phone: phone || null,
                 whatsapp: whatsapp || null,
                 address,
@@ -199,17 +207,30 @@ export async function POST(req: NextRequest) {
           null
         )
 
-        if (result) {
-          successCount++
-        } else {
-          // If DB is offline, count as processed in memory
-          successCount++
-        }
+        // Save into persistent JSON store as well
+        saveOfflineListing({
+          title,
+          slug,
+          description,
+          type: listingType,
+          phone,
+          whatsapp,
+          address,
+          status: ['APPROVED', 'PENDING', 'REJECTED'].includes(status) ? status : 'APPROVED',
+          isPremium,
+          isFeatured,
+          coverImage,
+          categoryId,
+          villageId,
+          owner: { id: auth.user.id, name: auth.user.name || 'Admin', username: auth.user.username || 'admin', phone: auth.user.phone },
+        })
+
+        successCount++
       } catch (err: any) {
         errors.push({
           row: index + 1,
           title,
-          error: err.message || 'Failed to save to database',
+          error: err.message || 'Failed to save listing',
         })
       }
     }
@@ -231,7 +252,7 @@ export async function POST(req: NextRequest) {
       imported: successCount,
       updated: updatedCount,
       failed: errors.length,
-      errors: errors.slice(0, 10), // Return sample of errors if any
+      errors: errors.slice(0, 10),
       message: `Successfully processed ${successCount} listings.`,
     })
   } catch (error: any) {

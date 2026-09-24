@@ -64,7 +64,7 @@ export function PwaInstallPrompt() {
     <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-yellow-500 p-3.5 text-white shadow-lg">
       <div className="flex items-center gap-2.5 min-w-0">
         <Image
-          src="https://i.ibb.co/rGwMGrby/logo-pwa-20260922-131108-0000.png"
+          src="https://i.ibb.co/NgtRxPLw/Untitled-design.jpg"
           alt="Choutuppal App Icon"
           width={40}
           height={40}

@@ -24,9 +24,11 @@ import {
   Crown,
   Upload,
   Layers,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { AdminHeader } from '@/components/admin/admin-header'
 import { BulkImportModal } from '@/components/admin/bulk-import-modal'
+import { ListingQrCodeModal } from '@/components/business/listing-qr-code'
 import { toast } from '@/hooks/use-toast'
 import {
   Dialog,
@@ -60,9 +62,10 @@ export default function AdminListingsPage() {
     whatsapp: '',
     type: 'BUSINESS',
     categoryId: 'cat-services',
-    villageId: 'cmsepb40r0000jv04tdwwd5cw',
-    address: '',
+    villageId: 'v-choutuppal',
+    address: 'Main Road, Choutuppal',
     description: '',
+    coverImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
     status: 'APPROVED',
     isPremium: false,
     isFeatured: false,
@@ -153,6 +156,28 @@ export default function AdminListingsPage() {
     }
   }
 
+  const handleToggleFeatured = async (id: string, currentVal: boolean) => {
+    try {
+      const res = await fetch('/api/admin/listings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isFeatured: !currentVal }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setListings((prev) =>
+          prev.map((l) => (l.id === id ? { ...l, isFeatured: !currentVal } : l))
+        )
+        toast({
+          title: !currentVal ? 'Featured on Home' : 'Removed from Featured',
+          description: !currentVal ? 'Listing will appear on homepage featured section' : 'Listing un-featured',
+        })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Failed to update featured status', variant: 'destructive' })
+    }
+  }
+
   const handleDeleteListing = async (id: string, title: string) => {
     if (!confirm(`Are you sure you want to delete "${title}"?`)) return
     try {
@@ -175,9 +200,10 @@ export default function AdminListingsPage() {
       whatsapp: listing.whatsapp || '',
       type: listing.type || 'BUSINESS',
       categoryId: listing.categoryId || listing.category?.id || 'cat-services',
-      villageId: listing.villageId || listing.village?.id || 'cmsepb40r0000jv04tdwwd5cw',
+      villageId: listing.villageId || listing.village?.id || 'v-choutuppal',
       address: listing.address || '',
       description: listing.description || '',
+      coverImage: listing.coverImage || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
       status: listing.status || 'APPROVED',
       isPremium: Boolean(listing.isPremium),
       isFeatured: Boolean(listing.isFeatured),
@@ -221,7 +247,7 @@ export default function AdminListingsPage() {
       })
       const data = await res.json()
       if (data.ok) {
-        toast({ title: 'Success', description: 'New business listing registered' })
+        toast({ title: 'Success', description: 'New business listing registered and synced' })
         setCreateModalOpen(false)
         fetchListings()
       } else {
@@ -250,10 +276,12 @@ export default function AdminListingsPage() {
               title: '',
               phone: '',
               whatsapp: '',
-              categoryId: 'cat-services',
-              villageId: 'cmsepb40r0000jv04tdwwd5cw',
-              address: 'Choutuppal Main Road',
+              type: 'BUSINESS',
+              categoryId: categories[0]?.id || 'cat-services',
+              villageId: villages[0]?.id || 'v-choutuppal',
+              address: 'Main Road, Choutuppal, Telangana 508252',
               description: '',
+              coverImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
               status: 'APPROVED',
               isPremium: false,
               isFeatured: false,
@@ -319,7 +347,7 @@ export default function AdminListingsPage() {
               title="Refresh"
               className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
@@ -334,9 +362,9 @@ export default function AdminListingsPage() {
                   <th className="px-4 py-3.5">Type</th>
                   <th className="px-4 py-3.5">Category</th>
                   <th className="px-4 py-3.5">Phone & WhatsApp</th>
-                  <th className="px-4 py-3.5">Village / Ward</th>
+                  <th className="px-4 py-3.5">Village / Town</th>
                   <th className="px-4 py-3.5">Status</th>
-                  <th className="px-4 py-3.5">Badges</th>
+                  <th className="px-4 py-3.5">Featured & Badges</th>
                   <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -344,13 +372,14 @@ export default function AdminListingsPage() {
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="px-5 py-12 text-center text-slate-500 text-sm">
-                      Loading merchant directory...
+                      <RefreshCw className="h-6 w-6 animate-spin mx-auto text-blue-600 mb-2" />
+                      Loading listings directory...
                     </td>
                   </tr>
                 ) : filteredListings.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-5 py-12 text-center text-slate-500 text-sm">
-                      No listings match your search criteria.
+                      No listings found. Click &quot;Add Business&quot; above to create one.
                     </td>
                   </tr>
                 ) : (
@@ -445,7 +474,18 @@ export default function AdminListingsPage() {
                       </td>
 
                       <td className="px-4 py-4">
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-1.5">
+                          <button
+                            onClick={() => handleToggleFeatured(item.id, Boolean(item.isFeatured))}
+                            className={`rounded-md px-2 py-0.5 text-[11px] font-bold border transition ${
+                              item.isFeatured
+                                ? 'bg-blue-50 text-blue-700 border-blue-300'
+                                : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-slate-700'
+                            }`}
+                            title="Toggle Home Feature"
+                          >
+                            {item.isFeatured ? '🔥 Featured' : '+ Feature'}
+                          </button>
                           <button
                             onClick={() => handleTogglePremium(item.id, Boolean(item.isPremium))}
                             className={`rounded-md px-2 py-0.5 text-[11px] font-bold border transition ${
@@ -490,6 +530,16 @@ export default function AdminListingsPage() {
                             <Edit className="h-4 w-4" />
                           </button>
 
+                          <ListingQrCodeModal
+                            listingId={item.id}
+                            slug={item.slug}
+                            title={item.title}
+                            categoryName={item.category?.name}
+                            villageName={item.village?.name}
+                            phone={item.phone}
+                            variant="icon"
+                          />
+
                           <Link
                             href={`/business/${item.slug}`}
                             target="_blank"
@@ -520,19 +570,19 @@ export default function AdminListingsPage() {
 
       {/* Edit Listing Modal */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="max-w-lg bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-900">
               Edit Listing
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500">
-              Update details, type, phone contacts, category, and approval status.
+              Update details, type, phone contacts, village, category, and approval status.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSaveEdit} className="space-y-4 pt-3">
             <div>
-              <label className="text-xs font-bold text-slate-700">Shop / Business Name</label>
+              <label className="text-xs font-bold text-slate-700">Shop / Business Name *</label>
               <input
                 type="text"
                 required
@@ -551,7 +601,7 @@ export default function AdminListingsPage() {
                   className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none font-semibold text-slate-800"
                 >
                   <option value="BUSINESS">Business / Shop (వ్యాపారం)</option>
-                  <option value="SERVICE">Service / Professional (సేవ)</option>
+                  <option value="SERVICE">Service / Technician (సేవ)</option>
                   <option value="REAL_ESTATE">Real Estate (రియల్ ఎస్టేట్)</option>
                 </select>
               </div>
@@ -572,7 +622,7 @@ export default function AdminListingsPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700">Phone Number</label>
+                <label className="text-xs font-bold text-slate-700">Phone Number *</label>
                 <input
                   type="text"
                   required
@@ -592,19 +642,46 @@ export default function AdminListingsPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700">Category</label>
+                <select
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                >
+                  {categories.map((c) => (
+                    <option key={c.id || c.slug} value={c.id || c.slug}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Village / Town</label>
+                <select
+                  value={formData.villageId}
+                  onChange={(e) => setFormData({ ...formData, villageId: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                >
+                  {villages.map((v) => (
+                    <option key={v.id || v.slug} value={v.id || v.slug}>
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div>
-              <label className="text-xs font-bold text-slate-700">Category</label>
-              <select
-                value={formData.categoryId}
-                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-              >
-                {categories.map((c) => (
-                  <option key={c.id || c.slug} value={c.id || c.slug}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <label className="text-xs font-bold text-slate-700">Cover Image URL</label>
+              <input
+                type="text"
+                value={formData.coverImage}
+                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+              />
             </div>
 
             <div>
@@ -617,6 +694,16 @@ export default function AdminListingsPage() {
               />
             </div>
 
+            <div>
+              <label className="text-xs font-bold text-slate-700">Description / Telugu Details</label>
+              <textarea
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+              />
+            </div>
+
             <div className="flex items-center gap-6 pt-2">
               <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
                 <input
@@ -625,7 +712,7 @@ export default function AdminListingsPage() {
                   onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
                   className="rounded border-slate-300 text-blue-700 focus:ring-blue-700 h-4 w-4"
                 />
-                <span>Gold Premium Badge (#CA8A04)</span>
+                <span>Gold Premium Badge</span>
               </label>
 
               <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
@@ -660,7 +747,7 @@ export default function AdminListingsPage() {
 
       {/* Create New Listing Modal */}
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-        <DialogContent className="max-w-lg bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-slate-900">
               Register New Listing
@@ -692,7 +779,7 @@ export default function AdminListingsPage() {
                   className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none font-semibold text-slate-800"
                 >
                   <option value="BUSINESS">Business / Shop (వ్యాపారం)</option>
-                  <option value="SERVICE">Service / Professional (సేవ)</option>
+                  <option value="SERVICE">Service / Technician (సేవ)</option>
                   <option value="REAL_ESTATE">Real Estate (రియల్ ఎస్టేట్)</option>
                 </select>
               </div>
@@ -734,19 +821,47 @@ export default function AdminListingsPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700">Category</label>
+                <select
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                >
+                  {categories.map((c) => (
+                    <option key={c.id || c.slug} value={c.id || c.slug}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Village / Town</label>
+                <select
+                  value={formData.villageId}
+                  onChange={(e) => setFormData({ ...formData, villageId: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+                >
+                  {villages.map((v) => (
+                    <option key={v.id || v.slug} value={v.id || v.slug}>
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div>
-              <label className="text-xs font-bold text-slate-700">Category</label>
-              <select
-                value={formData.categoryId}
-                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
-              >
-                {categories.map((c) => (
-                  <option key={c.id || c.slug} value={c.id || c.slug}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <label className="text-xs font-bold text-slate-700">Cover Image URL</label>
+              <input
+                type="text"
+                placeholder="https://images.unsplash.com/photo-..."
+                value={formData.coverImage}
+                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+              />
             </div>
 
             <div>
@@ -756,6 +871,17 @@ export default function AdminListingsPage() {
                 placeholder="Main Road, Near Bus Stand, Choutuppal"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700">Description / Services Offered</label>
+              <textarea
+                rows={3}
+                placeholder="Business details, timings, specialities..."
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-700 focus:outline-none"
               />
             </div>
