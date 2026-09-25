@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bell, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSession } from 'next-auth/react'
+import { useRealtimeNotifications, RealtimeNotification } from '@/hooks/use-realtime-notifications'
 
 interface NotificationItem {
   id: string
@@ -15,11 +17,35 @@ interface NotificationItem {
 }
 
 export function NotificationBell() {
+  const { data: session } = useSession()
+  const userId = session?.user?.id
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Real-time notifications listener
+  useRealtimeNotifications({
+    userId,
+    showToast: false, // Notification dropdown updates live
+    onNotification: (notif: RealtimeNotification) => {
+      setUnread((prev) => prev + 1)
+      setNotifications((prev) => {
+        if (prev.some((n) => n.id === notif.id)) return prev
+        const newNotif: NotificationItem = {
+          id: notif.id,
+          type: notif.type,
+          title: notif.title,
+          message: notif.message,
+          link: notif.link || null,
+          isRead: notif.isRead ?? false,
+          createdAt: notif.createdAt || new Date().toISOString(),
+        }
+        return [newNotif, ...prev.slice(0, 9)]
+      })
+    },
+  })
 
   // Fetch unread count on mount + when dropdown opens
   useEffect(() => {

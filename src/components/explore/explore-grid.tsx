@@ -9,6 +9,7 @@ import {
   UtensilsCrossed, HeartPulse, Car, GraduationCap, ShoppingBag, Wrench,
   Sprout, Truck, Smartphone, Store, Layers, Loader2, Globe, Flame, Armchair,
   Zap, BrickWall, Paintbrush, Shirt, Briefcase, Building2, PhoneCall,
+  QrCode, Sparkles,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -18,6 +19,8 @@ import { Badge } from '@/components/ui/badge'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { trackWhatsAppClick } from '@/lib/track-whatsapp'
+import { ListingQrCodeModal } from '@/components/business/listing-qr-code'
 import type { Category, Village } from '@prisma/client'
 
 type ListingItem = {
@@ -119,6 +122,8 @@ export function ExploreGrid({
   const [category, setCategory] = useState(initialCategory)
   const [village, setVillage] = useState(initialVillage)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [selectedStandeeListing, setSelectedStandeeListing] = useState<ListingItem | null>(null)
+  const [standeeDialogOpen, setStandeeDialogOpen] = useState(false)
 
   // Infinite Scroll state
   const [items, setItems] = useState<ListingItem[]>(initialListings)
@@ -475,6 +480,45 @@ export function ExploreGrid({
           })}
         </div>
 
+        {/* Merchant Standee & QR Generator Hero Card */}
+        <div className="mb-6 rounded-3xl border border-blue-200/80 bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 p-4 sm:p-5 text-white shadow-lg relative overflow-hidden">
+          <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 opacity-10 pointer-events-none">
+            <QrCode className="h-48 w-48 text-white" />
+          </div>
+
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="max-w-xl">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-3 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-300/30 mb-2">
+                <Sparkles className="h-3 w-3" />
+                <span>Official Merchant Standee & QR Code</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-black text-white leading-tight">
+                మీ వ్యాపారం కోసం QR కోడ్ స్టాండీ ప్రింట్ చేసుకోండి
+              </h3>
+              <p className="text-xs text-blue-100/90 mt-1 leading-relaxed">
+                Generate and print high-resolution verified merchant standee posters for your shop counter. Customers can scan to instantly open your shop page & connect on WhatsApp!
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {items.length > 0 && (
+                <ListingQrCodeModal
+                  listingId={selectedStandeeListing?.id || items[0]?.id || 'choutuppal'}
+                  slug={selectedStandeeListing?.slug || items[0]?.slug || 'choutuppal'}
+                  title={selectedStandeeListing?.title || items[0]?.title || 'Choutuppal Merchant'}
+                  categoryName={selectedStandeeListing?.category?.name || items[0]?.category?.name}
+                  villageName={selectedStandeeListing?.village?.name || items[0]?.village?.name}
+                  logoUrl={selectedStandeeListing?.logo || items[0]?.logo}
+                  phone={selectedStandeeListing?.phone || items[0]?.phone}
+                  whatsapp={selectedStandeeListing?.whatsapp || items[0]?.whatsapp}
+                  variant="button"
+                  className="gradient-brand text-white border-none shadow-md font-bold px-4 py-2.5 rounded-2xl text-xs h-auto"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* 3-Way Tab toggle (Businesses vs Services vs Real Estate) */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200/80 pb-4">
           <div className="grid grid-cols-3 gap-1.5 sm:flex sm:gap-2.5 p-1 rounded-2xl bg-slate-200/50 backdrop-blur-md">
@@ -594,11 +638,25 @@ export function ExploreGrid({
                           <span className="truncate">{l.category?.name ?? 'Business'}</span>
                         </div>
                       </div>
-                      <div className="mt-2 flex items-center justify-between pt-1 border-t border-slate-100">
+                      <div className="mt-2 flex items-center justify-between pt-1 border-t border-slate-100 gap-1">
                         <span className="text-[10px] text-slate-400 md:text-xs truncate">{villageName}</span>
-                        {l.whatsapp ? (
-                          <MessageCircle className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                        ) : null}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <ListingQrCodeModal
+                            listingId={l.id}
+                            slug={l.slug}
+                            title={l.title}
+                            categoryName={l.category?.name}
+                            villageName={l.village?.name}
+                            logoUrl={l.logo}
+                            phone={l.phone}
+                            whatsapp={l.whatsapp}
+                            variant="icon"
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg"
+                          />
+                          {l.whatsapp ? (
+                            <MessageCircle className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   </Link>
@@ -646,19 +704,19 @@ export function ExploreGrid({
                       </div>
                     </Link>
 
-                    {/* Quick Call / WhatsApp Action Bar */}
-                    <div className="px-2.5 pb-2.5 pt-1 grid grid-cols-2 gap-1.5 border-t border-slate-100">
+                    {/* Quick Call / WhatsApp / QR Action Bar */}
+                    <div className="px-2.5 pb-2.5 pt-1 grid grid-cols-3 gap-1 border-t border-slate-100">
                       {l.phone ? (
                         <a
                           href={`tel:${l.phone}`}
-                          className="flex items-center justify-center gap-1 rounded-lg bg-blue-50 py-1.5 text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition"
+                          className="flex items-center justify-center gap-0.5 rounded-lg bg-blue-50 py-1.5 text-[10px] sm:text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition"
                         >
-                          <PhoneCall className="h-3 w-3" /> Call
+                          <PhoneCall className="h-3 w-3 shrink-0" /> Call
                         </a>
                       ) : (
                         <Link
                           href={`/business/${l.slug}`}
-                          className="flex items-center justify-center rounded-lg bg-slate-100 py-1.5 text-[11px] font-semibold text-slate-700"
+                          className="flex items-center justify-center rounded-lg bg-slate-100 py-1.5 text-[10px] sm:text-[11px] font-semibold text-slate-700"
                         >
                           Details
                         </Link>
@@ -669,18 +727,32 @@ export function ExploreGrid({
                           href={`https://wa.me/91${l.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${l.title}, I found your service on Choutuppal App.`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-1 rounded-lg bg-emerald-50 py-1.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition"
+                          onClick={() => trackWhatsAppClick({ id: l.id, slug: l.slug, title: l.title })}
+                          className="flex items-center justify-center gap-0.5 rounded-lg bg-emerald-50 py-1.5 text-[10px] sm:text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100 transition active:scale-95"
                         >
-                          <MessageCircle className="h-3 w-3" /> Book
+                          <MessageCircle className="h-3 w-3 shrink-0" /> Book
                         </a>
                       ) : (
                         <Link
                           href={`/business/${l.slug}`}
-                          className="flex items-center justify-center rounded-lg bg-slate-100 py-1.5 text-[11px] font-semibold text-slate-700"
+                          className="flex items-center justify-center rounded-lg bg-slate-100 py-1.5 text-[10px] sm:text-[11px] font-semibold text-slate-700"
                         >
                           View
                         </Link>
                       )}
+
+                      <ListingQrCodeModal
+                        listingId={l.id}
+                        slug={l.slug}
+                        title={l.title}
+                        categoryName={l.category?.name}
+                        villageName={l.village?.name}
+                        logoUrl={l.logo}
+                        phone={l.phone}
+                        whatsapp={l.whatsapp}
+                        variant="button"
+                        className="h-auto py-1.5 px-1 text-[10px] sm:text-[11px] rounded-lg border-blue-200 bg-blue-50/50 text-blue-700 font-bold hover:bg-blue-100 justify-center"
+                      />
                     </div>
                   </div>
                 )

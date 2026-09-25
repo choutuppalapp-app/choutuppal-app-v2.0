@@ -31,6 +31,9 @@ import {
   getOfflineUsers,
   saveOfflineUser,
   deleteOfflineUser,
+  getOfflineNotifications,
+  saveOfflineNotification,
+  markOfflineNotificationsRead,
 } from './offline-data'
 
 /**
@@ -463,6 +466,41 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
         return { count: 1 }
       }
       if (method === 'count') return all.length
+      break
+    }
+
+    case 'notification': {
+      const all = getOfflineNotifications()
+      if (method === 'findMany') {
+        let results = [...all]
+        if (queryArg.where?.userId) {
+          results = results.filter((n) => n.userId === queryArg.where.userId)
+        }
+        if (queryArg.where?.isRead !== undefined) {
+          results = results.filter((n) => n.isRead === queryArg.where.isRead)
+        }
+        if (typeof queryArg.take === 'number') {
+          results = results.slice(0, queryArg.take)
+        }
+        return results
+      }
+      if (method === 'count') {
+        let results = [...all]
+        if (queryArg.where?.userId) {
+          results = results.filter((n) => n.userId === queryArg.where.userId)
+        }
+        if (queryArg.where?.isRead !== undefined) {
+          results = results.filter((n) => n.isRead === queryArg.where.isRead)
+        }
+        return results.length
+      }
+      if (method === 'create') {
+        return saveOfflineNotification(queryArg.data || {})
+      }
+      if (method === 'update' || method === 'updateMany') {
+        markOfflineNotificationsRead(queryArg.where?.userId, queryArg.where?.id)
+        return { count: 1 }
+      }
       break
     }
 

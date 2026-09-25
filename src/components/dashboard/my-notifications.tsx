@@ -5,6 +5,8 @@ import { Bell, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { useRealtimeNotifications, RealtimeNotification } from '@/hooks/use-realtime-notifications'
+import { useSession } from 'next-auth/react'
 
 interface Notification {
   id: string
@@ -17,8 +19,31 @@ interface Notification {
 }
 
 export function MyNotifications() {
+  const { data: session } = useSession()
+  const userId = session?.user?.id
   const [items, setItems] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Listen for real-time notifications and add to list immediately
+  useRealtimeNotifications({
+    userId,
+    showToast: false, // Toast handled by dashboard shell
+    onNotification: (notif: RealtimeNotification) => {
+      setItems((prev) => {
+        if (prev.some((n) => n.id === notif.id)) return prev
+        const newNotif: Notification = {
+          id: notif.id,
+          type: notif.type,
+          title: notif.title,
+          message: notif.message,
+          link: notif.link || null,
+          isRead: notif.isRead ?? false,
+          createdAt: notif.createdAt || new Date().toISOString(),
+        }
+        return [newNotif, ...prev]
+      })
+    },
+  })
 
   useEffect(() => {
     let active = true

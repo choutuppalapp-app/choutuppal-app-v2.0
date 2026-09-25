@@ -47,11 +47,17 @@ export function MyRealEstate({
           <h2 className="text-xl font-bold text-slate-900">My Real Estate</h2>
           <p className="text-sm text-slate-500">{items.length} property listings</p>
         </div>
-        <Link href="/profile/listings/new">
-          <Button size="sm" className="gap-1.5 gradient-brand text-white">
+        {onAdd ? (
+          <Button onClick={onAdd} size="sm" className="gap-1.5 gradient-brand text-white shadow-sm">
             <Plus className="h-4 w-4" /> Add Property
           </Button>
-        </Link>
+        ) : (
+          <Link href="/profile/listings/new">
+            <Button size="sm" className="gap-1.5 gradient-brand text-white">
+              <Plus className="h-4 w-4" /> Add Property
+            </Button>
+          </Link>
+        )}
       </div>
 
       {items.length === 0 ? (
@@ -60,11 +66,17 @@ export function MyRealEstate({
           title="No properties yet"
           desc="List a plot, house, apartment or commercial space for sale or rent."
           action={
-            <Link href="/profile/listings/new">
-              <Button className="gap-2 gradient-brand text-white">
+            onAdd ? (
+              <Button onClick={onAdd} className="gap-2 gradient-brand text-white shadow-sm">
                 <Plus className="h-4 w-4" /> Add Property
               </Button>
-            </Link>
+            ) : (
+              <Link href="/profile/listings/new">
+                <Button className="gap-2 gradient-brand text-white">
+                  <Plus className="h-4 w-4" /> Add Property
+                </Button>
+              </Link>
+            )
           }
         />
       ) : (

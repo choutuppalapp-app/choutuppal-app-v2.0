@@ -38,6 +38,7 @@ import { ProfileSection } from './profile-section'
 import { MyListings } from './my-listings'
 import { MyCommunityPosts } from './my-community-posts'
 import { MyNotifications } from './my-notifications'
+import { useRealtimeNotifications, RealtimeNotification } from '@/hooks/use-realtime-notifications'
 
 const Analytics = nextDynamic(
   () => import('./analytics').then((m) => ({ default: m.Analytics })),
@@ -241,6 +242,43 @@ export function DashboardShell({ data: initialData }: DashboardShellProps) {
       // safe fallback if window is constrained
     }
   }, [])
+
+  // Real-time notification system: triggers toast and live state update when a user clicks WhatsApp on owner's listing
+  useRealtimeNotifications({
+    userId: data.user.id,
+    showToast: true,
+    playChime: true,
+    onNotification: useCallback((notif: RealtimeNotification) => {
+      // Optimistically increment stats if it's a WhatsApp inquiry
+      if (notif.type === 'WHATSAPP_CLICK' || notif.title?.includes('WhatsApp')) {
+        setData((prev) => {
+          const updatedListings = (prev.listings || []).map((l) => {
+            if (notif.listingId && l.id === notif.listingId) {
+              return {
+                ...l,
+                whatsappClicks: (l.whatsappClicks || 0) + 1,
+                clicks: (l.clicks || 0) + 1,
+              }
+            }
+            return l
+          })
+
+          return {
+            ...prev,
+            listings: updatedListings,
+          }
+        })
+      }
+
+      // If user clicks notification view action, switch to listings or notifications tab
+      if (notif.link?.includes('tab=')) {
+        const match = notif.link.match(/tab=([a-z]+)/)
+        if (match && VALID_TABS.includes(match[1] as TabId)) {
+          handleTabChange(match[1] as TabId)
+        }
+      }
+    }, [handleTabChange]),
+  })
 
   // Memoized modal actions
   const openAdd = useCallback((type?: 'business' | 'service' | 'realestate') => {

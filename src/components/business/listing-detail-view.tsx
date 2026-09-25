@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { ListingQrCodeModal } from '@/components/business/listing-qr-code'
+import { trackWhatsAppClick } from '@/lib/track-whatsapp'
 import type { Listing, Category, Village, User } from '@prisma/client'
 
 interface ListingDetailData {
@@ -370,7 +371,8 @@ export function ListingDetailView({
                             href={waLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-[#25D366] hover:bg-[#20bd5a] text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition"
+                            onClick={() => trackWhatsAppClick({ id: listing.id, slug: listing.slug, title: `${listing.title} (${s.name})`, ownerId: listing.ownerId || (listing.owner as any)?.id })}
+                            className="bg-[#25D366] hover:bg-[#20bd5a] text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition active:scale-95"
                           >
                             <MessageCircle className="h-4 w-4" />
                             Product Enquiry
@@ -395,7 +397,8 @@ export function ListingDetailView({
                     href={linkUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-yellow-500 px-5 py-3.5 text-sm font-bold text-white shadow-md transition active:scale-[0.98]"
+                    onClick={() => trackWhatsAppClick({ id: listing.id, slug: listing.slug, title: listing.title, ownerId: listing.ownerId || (listing.owner as any)?.id })}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-yellow-500 px-5 py-3.5 text-sm font-bold text-white shadow-md transition hover:opacity-95 active:scale-[0.98]"
                   >
                     <MessageCircle className="h-5 w-5 shrink-0 text-white" />
                     <span>WhatsApp లో వివరాలు అడగండి</span>
@@ -545,6 +548,7 @@ export function ListingDetailView({
                 <DesktopActionButton
                   icon={MessageCircle} label="WhatsApp" color="bg-green-600 hover:bg-green-700"
                   href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`నమస్కారం ${listing.title}, ఈ బిజినెస్ గురించి సమాచారం కావాలి.`)}` : `https://wa.me/919494348175?text=${encodeURIComponent("నమస్కారం, ఈ బిజినెస్ గురించి సమాచారం కావాలి.")}`}
+                  onClick={() => trackWhatsAppClick({ id: listing.id, slug: listing.slug, title: listing.title, ownerId: listing.ownerId || (listing.owner as any)?.id })}
                 />
                 
                 {/* 3. Share */}
@@ -701,7 +705,13 @@ function ActionBar({
         icon={MessageCircle}
         label="WhatsApp"
         href={whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '')}` : null}
-        onClick={() => !whatsapp && toast.error('No WhatsApp number provided')}
+        onClick={() => {
+          if (!whatsapp) {
+            toast.error('No WhatsApp number provided')
+          } else {
+            trackWhatsAppClick({ id: listing.id, slug: listing.slug, title: listing.title, ownerId: listing.ownerId || (listing.owner as any)?.id })
+          }
+        }}
         accent="bg-green-500"
       />
       <ActionButton
@@ -784,7 +794,12 @@ function MobileActionBar({ listing }: { listing: ListingDetailData['listing'] })
       {/* Call */}
       <MobileAction icon={Phone} label="Call" href={listing.phone ? `tel:${listing.phone}` : null} />
       {/* WhatsApp */}
-      <MobileAction icon={MessageCircle} label="WhatsApp" href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`నమస్కారం ${listing.title}, ఈ బిజినెస్ గురించి సమాచారం కావాలి.`)}` : `https://wa.me/919494348175?text=${encodeURIComponent("నమస్కారం, ఈ బిజినెస్ గురించి సమాచారం కావాలి.")}`} />
+      <MobileAction
+        icon={MessageCircle}
+        label="WhatsApp"
+        href={listing.whatsapp ? `https://wa.me/${listing.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`నమస్కారం ${listing.title}, ఈ బిజినెస్ గురించి సమాచారం కావాలి.`)}` : `https://wa.me/919494348175?text=${encodeURIComponent("నమస్కారం, ఈ బిజినెస్ గురించి సమాచారం కావాలి.")}`}
+        onClick={() => trackWhatsAppClick({ id: listing.id, slug: listing.slug, title: listing.title, ownerId: listing.ownerId || (listing.owner as any)?.id })}
+      />
       {/* Share — Center FAB */}
       <div className="flex items-center justify-center">
         <button

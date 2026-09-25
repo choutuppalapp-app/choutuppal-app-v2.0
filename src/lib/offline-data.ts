@@ -1105,3 +1105,55 @@ export function deleteOfflineUser(id: string): boolean {
   }
   return false
 }
+
+// ============================================================================
+// NOTIFICATIONS CRUD
+// ============================================================================
+
+export function getOfflineNotifications(userId?: string): any[] {
+  const store = loadStoreFromDisk()
+  const notifs = (store as any).notifications || []
+  if (userId) {
+    return notifs.filter((n: any) => n.userId === userId)
+  }
+  return notifs
+}
+
+export function saveOfflineNotification(notif: any): any {
+  const store = loadStoreFromDisk()
+  if (!(store as any).notifications) {
+    ;(store as any).notifications = []
+  }
+  const id = notif.id || `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
+  const now = new Date().toISOString()
+  const newNotif = {
+    id,
+    type: notif.type || 'SYSTEM',
+    title: notif.title || 'Notification',
+    message: notif.message || '',
+    link: notif.link || null,
+    isRead: Boolean(notif.isRead),
+    userId: notif.userId || '',
+    createdAt: notif.createdAt || now,
+  }
+  ;(store as any).notifications.unshift(newNotif)
+  saveStoreToDisk()
+  return newNotif
+}
+
+export function markOfflineNotificationsRead(userId: string, notifId?: string): boolean {
+  const store = loadStoreFromDisk()
+  const notifs = (store as any).notifications || []
+  let changed = false
+  for (const n of notifs) {
+    if (n.userId === userId && (!notifId || n.id === notifId)) {
+      n.isRead = true
+      changed = true
+    }
+  }
+  if (changed) {
+    saveStoreToDisk()
+  }
+  return changed
+}
+

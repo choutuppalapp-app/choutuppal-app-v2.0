@@ -18,6 +18,7 @@ import {
   Wrench,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { ListingQrCodeModal } from '@/components/business/listing-qr-code'
 
 export const dynamic = 'force-dynamic'
 
@@ -138,11 +139,20 @@ export default async function MyListingsPage() {
                     </div>
                   </div>
 
-                  {/* Pre-filled WhatsApp Service / Booking Deep Link */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-slate-400">
-                      Direct WhatsApp Booking:
-                    </span>
+                  {/* Pre-filled WhatsApp Service & QR Standee Generator */}
+                  <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <ListingQrCodeModal
+                      listingId={item.id}
+                      slug={item.slug}
+                      title={title}
+                      categoryName={item.category?.name}
+                      villageName={item.village?.name}
+                      logoUrl={item.logo}
+                      phone={phone}
+                      whatsapp={item.whatsapp}
+                      address={item.address}
+                      variant="button"
+                    />
                     <a
                       href={waLink}
                       target="_blank"
