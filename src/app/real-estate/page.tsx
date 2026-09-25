@@ -14,6 +14,7 @@ export const metadata = {
 }
 
 async function getRealEstates() {
+  let dbList: any[] = []
   try {
     const list = await prisma.realEstate.findMany({
       where: { status: 'APPROVED' },
@@ -21,11 +22,35 @@ async function getRealEstates() {
       orderBy: { createdAt: 'desc' },
       take: 50,
     })
-    if (list && list.length > 0) return list
-  } catch (err) {
+    if (list && list.length > 0) dbList = list
+  } catch {
     // fallback
   }
-  return getOfflineRealEstates()
+
+  const map = new Map<string, any>()
+  if (Array.isArray(dbList)) {
+    dbList.forEach((item) => item?.id && map.set(item.id, item))
+  }
+  const offline = getOfflineRealEstates().filter((r) => r.status === 'APPROVED' || !r.status)
+  if (Array.isArray(offline)) {
+    offline.forEach((item) => {
+      if (item?.id) {
+        let vil = item.village
+        if (!vil || !vil.name) {
+          const foundVil = STANDARD_VILLAGES.find((v) => v.id === item.villageId || v.slug === item.villageId) || STANDARD_VILLAGES[0]
+          vil = { id: foundVil.id, name: foundVil.name, slug: foundVil.slug }
+        }
+        map.set(item.id, {
+          ...item,
+          village: vil,
+          status: item.status || 'APPROVED',
+        })
+      }
+    })
+  }
+
+  const merged = Array.from(map.values())
+  return merged.length > 0 ? merged : getOfflineRealEstates()
 }
 
 export default async function RealEstatePage() {

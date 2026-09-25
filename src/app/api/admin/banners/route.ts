@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getCurrentTenant, DEFAULT_TENANT, getTenantWhereClause } from '@/lib/tenant'
 import { getOfflineBanners, saveOfflineBanner, deleteOfflineBanner } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { invalidateCache } from '@/lib/cache'
@@ -15,9 +16,13 @@ export async function GET() {
   }
 
   try {
+    const tenant = await getCurrentTenant()
+    const tenantFilter = getTenantWhereClause(tenant.id)
+
     const dbBanners = await safeDbQuery(
       () =>
         prisma.banner.findMany({
+          where: tenantFilter,
           orderBy: { createdAt: 'desc' },
           include: {
             owner: { select: { id: true, name: true, phone: true, username: true } },
@@ -26,7 +31,12 @@ export async function GET() {
       null
     )
 
-    const banners = (dbBanners && dbBanners.length > 0) ? dbBanners : getOfflineBanners()
+    const map = new Map<string, any>()
+    if (Array.isArray(dbBanners)) dbBanners.forEach((b) => b?.id && map.set(b.id, b))
+    const offBanners = getOfflineBanners()
+    if (Array.isArray(offBanners)) offBanners.forEach((b) => b?.id && map.set(b.id, b))
+    const banners = Array.from(map.values())
+
     return NextResponse.json({ ok: true, banners })
   } catch (error: any) {
     console.error('[Admin Banners GET] Error:', error)
@@ -41,6 +51,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const tenant = await getCurrentTenant()
+    const tenantId = tenant?.id || DEFAULT_TENANT.id
     const body = await req.json()
     const { title, imageUrl, link, position = 'HOME_TOP', durationDays = 30, status = 'APPROVED' } = body
 
@@ -58,9 +70,10 @@ export async function POST(req: NextRequest) {
             imageUrl,
             link: link || '/categories',
             position,
-            status,
+            status: status || 'APPROVED',
             isActive: true,
             expiresAt,
+            tenantId,
             ownerId: auth.user.id,
           },
         }),
@@ -72,8 +85,9 @@ export async function POST(req: NextRequest) {
       imageUrl,
       link: link || '/categories',
       position,
-      status,
+      status: status || 'APPROVED',
       isActive: true,
+      tenantId,
     })
 
     invalidateHomeDataCache()

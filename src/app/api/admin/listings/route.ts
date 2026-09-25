@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getCurrentTenant, DEFAULT_TENANT, getTenantWhereClause } from '@/lib/tenant'
 import {
   getOfflineCategories,
   getOfflineVillages,
@@ -180,6 +181,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const tenant = await getCurrentTenant()
     const body = await req.json()
     const {
       title,
@@ -206,6 +208,8 @@ export async function POST(req: NextRequest) {
       .replace(/^-|-$/g, '')
       .slice(0, 40) + '-' + Math.random().toString(36).substring(2, 6)
 
+    const tenantId = tenant?.id || DEFAULT_TENANT.id
+
     // 1. Save in offline persistent disk store immediately
     const offlineSaved = saveOfflineListing({
       title,
@@ -215,12 +219,13 @@ export async function POST(req: NextRequest) {
       phone,
       whatsapp: whatsapp || phone,
       address: address || 'Choutuppal',
-      status,
+      status: status || 'APPROVED',
       isPremium: !!isPremium,
       isFeatured: !!isFeatured,
       coverImage: coverImage || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
       categoryId: categoryId || 'cat-services',
       villageId: villageId || 'v-choutuppal',
+      tenantId,
       owner: { id: auth.user.id, name: auth.user.name || 'Admin', username: auth.user.username || 'admin', phone: auth.user.phone },
     })
 
@@ -271,12 +276,13 @@ export async function POST(req: NextRequest) {
             phone,
             whatsapp: whatsapp || phone,
             address: address || 'Choutuppal',
-            status,
+            status: status || 'APPROVED',
             isPremium: !!isPremium,
             isFeatured: !!isFeatured,
             coverImage: coverImage || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
             categoryId: dbCat?.id || categoryId || 'cat-services',
             villageId: dbVil?.id || villageId || 'v-choutuppal',
+            tenantId,
             ownerId: dbOwner?.id || auth.user.id,
           },
           include: { category: true, village: true, owner: true },

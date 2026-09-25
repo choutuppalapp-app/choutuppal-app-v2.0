@@ -26,9 +26,20 @@ export const DEFAULT_TENANT: TenantConfig = {
  * For custom partner tenants, returns { tenantId }.
  */
 export function getTenantWhereClause(tenantId: string) {
-  if (tenantId === DEFAULT_TENANT.id) {
+  if (
+    !tenantId ||
+    tenantId === DEFAULT_TENANT.id ||
+    tenantId === 'choutuppal-default' ||
+    tenantId === 'tenant_choutuppal' ||
+    tenantId === 'default'
+  ) {
     return {
-      OR: [{ tenantId }, { tenantId: null }],
+      OR: [
+        { tenantId: DEFAULT_TENANT.id },
+        { tenantId: 'tenant_choutuppal' },
+        { tenantId: 'choutuppal-default' },
+        { tenantId: null },
+      ],
     }
   }
   return { tenantId }

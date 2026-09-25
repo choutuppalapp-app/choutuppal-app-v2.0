@@ -5,7 +5,8 @@ import { NewsList } from '@/components/content/news-list'
 import { swrCache } from '@/lib/cache'
 import { getOfflineNews, getOfflineBlogs } from '@/lib/offline-data'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
+export const revalidate = 10
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
@@ -51,8 +52,21 @@ export default async function NewsPage() {
         ),
       ])
 
-      const finalNews = (n && n.length > 0) ? n : getOfflineNews()
-      const finalBlogs = (b && b.length > 0) ? b : getOfflineBlogs()
+      const finalNews = (() => {
+        const map = new Map<string, any>()
+        if (Array.isArray(n)) n.forEach((item) => item?.id && map.set(item.id, item))
+        const offline = getOfflineNews().filter((item) => item.isPublished !== false)
+        if (Array.isArray(offline)) offline.forEach((item) => item?.id && map.set(item.id, item))
+        return Array.from(map.values())
+      })()
+
+      const finalBlogs = (() => {
+        const map = new Map<string, any>()
+        if (Array.isArray(b)) b.forEach((item) => item?.id && map.set(item.id, item))
+        const offline = getOfflineBlogs().filter((item) => item.isPublished !== false)
+        if (Array.isArray(offline)) offline.forEach((item) => item?.id && map.set(item.id, item))
+        return Array.from(map.values())
+      })()
 
       return { news: finalNews, blogs: finalBlogs }
     },

@@ -1,12 +1,13 @@
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { ShortsFeed } from '@/components/shorts/shorts-feed'
+import { getOfflineShorts } from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const fetchCache = 'force-no-store'
 
 export default async function ShortsPage() {
-  const shorts = await safeDbQuery(
+  const dbShorts = await safeDbQuery(
     () =>
       prisma.short.findMany({
         orderBy: { createdAt: 'desc' },
@@ -27,6 +28,17 @@ export default async function ShortsPage() {
       }),
     [],
   )
+
+  const map = new Map<string, any>()
+  if (Array.isArray(dbShorts)) {
+    dbShorts.forEach((s) => s?.id && map.set(s.id, s))
+  }
+  const offline = getOfflineShorts()
+  if (Array.isArray(offline)) {
+    offline.forEach((s) => s?.id && map.set(s.id, s))
+  }
+
+  const shorts = Array.from(map.values())
 
   return <ShortsFeed shorts={shorts} />
 }

@@ -1,9 +1,13 @@
-import { safeDbQuery } from '@/lib/prisma';
+import { safeDbQuery } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser, isAdminRole } from '@/lib/session'
-import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
+import { getCurrentTenant, DEFAULT_TENANT, getTenantWhereClause } from '@/lib/tenant'
+import { saveOfflineRealEstate, getOfflineRealEstates } from '@/lib/offline-data'
+import { invalidateHomeDataCache } from '@/lib/home-data'
+import { invalidateCache } from '@/lib/cache'
+import { revalidatePath } from 'next/cache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -36,13 +40,17 @@ const CreateSchema = z.object({
 async function uniqueSlug(base: string): Promise<string> {
   let slug = slugify(base) || `property-${Date.now()}`
   let i = 1
-  while (await prisma.realEstate.findUnique({ where: { slug }, select: { id: true } })) {
-    slug = `${slugify(base)}-${i++}`
+  try {
+    while (await prisma.realEstate.findUnique({ where: { slug }, select: { id: true } })) {
+      slug = `${slugify(base)}-${i++}`
+    }
+  } catch {
+    slug = `${slugify(base)}-${Date.now().toString(36)}`
   }
   return slug
 }
 
-/** POST /api/real-estate ?" create a property listing. */
+/** POST /api/real-estate - create a property listing. */
 export async function POST(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -60,32 +68,47 @@ export async function POST(request: NextRequest) {
   }
 
   const tenant = await getCurrentTenant()
-  
-  // Safely resolve tenantId to prevent foreign key constraint violations
-  let resolvedTenantId: string | undefined = tenant.id
-  if (resolvedTenantId === 'choutuppal-default') {
-    const realTenant = await prisma.tenant.findFirst({
-      where: { OR: [{ domain: 'choutuppal.in' }, { name: 'Choutuppal App' }] }
-    }) || await prisma.tenant.findFirst()
-    
-    if (realTenant) {
-      resolvedTenantId = realTenant.id
-    } else {
-      resolvedTenantId = undefined // Let it be null if no tenant exists at all
-    }
+  const tenantId = tenant?.id || DEFAULT_TENANT.id
+  const slug = await uniqueSlug(parsed.data.title)
+  const status = 'APPROVED'
+
+  // 1. Save in offline persistent disk store
+  const offlineSaved = saveOfflineRealEstate({
+    ...parsed.data,
+    slug,
+    status,
+    tenantId,
+    ownerId: auth.user.id,
+  })
+
+  // 2. Save in DB
+  let createdDb = null
+  try {
+    createdDb = await prisma.realEstate.create({
+      data: {
+        id: offlineSaved.id,
+        ...parsed.data,
+        slug,
+        ownerId: auth.user.id,
+        tenantId,
+        status,
+      },
+    })
+  } catch (err: any) {
+    console.warn('[API RealEstate POST] Prisma fallback to offline store:', err?.message || err)
   }
 
-  const slug = await uniqueSlug(parsed.data.title)
-  
+  invalidateHomeDataCache()
+  invalidateCache('real_estate_')
+  invalidateCache('home_data_')
   try {
-    const re = await prisma.realEstate.create({
-      data: { ...parsed.data, slug, ownerId: auth.user.id, tenantId: resolvedTenantId, status: isAdminRole(auth.user.role) ? 'APPROVED' : 'PENDING' },
-    })
-    return NextResponse.json({ ok: true, realEstate: re }, { status: 201 })
-  } catch (err: any) {
-    console.error('[API RealEstate POST] Error:', err)
-    return NextResponse.json({ error: err.message || 'Database error occurred' }, { status: 500 })
-  }
+    revalidatePath('/')
+    revalidatePath('/real-estate')
+    revalidatePath('/explore')
+    revalidatePath('/dashboard')
+  } catch {}
+
+  return NextResponse.json({ ok: true, realEstate: createdDb || offlineSaved }, { status: 201 })
 }
 
 /** GET /api/real-estate ?" list properties. Supports filtering by userId for admins. */

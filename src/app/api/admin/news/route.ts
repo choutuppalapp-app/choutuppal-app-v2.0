@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
+import { getCurrentTenant, DEFAULT_TENANT, getTenantWhereClause } from '@/lib/tenant'
 import { getOfflineNews, getOfflineBlogs, saveOfflineNews, saveOfflineBlog, deleteOfflineNews, deleteOfflineBlog } from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { invalidateCache } from '@/lib/cache'
@@ -18,10 +19,14 @@ export async function GET(req: NextRequest) {
   const type = searchParams.get('type') || 'all' // 'news' | 'blogs' | 'all'
 
   try {
+    const tenant = await getCurrentTenant()
+    const tenantFilter = getTenantWhereClause(tenant.id)
+
     const [dbNews, dbBlogs] = await Promise.all([
       safeDbQuery(
         () =>
           prisma.news.findMany({
+            where: tenantFilter,
             orderBy: { createdAt: 'desc' },
             include: { author: { select: { id: true, name: true, username: true } } },
           }),
@@ -30,6 +35,7 @@ export async function GET(req: NextRequest) {
       safeDbQuery(
         () =>
           prisma.blog.findMany({
+            where: tenantFilter,
             orderBy: { createdAt: 'desc' },
             include: { author: { select: { id: true, name: true, username: true } } },
           }),
@@ -37,8 +43,17 @@ export async function GET(req: NextRequest) {
       ),
     ])
 
-    const newsList = (dbNews && dbNews.length > 0) ? dbNews : getOfflineNews()
-    const blogsList = (dbBlogs && dbBlogs.length > 0) ? dbBlogs : getOfflineBlogs()
+    const newsMap = new Map<string, any>()
+    if (Array.isArray(dbNews)) dbNews.forEach((n) => n?.id && newsMap.set(n.id, n))
+    const offNews = getOfflineNews()
+    if (Array.isArray(offNews)) offNews.forEach((n) => n?.id && newsMap.set(n.id, n))
+    const newsList = Array.from(newsMap.values())
+
+    const blogsMap = new Map<string, any>()
+    if (Array.isArray(dbBlogs)) dbBlogs.forEach((b) => b?.id && blogsMap.set(b.id, b))
+    const offBlogs = getOfflineBlogs()
+    if (Array.isArray(offBlogs)) offBlogs.forEach((b) => b?.id && blogsMap.set(b.id, b))
+    const blogsList = Array.from(blogsMap.values())
 
     return NextResponse.json({
       ok: true,
@@ -58,6 +73,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const tenant = await getCurrentTenant()
+    const tenantId = tenant?.id || DEFAULT_TENANT.id
     const body = await req.json()
     const { type = 'news', title, summary, content, image, tags, isPublished = true, category } = body
 
@@ -85,6 +102,7 @@ export async function POST(req: NextRequest) {
               tags: tags || ['Choutuppal', 'Guide'],
               isPublished: Boolean(isPublished),
               publishedAt: isPublished ? new Date() : null,
+              tenantId,
               authorId: auth.user.id,
             },
           }),
@@ -99,9 +117,11 @@ export async function POST(req: NextRequest) {
         category: category || 'Business',
         tags: tags || ['Choutuppal', 'Guide'],
         isPublished: Boolean(isPublished),
+        tenantId,
       })
       invalidateHomeDataCache()
       invalidateCache('blog_')
+      invalidateCache('news_page_')
       try { revalidatePath('/blog'); revalidatePath('/news'); revalidatePath('/') } catch {}
       return NextResponse.json({ ok: true, item: createdBlog, message: 'Blog created' })
     } else {
@@ -117,6 +137,7 @@ export async function POST(req: NextRequest) {
               tags: tags || ['Choutuppal', 'News'],
               isPublished: Boolean(isPublished),
               publishedAt: isPublished ? new Date() : null,
+              tenantId,
               authorId: auth.user.id,
             },
           }),
@@ -130,9 +151,11 @@ export async function POST(req: NextRequest) {
         image: image || 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&auto=format&fit=crop&q=80',
         tags: tags || ['Choutuppal', 'News'],
         isPublished: Boolean(isPublished),
+        tenantId,
       })
       invalidateHomeDataCache()
       invalidateCache('news_')
+      invalidateCache('news_page_')
       try { revalidatePath('/news'); revalidatePath('/blog'); revalidatePath('/') } catch {}
       return NextResponse.json({ ok: true, item: createdNews, message: 'News article created' })
     }

@@ -382,6 +382,9 @@ export function AddListingForm({
           logoImage: logoUrl.trim() || null,
           galleryImages: cleanGallery,
           servicesCatalog: servicesOffered.filter((s) => s.name.trim()),
+          status: 'APPROVED',
+          is_approved: true,
+          isApproved: true,
         }
       } else if (type === 'service') {
         endpoint = '/api/listings'
@@ -401,6 +404,9 @@ export function AddListingForm({
           galleryImages: cleanGallery,
           servicesCatalog: servicesOffered.filter((s) => s.name.trim()),
           priceRange: priceRange.trim() || null,
+          status: 'APPROVED',
+          is_approved: true,
+          isApproved: true,
         }
       } else if (type === 'realestate') {
         endpoint = '/api/real-estate'
@@ -422,6 +428,9 @@ export function AddListingForm({
           contactWhatsapp: finalWhatsapp,
           coverImage: coverImageUrl.trim() || null,
           galleryImages: cleanGallery,
+          status: 'APPROVED',
+          is_approved: true,
+          isApproved: true,
         }
       }
 

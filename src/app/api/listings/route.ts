@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { requireApiUser, isAdminRole } from '@/lib/session'
 import { getCurrentTenant, getTenantWhereClause, getSafeTenantId } from '@/lib/tenant'
 import { invalidateHomeDataCache } from '@/lib/home-data'
+import { invalidateCache } from '@/lib/cache'
 import { saveOfflineListing, getOfflineListings, STANDARD_CATEGORIES, STANDARD_VILLAGES } from '@/lib/offline-data'
 import { revalidatePath } from 'next/cache'
 
@@ -53,6 +54,9 @@ const CreateListingSchema = z.object({
   villageId: z.string().nullable().optional(),
   isFeatured: z.boolean().optional(),
   type: z.string().optional(),
+  status: z.string().optional(),
+  is_approved: z.boolean().optional(),
+  isApproved: z.boolean().optional(),
 })
 
 async function uniqueSlug(base: string): Promise<string> {
@@ -90,7 +94,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const resolvedTenantId = (await getSafeTenantId().catch(() => null)) || 'tenant_choutuppal'
+  const resolvedTenantId = (await getSafeTenantId().catch(() => null)) || DEFAULT_TENANT.id
   const finalTitle = parsed.data.title.trim()
   const slug = await uniqueSlug(finalTitle)
 
@@ -175,6 +179,9 @@ export async function POST(request: NextRequest) {
   }
 
   invalidateHomeDataCache()
+  invalidateCache('listings_')
+  invalidateCache('listing_')
+  invalidateCache('home_data_')
   try {
     revalidatePath('/')
     revalidatePath('/explore')

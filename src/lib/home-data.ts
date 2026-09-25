@@ -552,6 +552,13 @@ import { swrCache, invalidateCache } from '@/lib/cache'
 export function invalidateHomeDataCache() {
   invalidateCache('home_data_')
   invalidateCache('home_')
+  invalidateCache('listings_')
+  invalidateCache('news_')
+  invalidateCache('blog_')
+  invalidateCache('banners')
+  invalidateCache('real_estate_')
+  invalidateCache('stories')
+  invalidateCache('shorts')
 }
 
 export async function getHomePageData(forceRefresh = false) {
@@ -596,8 +603,8 @@ export async function getHomePageData(forceRefresh = false) {
       return { stories, banners, categories, featured, realEstate, shorts, villages, latestNews, latestBlogs }
     },
     {
-      ttlMs: 60 * 1000,           // 1 minute fresh
-      staleTtlMs: 30 * 60 * 1000, // 30 mins stale window with background revalidation
+      ttlMs: 5 * 1000,            // 5 seconds fresh
+      staleTtlMs: 15 * 60 * 1000, // 15 mins stale window with background revalidation
     }
   )
 }

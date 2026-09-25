@@ -5,10 +5,17 @@ import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
 import { ExploreGrid } from '@/components/explore/explore-grid'
 import { swrCache } from '@/lib/cache'
 import { FALLBACK_FEATURED_LISTINGS, FALLBACK_REAL_ESTATE } from '@/lib/home-data'
-import { getOfflineCategories, getOfflineVillages } from '@/lib/offline-data'
+import {
+  getOfflineCategories,
+  getOfflineVillages,
+  getOfflineListings,
+  getOfflineRealEstates,
+  STANDARD_CATEGORIES,
+  STANDARD_VILLAGES,
+} from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 60
+export const revalidate = 10
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'https://choutuppal.in').replace(/\/$/, '')
 
@@ -119,8 +126,62 @@ const getListingsPageData = cache(async (tenantId: string, category?: string, vi
         safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), [], 1, 30, 1500),
       ])
 
-      const listings = dbListings && dbListings.length > 0 ? dbListings : FALLBACK_FEATURED_LISTINGS
-      const realEstates = dbRealEstates && dbRealEstates.length > 0 ? dbRealEstates : FALLBACK_REAL_ESTATE
+      // 1. Merge listings from DB and offline store
+      const listingsMap = new Map<string, any>()
+      if (Array.isArray(dbListings)) {
+        dbListings.forEach((item) => item?.id && listingsMap.set(item.id, item))
+      }
+      const offlineList = getOfflineListings().filter((l) => l.status === 'APPROVED' || !l.status)
+      if (Array.isArray(offlineList)) {
+        offlineList.forEach((item) => {
+          if (item?.id) {
+            let cat = item.category
+            if (!cat || !cat.name) {
+              const foundCat = STANDARD_CATEGORIES.find((c) => c.id === item.categoryId || c.slug === item.categoryId) || STANDARD_CATEGORIES[0]
+              cat = { id: foundCat.id, name: foundCat.name, slug: foundCat.slug, icon: foundCat.icon }
+            }
+            let vil = item.village
+            if (!vil || !vil.name) {
+              const foundVil = STANDARD_VILLAGES.find((v) => v.id === item.villageId || v.slug === item.villageId) || STANDARD_VILLAGES[0]
+              vil = { id: foundVil.id, name: foundVil.name, slug: foundVil.slug }
+            }
+            listingsMap.set(item.id, {
+              ...item,
+              category: cat,
+              village: vil,
+              status: item.status || 'APPROVED',
+            })
+          }
+        })
+      }
+      const mergedListings = Array.from(listingsMap.values())
+      const listings = mergedListings.length > 0 ? mergedListings : FALLBACK_FEATURED_LISTINGS
+
+      // 2. Merge Real Estate properties
+      const reMap = new Map<string, any>()
+      if (Array.isArray(dbRealEstates)) {
+        dbRealEstates.forEach((item) => item?.id && reMap.set(item.id, item))
+      }
+      const offlineRE = getOfflineRealEstates().filter((r) => r.status === 'APPROVED' || !r.status)
+      if (Array.isArray(offlineRE)) {
+        offlineRE.forEach((item) => {
+          if (item?.id) {
+            let vil = item.village
+            if (!vil || !vil.name) {
+              const foundVil = STANDARD_VILLAGES.find((v) => v.id === item.villageId || v.slug === item.villageId) || STANDARD_VILLAGES[0]
+              vil = { id: foundVil.id, name: foundVil.name, slug: foundVil.slug }
+            }
+            reMap.set(item.id, {
+              ...item,
+              village: vil,
+              status: item.status || 'APPROVED',
+            })
+          }
+        })
+      }
+      const mergedRE = Array.from(reMap.values())
+      const realEstates = mergedRE.length > 0 ? mergedRE : FALLBACK_REAL_ESTATE
+
       const villages = dbVillages && dbVillages.length > 0 ? dbVillages : getOfflineVillages()
       const categories = dbCategories && dbCategories.length > 0 ? dbCategories : getOfflineCategories()
 

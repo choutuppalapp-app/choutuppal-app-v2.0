@@ -45,7 +45,7 @@ const globalForPrisma = globalThis as unknown as {
   isDbAvailable: boolean | undefined
 }
 
-let dbUrl = process.env.DATABASE_URL || ''
+let dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL || ''
 
 // Known expired/deleted tenant prevention
 const isKnownDeadTenant = dbUrl.includes('kbieectuamnbzeyrbbme')
@@ -54,7 +54,9 @@ if (isKnownDeadTenant) {
 }
 
 if (dbUrl && !dbUrl.includes('connection_limit=')) {
-  dbUrl += dbUrl.includes('?') ? '&pgbouncer=true&connection_limit=10' : '?pgbouncer=true&connection_limit=10'
+  if (dbUrl.includes('6543') || dbUrl.includes('pooler') || dbUrl.includes('pgbouncer')) {
+    dbUrl += dbUrl.includes('?') ? '&pgbouncer=true&connection_limit=15' : '?pgbouncer=true&connection_limit=15'
+  }
 }
 
 let isDbAvailable = Boolean(dbUrl) && !isKnownDeadTenant
@@ -532,10 +534,10 @@ function createModelProxy(realModel: any, modelName: string) {
         try {
           const timeoutPromise = new Promise<never>((_, reject) => {
             timer = setTimeout(() => {
-              const timeoutErr = new Error(`Database query ${modelName}.${method} timed out`)
+              const timeoutErr = new Error(`Database query ${modelName}.${method} timed out (8s)`)
               timeoutErr.name = 'TimeoutError'
               reject(timeoutErr)
-            }, 1200)
+            }, 8000)
           })
 
           const queryPromise = Promise.resolve().then(() => target[method](...args))
@@ -548,6 +550,7 @@ function createModelProxy(realModel: any, modelName: string) {
           }
         } catch (err: any) {
           if (isConnectionOrInitError(err)) {
+            console.warn(`[PrismaProxy] ${modelName}.${method} DB error/timeout:`, err?.message || err)
             return handleOfflineQuery(modelName, method, args)
           }
           throw err
@@ -622,14 +625,14 @@ export async function safeDbQuery<T>(
   fallback: T,
   maxRetries = 1,
   delayMs = 20,
-  timeoutMs = 1200
+  timeoutMs = 8000
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let timer: NodeJS.Timeout | undefined
     try {
       const timeoutPromise = new Promise<never>((_, reject) => {
         timer = setTimeout(() => {
-          const timeoutErr = new Error('Database query timed out')
+          const timeoutErr = new Error('Database query timed out (8s)')
           timeoutErr.name = 'TimeoutError'
           reject(timeoutErr)
         }, timeoutMs)
@@ -641,6 +644,7 @@ export async function safeDbQuery<T>(
       const result = await Promise.race([queryPromise, timeoutPromise])
       return (result !== undefined && result !== null) ? result : fallback
     } catch (err: any) {
+      console.warn(`[safeDbQuery] Attempt ${attempt}/${maxRetries} failed:`, err?.message || err)
       if (isConnectionOrInitError(err)) {
         if (attempt === maxRetries) {
           return fallback
