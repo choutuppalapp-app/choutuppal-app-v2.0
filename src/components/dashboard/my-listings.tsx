@@ -45,17 +45,19 @@ export function MyListings({
           <h2 className="text-xl font-bold text-slate-900">My Listings</h2>
           <p className="text-sm text-slate-500">{items.length} business/service listings</p>
         </div>
-        {onAdd ? (
-          <Button onClick={onAdd} size="sm" className="gap-1.5 gradient-brand text-white shadow-sm">
-            <Plus className="h-4 w-4" /> Add Listing
-          </Button>
-        ) : (
-          <Link href="/profile/listings/new">
-            <Button size="sm" className="gap-1.5 gradient-brand text-white">
+        {items.length > 0 ? (
+          onAdd ? (
+            <Button onClick={onAdd} size="sm" className="gap-1.5 gradient-brand text-white shadow-sm">
               <Plus className="h-4 w-4" /> Add Listing
             </Button>
-          </Link>
-        )}
+          ) : (
+            <Link href="/profile/listings/new">
+              <Button size="sm" className="gap-1.5 gradient-brand text-white">
+                <Plus className="h-4 w-4" /> Add Listing
+              </Button>
+            </Link>
+          )
+        ) : null}
       </div>
 
       {items.length === 0 ? (

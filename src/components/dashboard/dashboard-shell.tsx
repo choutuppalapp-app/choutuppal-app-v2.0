@@ -421,16 +421,6 @@ export function DashboardShell({ data: initialData }: DashboardShellProps) {
               </Button>
 
               <Button
-                onClick={() => openAdd('business')}
-                size="sm"
-                className="gap-1.5 gradient-brand text-white shadow-md shadow-blue-500/30"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Add Listing</span>
-                <span className="sm:hidden">Add</span>
-              </Button>
-
-              <Button
                 onClick={() => signOut({ callbackUrl: '/' })}
                 variant="outline"
                 size="sm"
@@ -711,9 +701,6 @@ const Overview = React.memo(function Overview({
         <p className="mt-1 text-sm text-slate-500">
           Manage your listings, properties, banners and stories — all in one place.
         </p>
-        <Button onClick={onAdd} className="mt-4 gap-2 gradient-brand text-white shadow-sm">
-          <Plus className="h-4 w-4" /> Add New Listing
-        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
