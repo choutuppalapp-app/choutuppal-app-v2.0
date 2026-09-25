@@ -457,6 +457,17 @@ export function DashboardShell({ data: initialData }: DashboardShellProps) {
                   </button>
                 )
               })}
+
+              <div className="pt-2">
+                <Link
+                  href="/dashboard/add-listing"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl gradient-brand px-3 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:opacity-95 active:scale-[0.98]"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add New Listing
+                </Link>
+              </div>
+
               <RoleLinks role={data.user.role} />
             </nav>
           </aside>
@@ -496,6 +507,17 @@ export function DashboardShell({ data: initialData }: DashboardShellProps) {
                       </button>
                     )
                   })}
+
+                  <div className="pt-2">
+                    <Link
+                      href="/dashboard/add-listing"
+                      onClick={closeSidebar}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl gradient-brand px-3 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/20 transition hover:opacity-95 active:scale-[0.98]"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add New Listing
+                    </Link>
+                  </div>
                 </nav>
                 <RoleLinks role={data.user.role} onNavigate={closeSidebar} />
               </aside>
@@ -561,7 +583,7 @@ export function DashboardShell({ data: initialData }: DashboardShellProps) {
         </div>
 
         {/* Mobile bottom navigation bar */}
-        <MobileBottomNav tab={tab} onTab={handleTabChange} onAdd={() => openAdd('business')} />
+        <MobileBottomNav tab={tab} onTab={handleTabChange} />
 
         {/* Add/Edit Listing Modal with fast in-memory revalidation */}
         <AddListingModal
@@ -806,13 +828,11 @@ const QuickAction = React.memo(function QuickAction({
 interface MobileBottomNavProps {
   tab: TabId
   onTab: (t: TabId) => void
-  onAdd: () => void
 }
 
 const MobileBottomNav = React.memo(function MobileBottomNav({
   tab,
   onTab,
-  onAdd,
 }: MobileBottomNavProps) {
   const items: { id: TabId; label: string; icon: typeof LayoutDashboard }[] = [
     { id: 'overview', label: 'Home', icon: LayoutDashboard },
@@ -830,11 +850,11 @@ const MobileBottomNav = React.memo(function MobileBottomNav({
         {items.slice(0, 2).map((i) => (
           <MobileTab key={i.id} {...i} active={tab === i.id} onClick={() => onTab(i.id)} />
         ))}
-        <button onClick={onAdd} aria-label="Add listing" className="relative flex justify-center">
-          <span className="-mt-6 grid h-14 w-14 place-items-center rounded-2xl gradient-brand text-white shadow-lg shadow-blue-500/40">
+        <Link href="/dashboard/add-listing" aria-label="Add listing" className="relative flex justify-center">
+          <span className="-mt-6 grid h-14 w-14 place-items-center rounded-2xl gradient-brand text-white shadow-lg shadow-blue-500/40 active:scale-95 transition">
             <Plus className="h-7 w-7" />
           </span>
-        </button>
+        </Link>
         {items.slice(2).map((i) => (
           <MobileTab key={i.id} {...i} active={tab === i.id} onClick={() => onTab(i.id)} />
         ))}

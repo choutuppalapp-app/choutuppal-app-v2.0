@@ -46,17 +46,11 @@ export function MyListings({
           <p className="text-sm text-slate-500">{items.length} business/service listings</p>
         </div>
         {items.length > 0 ? (
-          onAdd ? (
-            <Button onClick={onAdd} size="sm" className="gap-1.5 gradient-brand text-white shadow-sm">
+          <Link href="/dashboard/add-listing">
+            <Button size="sm" className="gap-1.5 gradient-brand text-white shadow-sm">
               <Plus className="h-4 w-4" /> Add Listing
             </Button>
-          ) : (
-            <Link href="/profile/listings/new">
-              <Button size="sm" className="gap-1.5 gradient-brand text-white">
-                <Plus className="h-4 w-4" /> Add Listing
-              </Button>
-            </Link>
-          )
+          </Link>
         ) : null}
       </div>
 
@@ -66,17 +60,11 @@ export function MyListings({
           title="No listings yet"
           desc="Add your first business or service listing to reach local customers."
           action={
-            onAdd ? (
-              <Button onClick={onAdd} className="gap-2 gradient-brand text-white shadow-sm">
+            <Link href="/dashboard/add-listing">
+              <Button className="gap-2 gradient-brand text-white shadow-sm">
                 <Plus className="h-4 w-4" /> Add Listing
               </Button>
-            ) : (
-              <Link href="/profile/listings/new">
-                <Button className="gap-2 gradient-brand text-white">
-                  <Plus className="h-4 w-4" /> Add Listing
-                </Button>
-              </Link>
-            )
+            </Link>
           }
         />
       ) : (
