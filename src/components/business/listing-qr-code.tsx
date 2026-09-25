@@ -81,7 +81,7 @@ function createBrandedStandeeCanvas(
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, width, height)
 
-  // 2. Outer Decorative Frame & Subtle Golden Shadow
+  // 2. Outer Decorative Frame
   ctx.strokeStyle = '#e2e8f0'
   ctx.lineWidth = 4
   ctx.strokeRect(8, 8, width - 16, height - 16)
@@ -90,7 +90,7 @@ function createBrandedStandeeCanvas(
   ctx.lineWidth = 1.5
   ctx.strokeRect(14, 14, width - 28, height - 28)
 
-  // 3. Header Hero Bar (Deep Navy & Vibrant Royal Blue Gradient)
+  // 3. Header Hero Bar
   const headerGrad = ctx.createLinearGradient(0, 0, width, 160)
   headerGrad.addColorStop(0, '#0f172a') // Slate 900
   headerGrad.addColorStop(0.35, '#1e3a8a') // Deep Navy
@@ -155,7 +155,7 @@ function createBrandedStandeeCanvas(
     ctx.fillText(`📍 ${cleanAddr}`, width / 2, 268)
   }
 
-  // 7. QR Container Box (Card with rounded corners and double border)
+  // 7. QR Container Box
   const qrBoxX = 120
   const qrBoxY = address ? 285 : 270
   const qrBoxSize = 360
@@ -358,8 +358,8 @@ export function ListingQrCodeModal({
   const [downloading, setDownloading] = useState(false)
   const [sharing, setSharing] = useState(false)
   const [targetUrl, setTargetUrl] = useState('')
-  const [qrImageDataUrl, setQrImageDataUrl] = useState<string>('')
-  const canvasWrapperRef = useRef<HTMLDivElement>(null)
+  const [renderedQrImage, setRenderedQrImage] = useState<string>('')
+  const hiddenCanvasRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const origin =
@@ -370,37 +370,51 @@ export function ListingQrCodeModal({
     setTargetUrl(`${origin}/business/${cleanSlug}`)
   }, [slug, listingId])
 
-  // Get source QR canvas from DOM
+  // Get source QR canvas from hidden DOM container
   const getSourceCanvas = useCallback((): HTMLCanvasElement | null => {
-    if (!canvasWrapperRef.current) return null
-    return canvasWrapperRef.current.querySelector('canvas')
+    if (!hiddenCanvasRef.current) return null
+    return hiddenCanvasRef.current.querySelector('canvas')
   }, [])
 
-  // Sync rendered QR canvas to image data URL so users see a true <img> element
+  // Sync rendered QR canvas to image data URL so the generated QR code renders strictly as an <img> tag
+  const refreshRenderedImage = useCallback(() => {
+    const canvas = getSourceCanvas()
+    if (!canvas) return
+
+    try {
+      if (activeTab === 'standee') {
+        const standee = createBrandedStandeeCanvas(canvas, title, categoryName, villageName, phone, address)
+        const dataUrl = standee.toDataURL('image/png')
+        setRenderedQrImage(dataUrl)
+      } else {
+        const cleanCanvas = createCleanQrCanvas(canvas)
+        const dataUrl = cleanCanvas.toDataURL('image/png')
+        setRenderedQrImage(dataUrl)
+      }
+    } catch {
+      try {
+        const dataUrl = canvas.toDataURL('image/png')
+        setRenderedQrImage(dataUrl)
+      } catch {}
+    }
+  }, [getSourceCanvas, activeTab, title, categoryName, villageName, phone, address])
+
   useEffect(() => {
     if (!open) return
     const timer = setTimeout(() => {
-      const canvas = getSourceCanvas()
-      if (canvas) {
-        try {
-          const dataUrl = canvas.toDataURL('image/png')
-          setQrImageDataUrl(dataUrl)
-        } catch {
-          // Ignore
-        }
-      }
+      refreshRenderedImage()
     }, 150)
     return () => clearTimeout(timer)
-  }, [open, targetUrl, activeTab, getSourceCanvas])
+  }, [open, targetUrl, activeTab, refreshRenderedImage])
 
   // Clean phone / whatsapp numbers for WhatsApp URL API
   const rawWaPhone = (whatsapp || phone || '').replace(/\D/g, '')
   const formattedWaPhone = rawWaPhone.length === 10 ? `91${rawWaPhone}` : rawWaPhone
 
-  // 1. Pre-filled text for direct customer -> merchant chat
+  // Pre-filled text for direct customer -> merchant chat
   const merchantPrefilledText = `Namaste! I found "${title}" on Choutuppal Super App (${targetUrl}). I would like to inquire about your products & services.`
 
-  // 2. Pre-filled text for sharing shop with friends / WhatsApp status
+  // Pre-filled text for sharing shop with friends / WhatsApp status
   const promotionalShareText = `🏪 *${title}*
 📍 *Location:* ${villageName || 'Choutuppal'}${categoryName ? ` • ${categoryName}` : ''}${phone ? `\n📞 *Contact:* ${phone}` : ''}
 ${address ? `🏠 *Address:* ${address}\n` : ''}
@@ -502,8 +516,8 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
     }
   }
 
-  // 9. Download Branded Standee Poster (PNG)
-  const handleDownloadStandee = async () => {
+  // 9. Download PNG Button handler
+  const handleDownloadPng = async () => {
     try {
       setDownloading(true)
       const source = getSourceCanvas()
@@ -512,47 +526,30 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
         return
       }
 
-      const standee = createBrandedStandeeCanvas(source, title, categoryName, villageName, phone, address)
-      const blob = await canvasToBlobAsync(standee, 'image/png', 1.0)
       const cleanTitle = (title || 'shop').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30)
-      const filename = `${cleanTitle}-choutuppal-standee.png`
 
-      triggerBrowserDownload(blob, filename)
-      toast.success('Branded Standee Poster downloaded as PNG!')
+      if (activeTab === 'standee') {
+        const standee = createBrandedStandeeCanvas(source, title, categoryName, villageName, phone, address)
+        const blob = await canvasToBlobAsync(standee, 'image/png', 1.0)
+        const filename = `${cleanTitle}-choutuppal-standee.png`
+        triggerBrowserDownload(blob, filename)
+        toast.success('Branded Standee Poster downloaded as PNG!')
+      } else {
+        const cleanCanvas = createCleanQrCanvas(source)
+        const blob = await canvasToBlobAsync(cleanCanvas, 'image/png', 1.0)
+        const filename = `${cleanTitle}-qr-code.png`
+        triggerBrowserDownload(blob, filename)
+        toast.success('QR Code downloaded as PNG!')
+      }
     } catch (err) {
-      console.error('Download standee error:', err)
+      console.error('Download QR error:', err)
       toast.error('Download failed. You can copy the link or share via WhatsApp.')
     } finally {
       setDownloading(false)
     }
   }
 
-  // 10. Download Clean QR Only (PNG)
-  const handleDownloadRawQr = async () => {
-    try {
-      setDownloading(true)
-      const source = getSourceCanvas()
-      if (!source) {
-        toast.error('QR code is still loading')
-        return
-      }
-
-      const cleanCanvas = createCleanQrCanvas(source)
-      const blob = await canvasToBlobAsync(cleanCanvas, 'image/png', 1.0)
-      const cleanTitle = (title || 'shop').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30)
-      const filename = `${cleanTitle}-qr-code.png`
-
-      triggerBrowserDownload(blob, filename)
-      toast.success('QR Code downloaded as PNG!')
-    } catch (err) {
-      console.error('Download QR error:', err)
-      toast.error('Download failed')
-    } finally {
-      setDownloading(false)
-    }
-  }
-
-  // 11. Universal Web Share API on mobile devices with image and fallback
+  // 10. Web Share API on mobile devices with Image file, URL, and graceful fallback
   const handleWebShare = async () => {
     try {
       setSharing(true)
@@ -617,7 +614,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
     }
   }
 
-  // 12. Print Standee
+  // 11. Print Standee
   const handlePrint = () => {
     try {
       const source = getSourceCanvas()
@@ -685,6 +682,20 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
 
   return (
     <>
+      {/* Hidden offscreen QR Canvas Generator Engine */}
+      <div
+        ref={hiddenCanvasRef}
+        aria-hidden="true"
+        className="fixed -left-[9999px] -top-[9999px] opacity-0 pointer-events-none"
+      >
+        <QRCodeCanvas
+          value={targetUrl || 'https://www.choutuppal.in'}
+          size={512}
+          level="H"
+          includeMargin={false}
+        />
+      </div>
+
       {/* Trigger element based on variant */}
       {variant === 'button' ? (
         <Button
@@ -873,43 +884,41 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
 
           {/* Scrollable Tab Content Body */}
           <div className="p-5 overflow-y-auto flex-1 space-y-4">
-            {/* Visual QR Code Image & Canvas Container */}
+            {/* Visual QR Code Image Container — Strictly Renders as an Image */}
             <div className="flex flex-col items-center justify-center">
-              <div
-                ref={canvasWrapperRef}
-                className="relative p-4 rounded-3xl border-2 border-slate-200/80 bg-white shadow-md flex flex-col items-center justify-center group"
-              >
-                {/* 1. Underlying QR Canvas Engine */}
-                <div className="relative">
-                  <QRCodeCanvas
-                    value={targetUrl || 'https://www.choutuppal.in'}
-                    size={activeTab === 'standee' ? 180 : 200}
-                    level="H"
-                    includeMargin={false}
-                  />
-
-                  {/* Center Monogram Logo Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="h-10 w-10 rounded-full bg-white p-1 shadow-md border border-slate-200 flex items-center justify-center">
-                      <div className="h-full w-full rounded-full bg-gradient-to-tr from-blue-700 via-indigo-600 to-sky-500 text-white flex items-center justify-center font-black text-xs">
-                        C
-                      </div>
-                    </div>
+              <div className="relative p-3 rounded-3xl border-2 border-slate-200/80 bg-white shadow-md flex flex-col items-center justify-center group max-w-[280px]">
+                {renderedQrImage ? (
+                  <div className="relative flex flex-col items-center">
+                    {/* Genuine <img> Element */}
+                    <img
+                      src={renderedQrImage}
+                      alt={`${title} QR Code`}
+                      className={`w-full object-contain rounded-2xl transition-transform duration-200 group-hover:scale-[1.02] ${
+                        activeTab === 'standee' ? 'max-h-[260px]' : 'max-h-[220px]'
+                      }`}
+                    />
+                    <p className="mt-2 text-[10px] text-slate-400 font-medium select-none">
+                      (Tap and hold to save image)
+                    </p>
                   </div>
-                </div>
+                ) : (
+                  <div className="h-48 w-48 flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+                  </div>
+                )}
 
-                <div className="mt-2.5 flex items-center gap-1.5 text-[11px] font-bold text-slate-600 bg-blue-50/70 px-3 py-1 rounded-full border border-blue-100">
-                  <Smartphone className="h-3 w-3 text-blue-700" />
-                  <span>Scan with PhonePe, Google Pay, Camera & Lens</span>
+                <div className="mt-2 flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-slate-600 bg-blue-50/70 px-3 py-1 rounded-full border border-blue-100">
+                  <Smartphone className="h-3 w-3 text-blue-700 shrink-0" />
+                  <span className="truncate">Scan with PhonePe, GPay, Camera & Lens</span>
                 </div>
               </div>
 
-              {/* Instant Action Bar: Download PNG & Web Share */}
+              {/* Instant Action Bar: 'Download' PNG Button & 'Share' Web Share Button */}
               <div className="w-full grid grid-cols-2 gap-2.5 mt-3.5">
                 <Button
-                  onClick={activeTab === 'standee' ? handleDownloadStandee : handleDownloadRawQr}
+                  onClick={handleDownloadPng}
                   disabled={downloading}
-                  className="h-11 rounded-2xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98]"
+                  className="h-11 rounded-2xl bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98] cursor-pointer"
                 >
                   <Download className="h-4 w-4" />
                   <span>{downloading ? 'Downloading...' : 'Download PNG'}</span>
@@ -918,7 +927,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                 <Button
                   onClick={handleWebShare}
                   disabled={sharing}
-                  className="h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98]"
+                  className="h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2 transition active:scale-[0.98] cursor-pointer"
                 >
                   <Share2 className="h-4 w-4" />
                   <span>{sharing ? 'Opening Share...' : 'Share QR & Link'}</span>
@@ -948,7 +957,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                   <Button
                     onClick={handlePrint}
                     variant="outline"
-                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition"
+                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition cursor-pointer"
                   >
                     <Printer className="h-4 w-4 text-blue-700" />
                     <span>Print A4 Poster</span>
@@ -957,7 +966,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                   <Button
                     onClick={handleCopyImage}
                     variant="outline"
-                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition"
+                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition cursor-pointer"
                   >
                     {copiedImage ? (
                       <>
@@ -989,10 +998,10 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <Button
-                    onClick={handleDownloadRawQr}
+                    onClick={handleDownloadPng}
                     disabled={downloading}
                     variant="outline"
-                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50"
+                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 cursor-pointer"
                   >
                     <Download className="h-4 w-4 text-blue-700" />
                     <span>Save Clean PNG</span>
@@ -1001,7 +1010,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                   <Button
                     onClick={handleCopyImage}
                     variant="outline"
-                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50"
+                    className="h-10 rounded-2xl border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 cursor-pointer"
                   >
                     {copiedImage ? (
                       <>
@@ -1046,7 +1055,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
 
                   <Button
                     onClick={handleDirectWhatsAppChat}
-                    className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2"
+                    className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <MessageCircle className="h-4 w-4 fill-white" />
                     <span>Open Pre-filled WhatsApp Chat</span>
@@ -1073,7 +1082,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                       size="sm"
                       variant="outline"
                       onClick={handleCopyMessage}
-                      className="h-7 text-[11px] font-bold gap-1 rounded-lg"
+                      className="h-7 text-[11px] font-bold gap-1 rounded-lg cursor-pointer"
                     >
                       {copiedMessage ? (
                         <>
@@ -1093,7 +1102,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
 
                   <Button
                     onClick={handleShareWhatsAppStatus}
-                    className="w-full h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2"
+                    className="w-full h-10 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Share2 className="h-4 w-4" />
                     <span>Share to WhatsApp Status & Chats</span>
@@ -1129,7 +1138,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                     <Button
                       size="sm"
                       onClick={handleShareInstagram}
-                      className="w-full h-8 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-[11px]"
+                      className="w-full h-8 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold text-[11px] cursor-pointer"
                     >
                       Copy & Open Insta
                     </Button>
@@ -1149,7 +1158,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                     <Button
                       size="sm"
                       onClick={handleShareFacebook}
-                      className="w-full h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px]"
+                      className="w-full h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] cursor-pointer"
                     >
                       Share on Facebook
                     </Button>
@@ -1169,7 +1178,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                     <Button
                       size="sm"
                       onClick={handleOpenYouTube}
-                      className="w-full h-8 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-[11px]"
+                      className="w-full h-8 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-[11px] cursor-pointer"
                     >
                       Watch Channel
                     </Button>
@@ -1188,7 +1197,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                     href={OFFICIAL_WA_CHANNEL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="shrink-0 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
+                    className="shrink-0 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition"
                   >
                     Join Channel
                   </a>
@@ -1206,7 +1215,7 @@ _Download Choutuppal Super App for all local businesses, services & updates!_`
                 size="sm"
                 variant="outline"
                 onClick={handleCopyLink}
-                className="h-8 rounded-xl text-xs font-bold gap-1 shrink-0 bg-white hover:bg-slate-50 border-slate-200 shadow-xs"
+                className="h-8 rounded-xl text-xs font-bold gap-1 shrink-0 bg-white hover:bg-slate-50 border-slate-200 shadow-xs cursor-pointer"
               >
                 {copiedLink ? (
                   <>

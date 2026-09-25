@@ -1,5 +1,16 @@
 import { prisma, safeDbQuery } from '@/lib/prisma'
 import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
+import {
+  getOfflineListings,
+  getOfflineBanners,
+  getOfflineStories,
+  getOfflineRealEstates,
+  getOfflineShorts,
+  getOfflineNews,
+  getOfflineBlogs,
+  STANDARD_CATEGORIES,
+  STANDARD_VILLAGES,
+} from '@/lib/offline-data'
 
 /**
  * Server-side data fetchers for the Home page. Each returns plain serializable
@@ -7,7 +18,7 @@ import { getCurrentTenant, getTenantWhereClause } from '@/lib/tenant'
  */
 
 export async function getActiveStories() {
-  return safeDbQuery(
+  const dbStories = await safeDbQuery(
     () =>
       prisma.story.findMany({
         where: {
@@ -29,13 +40,22 @@ export async function getActiveStories() {
       }),
     [],
   )
+
+  const offlineStories = getOfflineStories().filter((s) => s.isActive !== false)
+  if (dbStories && dbStories.length > 0) {
+    const map = new Map<string, any>()
+    dbStories.forEach((s: any) => map.set(s.id, s))
+    offlineStories.forEach((s: any) => map.set(s.id, s))
+    return Array.from(map.values())
+  }
+  return offlineStories.length > 0 ? offlineStories : []
 }
 
 export async function getActiveBanners() {
   const tenant = await getCurrentTenant()
   const tenantFilter = getTenantWhereClause(tenant.id)
 
-  return safeDbQuery(
+  const dbBanners = await safeDbQuery(
     async () => {
       let banners = await prisma.banner.findMany({
         where: {
@@ -76,6 +96,15 @@ export async function getActiveBanners() {
     },
     [],
   )
+
+  const offlineBanners = getOfflineBanners().filter((b) => b.isActive !== false && b.status !== 'REJECTED')
+  if (dbBanners && dbBanners.length > 0) {
+    const map = new Map<string, any>()
+    dbBanners.forEach((b: any) => map.set(b.id, b))
+    offlineBanners.forEach((b: any) => map.set(b.id, b))
+    return Array.from(map.values())
+  }
+  return offlineBanners.length > 0 ? offlineBanners : []
 }
 
 export async function getCategories() {
@@ -292,19 +321,17 @@ export async function getFeaturedListings() {
   const tenantFilter = getTenantWhereClause(tenant.id)
   const dbListings = await safeDbQuery(
     async () => {
-      // 1. First try approved / active listings for this tenant
       let results = await prisma.listing.findMany({
         where: {
           ...tenantFilter,
           status: { in: ['APPROVED', 'ACTIVE'] },
-          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         orderBy: [
           { isFeatured: 'desc' },
           { isPremium: 'desc' },
           { createdAt: 'desc' },
         ],
-        take: 12,
+        take: 30,
         select: {
           id: true,
           title: true,
@@ -316,77 +343,46 @@ export async function getFeaturedListings() {
           avgRating: true,
           views: true,
           isFeatured: true,
+          isPremium: true,
           villageId: true,
           categoryId: true,
           category: { select: { id: true, name: true, slug: true } },
           village: { select: { id: true, name: true, slug: true } },
         },
       })
-
-      // 2. If none with tenantFilter, try all active/approved listings in the DB
-      if (!results || results.length === 0) {
-        results = await prisma.listing.findMany({
-          where: {
-            status: { in: ['APPROVED', 'ACTIVE'] },
-            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-          },
-          orderBy: [
-            { isFeatured: 'desc' },
-            { isPremium: 'desc' },
-            { createdAt: 'desc' },
-          ],
-          take: 12,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            coverImage: true,
-            logo: true,
-            phone: true,
-            whatsapp: true,
-            avgRating: true,
-            views: true,
-            isFeatured: true,
-            villageId: true,
-            categoryId: true,
-            category: { select: { id: true, name: true, slug: true } },
-            village: { select: { id: true, name: true, slug: true } },
-          },
-        })
-      }
-
-      // 3. If still empty, try any listings regardless of status (e.g. newly created by admin)
-      if (!results || results.length === 0) {
-        results = await prisma.listing.findMany({
-          orderBy: { createdAt: 'desc' },
-          take: 12,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            coverImage: true,
-            logo: true,
-            phone: true,
-            whatsapp: true,
-            avgRating: true,
-            views: true,
-            isFeatured: true,
-            villageId: true,
-            categoryId: true,
-            category: { select: { id: true, name: true, slug: true } },
-            village: { select: { id: true, name: true, slug: true } },
-          },
-        })
-      }
-
       return results || []
     },
     [],
   )
 
-  if (dbListings && dbListings.length > 0) {
-    return dbListings
+  const offlineListings = getOfflineListings()
+    .filter((l) => l.status === 'APPROVED' || l.status === 'ACTIVE' || !l.status)
+
+  const map = new Map<string, any>()
+  if (Array.isArray(dbListings)) {
+    dbListings.forEach((item: any) => {
+      if (item?.id) map.set(item.id, item)
+    })
   }
+  if (Array.isArray(offlineListings)) {
+    offlineListings.forEach((item: any) => {
+      if (item?.id) map.set(item.id, item)
+    })
+  }
+
+  const merged = Array.from(map.values())
+  if (merged.length > 0) {
+    // Sort featured / premium / newest
+    merged.sort((a, b) => {
+      if (a.isFeatured !== b.isFeatured) return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0)
+      if (a.isPremium !== b.isPremium) return (b.isPremium ? 1 : 0) - (a.isPremium ? 1 : 0)
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return timeB - timeA
+    })
+    return merged.slice(0, 24)
+  }
+
   return FALLBACK_FEATURED_LISTINGS
 }
 
@@ -395,11 +391,10 @@ export async function getPremiumRealEstate() {
   const tenantFilter = getTenantWhereClause(tenant.id)
   const dbProperties = await safeDbQuery(
     async () => {
-      // 1. Try realEstate table with tenantFilter
       let properties = await prisma.realEstate.findMany({
         where: { ...tenantFilter, status: { in: ['APPROVED', 'ACTIVE'] } },
         orderBy: { createdAt: 'desc' },
-        take: 8,
+        take: 12,
         select: {
           id: true,
           title: true,
@@ -414,57 +409,29 @@ export async function getPremiumRealEstate() {
           village: { select: { id: true, name: true, slug: true } },
         },
       })
-
-      // 2. If none, try without tenant filter
-      if (!properties || properties.length === 0) {
-        properties = await prisma.realEstate.findMany({
-          where: { status: { in: ['APPROVED', 'ACTIVE'] } },
-          orderBy: { createdAt: 'desc' },
-          take: 8,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            coverImage: true,
-            price: true,
-            type: true,
-            listingType: true,
-            bedrooms: true,
-            areaSqft: true,
-            villageId: true,
-            village: { select: { id: true, name: true, slug: true } },
-          },
-        })
-      }
-
-      // 3. If still empty, try any real estate items in the DB
-      if (!properties || properties.length === 0) {
-        properties = await prisma.realEstate.findMany({
-          orderBy: { createdAt: 'desc' },
-          take: 8,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            coverImage: true,
-            price: true,
-            type: true,
-            listingType: true,
-            bedrooms: true,
-            areaSqft: true,
-            villageId: true,
-            village: { select: { id: true, name: true, slug: true } },
-          },
-        })
-      }
-
       return properties || []
     },
     [],
   )
 
-  if (dbProperties && dbProperties.length > 0) {
-    return dbProperties
+  const offlineProperties = getOfflineRealEstates()
+    .filter((r) => r.status === 'APPROVED' || r.status === 'ACTIVE' || !r.status)
+
+  const map = new Map<string, any>()
+  if (Array.isArray(dbProperties)) {
+    dbProperties.forEach((item: any) => {
+      if (item?.id) map.set(item.id, item)
+    })
+  }
+  if (Array.isArray(offlineProperties)) {
+    offlineProperties.forEach((item: any) => {
+      if (item?.id) map.set(item.id, item)
+    })
+  }
+
+  const merged = Array.from(map.values())
+  if (merged.length > 0) {
+    return merged.slice(0, 12)
   }
   return FALLBACK_REAL_ESTATE
 }
@@ -472,7 +439,7 @@ export async function getPremiumRealEstate() {
 export async function getShorts() {
   const tenant = await getCurrentTenant()
   const tenantFilter = getTenantWhereClause(tenant.id)
-  return safeDbQuery(
+  const dbShorts = await safeDbQuery(
     async () => {
       let shorts = await prisma.short.findMany({
         where: tenantFilter,
@@ -492,31 +459,19 @@ export async function getShorts() {
           owner: { select: { id: true, username: true, name: true, image: true } },
         },
       })
-
-      if (!shorts || shorts.length === 0) {
-        shorts = await prisma.short.findMany({
-          orderBy: { createdAt: 'desc' },
-          take: 15,
-          select: {
-            id: true,
-            videoUrl: true,
-            platform: true,
-            thumbnail: true,
-            title: true,
-            description: true,
-            views: true,
-            likes: true,
-            youtubeId: true,
-            createdAt: true,
-            owner: { select: { id: true, username: true, name: true, image: true } },
-          },
-        })
-      }
-
       return shorts || []
     },
     [],
   )
+
+  const offlineShorts = getOfflineShorts()
+  if (dbShorts && dbShorts.length > 0) {
+    const map = new Map<string, any>()
+    dbShorts.forEach((s: any) => map.set(s.id, s))
+    offlineShorts.forEach((s: any) => map.set(s.id, s))
+    return Array.from(map.values())
+  }
+  return offlineShorts.length > 0 ? offlineShorts : []
 }
 
 export async function getLatestNews() {
@@ -537,47 +492,19 @@ export async function getLatestNews() {
           createdAt: true,
         },
       })
-
-      if (!articles || articles.length === 0) {
-        articles = await prisma.news.findMany({
-          where: { isPublished: true },
-          orderBy: { createdAt: 'desc' },
-          take: 6,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            summary: true,
-            image: true,
-            createdAt: true,
-          },
-        })
-      }
-
-      if (!articles || articles.length === 0) {
-        articles = await prisma.news.findMany({
-          orderBy: { createdAt: 'desc' },
-          take: 6,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            summary: true,
-            image: true,
-            createdAt: true,
-          },
-        })
-      }
-
       return articles || []
     },
     [],
   )
 
+  const offlineNews = getOfflineNews().filter((n) => n.isPublished !== false)
   if (dbNews && dbNews.length > 0) {
-    return dbNews
+    const map = new Map<string, any>()
+    dbNews.forEach((n: any) => map.set(n.id, n))
+    offlineNews.forEach((n: any) => map.set(n.id, n))
+    return Array.from(map.values())
   }
-  return FALLBACK_NEWS
+  return offlineNews.length > 0 ? offlineNews : FALLBACK_NEWS
 }
 
 export async function getLatestBlogs() {
@@ -598,47 +525,19 @@ export async function getLatestBlogs() {
           createdAt: true,
         },
       })
-
-      if (!blogs || blogs.length === 0) {
-        blogs = await prisma.blog.findMany({
-          where: { isPublished: true },
-          orderBy: { createdAt: 'desc' },
-          take: 4,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            excerpt: true,
-            coverImage: true,
-            createdAt: true,
-          },
-        })
-      }
-
-      if (!blogs || blogs.length === 0) {
-        blogs = await prisma.blog.findMany({
-          orderBy: { createdAt: 'desc' },
-          take: 4,
-          select: {
-            id: true,
-            title: true,
-            slug: true,
-            excerpt: true,
-            coverImage: true,
-            createdAt: true,
-          },
-        })
-      }
-
       return blogs || []
     },
     [],
   )
 
+  const offlineBlogs = getOfflineBlogs().filter((b) => b.isPublished !== false)
   if (dbBlogs && dbBlogs.length > 0) {
-    return dbBlogs
+    const map = new Map<string, any>()
+    dbBlogs.forEach((b: any) => map.set(b.id, b))
+    offlineBlogs.forEach((b: any) => map.set(b.id, b))
+    return Array.from(map.values())
   }
-  return FALLBACK_BLOGS
+  return offlineBlogs.length > 0 ? offlineBlogs : FALLBACK_BLOGS
 }
 
 export async function getVillages() {

@@ -6,6 +6,13 @@ import { getCurrentUser, isAdminRole } from '@/lib/session'
 import { ListingDetailView } from '@/components/business/listing-detail-view'
 import { swrCache } from '@/lib/cache'
 import { FALLBACK_FEATURED_LISTINGS, FALLBACK_REAL_ESTATE } from '@/lib/home-data'
+import {
+  getOfflineListingBySlug,
+  getOfflineListingById,
+  getOfflineListings,
+  STANDARD_CATEGORIES,
+  STANDARD_VILLAGES,
+} from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 120
@@ -65,6 +72,70 @@ const getListingCached = cache(async (slug: string) => {
         1800
       )
       if (dbListing) return dbListing
+
+      // 2. Try Offline Listings Store (newly uploaded / edited shops)
+      for (const term of slugSearchTerms) {
+        const offlineItem = getOfflineListingBySlug(term) || getOfflineListingById(term)
+        if (offlineItem) {
+          const cat =
+            offlineItem.category ||
+            STANDARD_CATEGORIES.find((c) => c.id === offlineItem.categoryId || c.slug === offlineItem.categoryId) ||
+            STANDARD_CATEGORIES[0]
+          const vil =
+            offlineItem.village ||
+            STANDARD_VILLAGES.find((v) => v.id === offlineItem.villageId || v.slug === offlineItem.villageId) ||
+            STANDARD_VILLAGES[0]
+
+          return {
+            id: offlineItem.id,
+            title: offlineItem.title,
+            slug: offlineItem.slug,
+            description: offlineItem.description || `${offlineItem.title} in ${vil?.name || 'Choutuppal'}`,
+            type: offlineItem.type || 'BUSINESS',
+            status: offlineItem.status || 'APPROVED',
+            isFeatured: Boolean(offlineItem.isFeatured),
+            isPremium: Boolean(offlineItem.isPremium),
+            coverImage: offlineItem.coverImage || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+            logo: offlineItem.logo || null,
+            phone: offlineItem.phone || '9494348175',
+            secondaryPhone: offlineItem.secondaryPhone || null,
+            whatsapp: offlineItem.whatsapp || offlineItem.phone || '9494348175',
+            email: offlineItem.email || 'support@choutuppal.in',
+            website: offlineItem.website || null,
+            address: offlineItem.address || `${vil?.name || 'Choutuppal'}, Telangana 508252`,
+            mapEmbed: offlineItem.mapEmbed || null,
+            businessHours: offlineItem.businessHours || {
+              mon: { open: '08:00', close: '21:00' },
+              tue: { open: '08:00', close: '21:00' },
+              wed: { open: '08:00', close: '21:00' },
+              thu: { open: '08:00', close: '21:00' },
+              fri: { open: '08:00', close: '21:00' },
+              sat: { open: '08:00', close: '21:00' },
+              sun: { open: '09:00', close: '20:00' },
+            },
+            servicesCatalog: offlineItem.servicesCatalog || [
+              { name: 'విచారణ & బుకింగ్ (General Inquiry)', price: 'Standard', description: 'ఉత్తమ నాణ్యత మరియు వేగవంతమైన కస్టమర్ సేవలకు సంప్రదించండి.' },
+              { name: 'డైరెక్ట్ వాట్సాప్ ఆర్డర్', price: 'Free / ఉచితం', description: 'వాట్సాప్ లేదా కాల్ ద్వారా ఆర్డర్ వివరాలు తెలుసుకోండి.' },
+            ],
+            gallery: offlineItem.gallery || (offlineItem.coverImage ? [offlineItem.coverImage] : []),
+            avgRating: offlineItem.avgRating || 4.9,
+            views: offlineItem.views || 120,
+            categoryId: cat.id,
+            villageId: vil.id,
+            category: cat,
+            village: vil,
+            owner: offlineItem.owner || {
+              id: 'cms0du1m40000v32slild2p1s',
+              name: 'Admin',
+              username: 'admin',
+              phone: offlineItem.phone || '9494348175',
+              image: null,
+            },
+            createdAt: offlineItem.createdAt || new Date(),
+            updatedAt: offlineItem.updatedAt || new Date(),
+          }
+        }
+      }
 
       // 2. Try DB lookup on RealEstate table
       const dbRealEstate = await safeDbQuery(

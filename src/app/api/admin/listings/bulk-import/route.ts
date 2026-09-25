@@ -1,7 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
-import { getOfflineCategories, getOfflineVillages, saveOfflineListing } from '@/lib/offline-data'
+import {
+  getOfflineCategories,
+  getOfflineVillages,
+  saveOfflineListing,
+  STANDARD_CATEGORIES,
+  STANDARD_VILLAGES,
+} from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
@@ -86,14 +92,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (items.length > 1000) {
+    if (items.length > 2000) {
       return NextResponse.json(
-        { error: 'Maximum 1,000 listings allowed per batch import' },
+        { error: 'Maximum 2,000 listings allowed per batch import' },
         { status: 400 }
       )
     }
 
-    // 1. Fetch available taxonomy or fallback
+    // 1. Fetch available taxonomy
     const [dbCategories, dbVillages] = await Promise.all([
       safeDbQuery(
         () => prisma.category.findMany({ select: { id: true, name: true, slug: true } }),
@@ -106,21 +112,29 @@ export async function POST(req: NextRequest) {
     ])
 
     const categoryLookup = new Map<string, string>()
-    for (const c of dbCategories) {
+    for (const c of dbCategories || []) {
+      categoryLookup.set(c.slug.toLowerCase(), c.id)
+      categoryLookup.set(c.name.toLowerCase(), c.id)
+    }
+    for (const c of STANDARD_CATEGORIES) {
       categoryLookup.set(c.slug.toLowerCase(), c.id)
       categoryLookup.set(c.name.toLowerCase(), c.id)
     }
 
     const villageLookup = new Map<string, string>()
-    for (const v of dbVillages) {
+    for (const v of dbVillages || []) {
+      villageLookup.set(v.slug.toLowerCase(), v.id)
+      villageLookup.set(v.name.toLowerCase(), v.id)
+    }
+    for (const v of STANDARD_VILLAGES) {
       villageLookup.set(v.slug.toLowerCase(), v.id)
       villageLookup.set(v.name.toLowerCase(), v.id)
     }
 
     const defaultVillageId =
-      villageLookup.get('choutuppal') || dbVillages[0]?.id || 'v-choutuppal'
+      villageLookup.get('choutuppal') || STANDARD_VILLAGES[0].id
     const defaultCategoryId =
-      categoryLookup.get('services') || dbCategories[0]?.id || 'cat-services'
+      categoryLookup.get('services') || STANDARD_CATEGORIES[0].id
 
     let successCount = 0
     let updatedCount = 0
@@ -139,7 +153,7 @@ export async function POST(req: NextRequest) {
         continue
       }
 
-      const phone = (item.phone || item.mobile || item.contact || '').toString().trim()
+      const phone = (item.phone || item.mobile || item.contact || '9494348175').toString().trim()
       const whatsapp = (item.whatsapp || item.wa || phone).toString().trim()
       const address = (item.address || item.location || 'Choutuppal, Telangana 508252').trim()
       const description = (
@@ -180,10 +194,35 @@ export async function POST(req: NextRequest) {
       }
 
       try {
+        // 1. Always save to persistent offline disk store
+        const savedOffline = saveOfflineListing({
+          title,
+          slug,
+          description,
+          type: listingType,
+          phone,
+          whatsapp,
+          address,
+          status: ['APPROVED', 'PENDING', 'REJECTED'].includes(status) ? status : 'APPROVED',
+          isPremium,
+          isFeatured,
+          coverImage,
+          categoryId,
+          villageId,
+          owner: {
+            id: auth.user.id,
+            name: auth.user.name || 'Admin',
+            username: auth.user.username || 'admin',
+            phone: auth.user.phone,
+          },
+        })
+
+        // 2. Also try saving to DB
         await safeDbQuery(
           () =>
             prisma.listing.create({
               data: {
+                id: savedOffline.id,
                 title,
                 slug,
                 description,
@@ -205,25 +244,7 @@ export async function POST(req: NextRequest) {
               },
             }),
           null
-        )
-
-        // Save into persistent JSON store as well
-        saveOfflineListing({
-          title,
-          slug,
-          description,
-          type: listingType,
-          phone,
-          whatsapp,
-          address,
-          status: ['APPROVED', 'PENDING', 'REJECTED'].includes(status) ? status : 'APPROVED',
-          isPremium,
-          isFeatured,
-          coverImage,
-          categoryId,
-          villageId,
-          owner: { id: auth.user.id, name: auth.user.name || 'Admin', username: auth.user.username || 'admin', phone: auth.user.phone },
-        })
+        ).catch(() => null)
 
         successCount++
       } catch (err: any) {
@@ -235,15 +256,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Invalidate app caches
+    // Invalidate all caches
     invalidateHomeDataCache()
     invalidateCache('listings_')
     invalidateCache('listing_')
+    invalidateCache('home_data_')
     try {
       revalidatePath('/')
       revalidatePath('/explore')
       revalidatePath('/listings')
       revalidatePath('/admin/listings')
+      revalidatePath('/admin')
     } catch {}
 
     return NextResponse.json({

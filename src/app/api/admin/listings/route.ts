@@ -1,12 +1,88 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { requireApiAdmin } from '@/lib/session'
 import { prisma, safeDbQuery } from '@/lib/prisma'
-import { getOfflineCategories, getOfflineVillages, getOfflineListings, saveOfflineListing, deleteOfflineListing } from '@/lib/offline-data'
+import {
+  getOfflineCategories,
+  getOfflineVillages,
+  getOfflineListings,
+  saveOfflineListing,
+  deleteOfflineListing,
+  STANDARD_CATEGORIES,
+  STANDARD_VILLAGES,
+} from '@/lib/offline-data'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { invalidateCache } from '@/lib/cache'
 import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
+
+/**
+ * Merge listings from DB and offline persistent disk store.
+ * Offline store contains the latest additions and edits.
+ */
+function mergeListings(dbItems: any[], offlineItems: any[]): any[] {
+  const map = new Map<string, any>()
+
+  // 1. Add DB items
+  if (Array.isArray(dbItems)) {
+    for (const item of dbItems) {
+      if (item && item.id) {
+        map.set(item.id, item)
+        if (item.slug) map.set(`slug_${item.slug.toLowerCase()}`, item)
+      }
+    }
+  }
+
+  // 2. Overlay offline items (taking precedence for newly uploaded listings)
+  if (Array.isArray(offlineItems)) {
+    for (const item of offlineItems) {
+      if (item && item.id) {
+        map.set(item.id, item)
+        if (item.slug) map.set(`slug_${item.slug.toLowerCase()}`, item)
+      }
+    }
+  }
+
+  // Deduplicate objects
+  const uniqueItems = Array.from(new Set(Array.from(map.values())))
+
+  // Enrich with proper category & village objects
+  const enriched = uniqueItems.map((l: any) => {
+    let cat = l.category
+    if (!cat || !cat.name) {
+      const foundCat =
+        STANDARD_CATEGORIES.find((c) => c.id === l.categoryId || c.slug === l.categoryId) ||
+        STANDARD_CATEGORIES[0]
+      cat = { id: foundCat.id, name: foundCat.name, slug: foundCat.slug, icon: foundCat.icon, telugu: foundCat.telugu }
+    }
+    let vil = l.village
+    if (!vil || !vil.name) {
+      const foundVil =
+        STANDARD_VILLAGES.find((v) => v.id === l.villageId || v.slug === l.villageId) ||
+        STANDARD_VILLAGES[0]
+      vil = { id: foundVil.id, name: foundVil.name, slug: foundVil.slug }
+    }
+    return {
+      ...l,
+      category: cat,
+      village: vil,
+      status: l.status || 'APPROVED',
+      isFeatured: Boolean(l.isFeatured),
+      isPremium: Boolean(l.isPremium),
+      avgRating: l.avgRating || 4.8,
+      views: l.views || 50,
+    }
+  })
+
+  // Sort by createdAt descending
+  enriched.sort((a, b) => {
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+    return timeB - timeA
+  })
+
+  return enriched
+}
 
 /** GET /api/admin/listings - List all shops/listings with filters */
 export async function GET(req: NextRequest) {
@@ -36,11 +112,12 @@ export async function GET(req: NextRequest) {
           }),
         []
       ),
-      safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' } }), null),
-      safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' } }), null),
+      safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' } }), []),
+      safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' } }), []),
     ])
 
-    let listings = (dbListings && dbListings.length > 0) ? dbListings : getOfflineListings()
+    const offlineListings = getOfflineListings()
+    let listings = mergeListings(dbListings, offlineListings)
 
     // Apply Filters
     if (search) {
@@ -129,32 +206,7 @@ export async function POST(req: NextRequest) {
       .replace(/^-|-$/g, '')
       .slice(0, 40) + '-' + Math.random().toString(36).substring(2, 6)
 
-    // 1. Prisma DB insert
-    const createdDb = await safeDbQuery(
-      () =>
-        prisma.listing.create({
-          data: {
-            title,
-            slug,
-            description: description || title,
-            type,
-            phone,
-            whatsapp: whatsapp || phone,
-            address: address || 'Choutuppal',
-            status,
-            isPremium: !!isPremium,
-            isFeatured: !!isFeatured,
-            coverImage: coverImage || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-            categoryId: categoryId || 'cat-services',
-            villageId: villageId || 'v-choutuppal',
-            ownerId: auth.user.id,
-          },
-          include: { category: true, village: true, owner: true },
-        }),
-      null
-    )
-
-    // 2. Save in offline store as well
+    // 1. Save in offline persistent disk store immediately
     const offlineSaved = saveOfflineListing({
       title,
       slug,
@@ -172,9 +224,71 @@ export async function POST(req: NextRequest) {
       owner: { id: auth.user.id, name: auth.user.name || 'Admin', username: auth.user.username || 'admin', phone: auth.user.phone },
     })
 
+    // 2. Also try Prisma DB insert safely
+    const createdDb = await safeDbQuery(
+      async () => {
+        // Try to ensure an owner user exists in DB
+        let dbOwner = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { id: auth.user.id },
+              ...(auth.user.email ? [{ email: { equals: auth.user.email, mode: 'insensitive' as const } }] : []),
+              { username: 'admin' },
+            ],
+          },
+        })
+
+        if (!dbOwner) {
+          dbOwner = await prisma.user.create({
+            data: {
+              id: auth.user.id,
+              name: auth.user.name || 'Admin',
+              email: auth.user.email || 'mailmosin@gmail.com',
+              username: auth.user.username || 'admin',
+              role: 'ADMIN',
+              planTier: 'PREMIUM',
+            },
+          }).catch(() => null)
+        }
+
+        // Try to resolve DB category & village
+        const [dbCat, dbVil] = await Promise.all([
+          prisma.category.findFirst({
+            where: { OR: [{ id: categoryId }, { slug: categoryId }] },
+          }).catch(() => null),
+          prisma.village.findFirst({
+            where: { OR: [{ id: villageId }, { slug: villageId }] },
+          }).catch(() => null),
+        ])
+
+        return prisma.listing.create({
+          data: {
+            id: offlineSaved.id,
+            title,
+            slug,
+            description: description || title,
+            type,
+            phone,
+            whatsapp: whatsapp || phone,
+            address: address || 'Choutuppal',
+            status,
+            isPremium: !!isPremium,
+            isFeatured: !!isFeatured,
+            coverImage: coverImage || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+            categoryId: dbCat?.id || categoryId || 'cat-services',
+            villageId: dbVil?.id || villageId || 'v-choutuppal',
+            ownerId: dbOwner?.id || auth.user.id,
+          },
+          include: { category: true, village: true, owner: true },
+        })
+      },
+      null
+    )
+
     invalidateHomeDataCache()
     invalidateCache('listings_')
     invalidateCache('listing_')
+    invalidateCache('home_data_')
     try {
       revalidatePath('/')
       revalidatePath('/explore')
@@ -218,7 +332,10 @@ export async function PATCH(req: NextRequest) {
     if (categoryId !== undefined) updateData.categoryId = categoryId
     if (villageId !== undefined) updateData.villageId = villageId
 
-    // Try DB update
+    // 1. Update in offline persistent store
+    const offlineUpdated = saveOfflineListing({ id, ...updateData })
+
+    // 2. Update in DB
     const updated = await safeDbQuery(
       () =>
         prisma.listing.update({
@@ -228,12 +345,10 @@ export async function PATCH(req: NextRequest) {
       null
     )
 
-    // Save in offline store
-    const offlineUpdated = saveOfflineListing({ id, ...updateData })
-
     invalidateHomeDataCache()
     invalidateCache('listings_')
     invalidateCache('listing_')
+    invalidateCache('home_data_')
     try {
       revalidatePath('/')
       revalidatePath('/explore')
@@ -264,12 +379,16 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Listing ID is required' }, { status: 400 })
     }
 
-    await safeDbQuery(() => prisma.listing.delete({ where: { id } }), null)
+    // 1. Delete from offline store
     deleteOfflineListing(id)
+
+    // 2. Delete from DB
+    await safeDbQuery(() => prisma.listing.delete({ where: { id } }), null)
 
     invalidateHomeDataCache()
     invalidateCache('listings_')
     invalidateCache('listing_')
+    invalidateCache('home_data_')
     try {
       revalidatePath('/')
       revalidatePath('/explore')

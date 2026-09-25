@@ -319,6 +319,7 @@ export const INITIAL_OFFLINE_LISTINGS = SEED_LISTINGS
 
 const STORE_FILE_PATH = path.join(process.cwd(), 'src/data/db-store.json')
 const FALLBACK_STORE_FILE_PATH = path.join(process.cwd(), 'data/db-store.json')
+const TMP_STORE_FILE_PATH = '/tmp/choutuppal-db-store.json'
 
 interface DbStoreData {
   listings: OfflineListing[]
@@ -343,29 +344,48 @@ function getStorageFilePath(): string {
     }
     return STORE_FILE_PATH
   } catch {
-    const fallbackDir = path.dirname(FALLBACK_STORE_FILE_PATH)
-    if (!fs.existsSync(fallbackDir)) {
-      fs.mkdirSync(fallbackDir, { recursive: true })
+    try {
+      const fallbackDir = path.dirname(FALLBACK_STORE_FILE_PATH)
+      if (!fs.existsSync(fallbackDir)) {
+        fs.mkdirSync(fallbackDir, { recursive: true })
+      }
+      return FALLBACK_STORE_FILE_PATH
+    } catch {
+      return TMP_STORE_FILE_PATH
     }
-    return FALLBACK_STORE_FILE_PATH
   }
 }
 
-function loadStoreFromDisk(): DbStoreData {
-  if (memoryStore) return memoryStore
-
-  const filePath = getStorageFilePath()
+function readJsonFileSafe(filePath: string): any {
   try {
     if (fs.existsSync(filePath)) {
       const raw = fs.readFileSync(filePath, 'utf8')
-      const parsed = JSON.parse(raw)
-      if (parsed && Array.isArray(parsed.listings)) {
-        memoryStore = parsed
-        return memoryStore!
-      }
+      return JSON.parse(raw)
     }
-  } catch (err) {
-    console.warn('[OfflineStore] Failed to read disk store, re-initializing:', err)
+  } catch {}
+  return null
+}
+
+export function loadStoreFromDisk(forceReload = false): DbStoreData {
+  if (memoryStore && !forceReload) return memoryStore
+
+  const p1 = path.join(process.cwd(), 'src/data/db-store.json')
+  const p2 = path.join(process.cwd(), 'data/db-store.json')
+  const p3 = '/tmp/choutuppal-db-store.json'
+
+  const d1 = readJsonFileSafe(p1)
+  const d2 = readJsonFileSafe(p2)
+  const d3 = readJsonFileSafe(p3)
+
+  const candidates = [d1, d2, d3].filter(
+    (d) => d && Array.isArray(d.listings)
+  )
+
+  if (candidates.length > 0) {
+    // Pick candidate with most listings
+    candidates.sort((a, b) => (b.listings?.length || 0) - (a.listings?.length || 0))
+    memoryStore = candidates[0]
+    return memoryStore!
   }
 
   // Initialize with seed data
@@ -502,20 +522,18 @@ function loadStoreFromDisk(): DbStoreData {
   return memoryStore
 }
 
-function saveStoreToDisk(): void {
+export function saveStoreToDisk(): void {
   if (!memoryStore) return
   memoryStore.lastUpdated = new Date().toISOString()
-  try {
-    const filePath = getStorageFilePath()
-    fs.writeFileSync(filePath, JSON.stringify(memoryStore, null, 2), 'utf8')
-    // Dual save to fallback location if available
+  const payload = JSON.stringify(memoryStore, null, 2)
+  const candidatePaths = [STORE_FILE_PATH, FALLBACK_STORE_FILE_PATH, TMP_STORE_FILE_PATH]
+
+  for (const filePath of candidatePaths) {
     try {
-      const fallbackDir = path.dirname(FALLBACK_STORE_FILE_PATH)
-      if (!fs.existsSync(fallbackDir)) fs.mkdirSync(fallbackDir, { recursive: true })
-      fs.writeFileSync(FALLBACK_STORE_FILE_PATH, JSON.stringify(memoryStore, null, 2), 'utf8')
+      const dir = path.dirname(filePath)
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(filePath, payload, 'utf8')
     } catch {}
-  } catch (err) {
-    console.warn('[OfflineStore] Failed to write disk store:', err)
   }
 }
 
@@ -524,20 +542,20 @@ function saveStoreToDisk(): void {
 // ============================================================================
 
 export function getOfflineListings(): OfflineListing[] {
-  const store = loadStoreFromDisk()
+  const store = loadStoreFromDisk(true)
   return store.listings
 }
 
 export function getOfflineListingById(id: string): OfflineListing | null {
-  const store = loadStoreFromDisk()
+  const store = loadStoreFromDisk(true)
   const clean = (id || '').toLowerCase().trim()
-  return store.listings.find((l) => l.id.toLowerCase() === clean || l.slug.toLowerCase() === clean) || null
+  return store.listings.find((l) => (l.id && l.id.toLowerCase() === clean) || (l.slug && l.slug.toLowerCase() === clean)) || null
 }
 
 export function getOfflineListingBySlug(slug: string): OfflineListing | null {
-  const store = loadStoreFromDisk()
+  const store = loadStoreFromDisk(true)
   const clean = (slug || '').toLowerCase().trim()
-  return store.listings.find((l) => l.slug.toLowerCase() === clean || l.id.toLowerCase() === clean) || null
+  return store.listings.find((l) => (l.slug && l.slug.toLowerCase() === clean) || (l.id && l.id.toLowerCase() === clean)) || null
 }
 
 export function saveOfflineListing(listing: Partial<OfflineListing> & { id?: string; title?: string }): OfflineListing {
