@@ -393,8 +393,22 @@ export function StoryViewer({
               </Tabs>
             </div>
           ) : (
-            /* Non-owner reply + like box */
-            <div className="absolute inset-x-0 bottom-0 z-[10002] p-4 pointer-events-auto">
+            /* Non-owner reply + like + WhatsApp box */
+            <div className="absolute inset-x-0 bottom-0 z-[10002] p-4 pointer-events-auto space-y-2">
+              <div className="flex items-center gap-2">
+                <a
+                  href={`https://wa.me/919494348175?text=${encodeURIComponent(
+                    `నమస్కారం చౌటుప్పల్ యాప్, ఈ స్టోరీ గురించి సమాచారం కావాలి: ${story?.caption || '24 గంటల స్టోరీ'}`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-white px-4 py-2 text-xs font-bold backdrop-blur transition shadow-md"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>WhatsApp లో సంప్రదించండి</span>
+                </a>
+              </div>
+
               <div className="flex items-center gap-2 rounded-full border border-white/30 bg-black/40 p-1.5 pl-4 backdrop-blur">
                 <input
                   value={replyText}

@@ -2,6 +2,7 @@
 
 import { Eye, MessageCircle, Store, Home, Megaphone, ImageIcon, TrendingUp, MousePointerClick, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AnalyticsLineChart } from './analytics-line-chart'
 
 interface AnalyticsProps {
   analytics: {
@@ -16,9 +17,10 @@ interface AnalyticsProps {
     activeBanners: number
     activeStories: number
   }
+  listings?: any[]
 }
 
-export function Analytics({ analytics }: AnalyticsProps) {
+export function Analytics({ analytics, listings = [] }: AnalyticsProps) {
   const cards = [
     { label: 'Profile Views', value: analytics.totalViews, icon: Eye, grad: 'from-blue-600 to-blue-400', sub: 'Across all listings' },
     { label: 'Total Listings', value: analytics.totalListings, icon: Store, grad: 'from-blue-500 to-amber-400', sub: `${analytics.approvedListings} approved · ${analytics.pendingListings} pending` },
@@ -31,17 +33,25 @@ export function Analytics({ analytics }: AnalyticsProps) {
   ]
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-xl font-bold text-slate-900">Analytics</h2>
-        <p className="text-sm text-slate-500">Track your reach across Choutuppal App.</p>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900">Performance Analytics</h2>
+          <p className="text-sm text-slate-500">Track impressions, WhatsApp leads, and customer engagement across Choutuppal.</p>
+        </div>
+
+        <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-700">
+          <TrendingUp className="h-3.5 w-3.5" />
+          <span>Real-time Lead Tracker Active</span>
+        </div>
       </div>
 
+      {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {cards.map((c) => {
           const Icon = c.icon
           return (
-            <div key={c.label} className="hover-glow rounded-2xl glass p-4">
+            <div key={c.label} className="hover-glow rounded-2xl glass p-4 transition">
               <div className={cn('mb-3 grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br text-white shadow', c.grad)}>
                 <Icon className="h-5 w-5" />
               </div>
@@ -55,28 +65,12 @@ export function Analytics({ analytics }: AnalyticsProps) {
         })}
       </div>
 
-      {/* Simple bar chart (views trend) */}
-      <div className="rounded-3xl glass p-5">
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-700">
-          Views — Last 7 Days
-        </h3>
-        <div className="flex h-40 items-end gap-2">
-          {[40, 65, 50, 80, 72, 95, 100].map((h, i) => (
-            <div key={i} className="flex flex-1 flex-col items-center gap-1">
-              <div
-                className="w-full rounded-t-lg gradient-brand transition-all hover:opacity-80"
-                style={{ height: `${h}%` }}
-              />
-              <span className="text-[10px] text-slate-400">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}
-              </span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-3 text-center text-[11px] text-slate-400">
-          Trend data is illustrative — connects to real impression tracking in production.
-        </p>
-      </div>
+      {/* Interactive 30-Day Line Chart */}
+      <AnalyticsLineChart
+        totalViews={analytics.totalViews}
+        totalWhatsappClicks={analytics.totalWhatsappClicks}
+        listings={listings}
+      />
     </div>
   )
 }

@@ -389,6 +389,9 @@ export function AddListingModal({
                 <Field label="Contact Phone *">
                   <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9494348175" />
                 </Field>
+                <Field label="Secondary Phone (Optional)">
+                  <Input value={secondaryPhone} onChange={(e) => setSecondaryPhone(e.target.value)} placeholder="9876543210" />
+                </Field>
                 <Field label="WhatsApp">
                   <Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="919494348175" />
                 </Field>

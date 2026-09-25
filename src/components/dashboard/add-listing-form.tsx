@@ -693,6 +693,19 @@ export function AddListingForm({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="secondaryPhone" className="text-sm font-bold text-slate-800">
+              Secondary Phone / WhatsApp (ద్వితీయ ఫోన్ నంబర్ / ఆప్షనల్)
+            </Label>
+            <Input
+              id="secondaryPhone"
+              value={secondaryPhone}
+              onChange={(e) => setSecondaryPhone(e.target.value)}
+              placeholder="e.g. 9876543210"
+              className="h-11 rounded-xl"
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="whatsapp" className="text-sm font-bold text-slate-800">
               WhatsApp Number (for Direct Orders) *
             </Label>
@@ -705,7 +718,7 @@ export function AddListingForm({
             />
           </div>
 
-          <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-2">
             <Label htmlFor="address" className="text-sm font-bold text-slate-800">
               Physical Address / Landmark
             </Label>

@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { AnalyticsLineChart } from '@/components/dashboard/analytics-line-chart'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,8 +29,10 @@ export default async function ProfileAnalyticsPage() {
   if (!user) redirect('/login?callbackUrl=/profile/analytics')
 
   const data = await getDashboardData(user).catch(() => null)
-  const totalViews = data?.stats?.totalViews ?? 0
-  const listingsCount = data?.stats?.myListings ?? 0
+  const totalViews = data?.analytics?.totalViews ?? 0
+  const totalWhatsappClicks = data?.analytics?.totalWhatsappClicks ?? 0
+  const listingsCount = data?.analytics?.totalListings ?? 0
+  const listings = data?.listings ?? []
 
   return (
     <div className="space-y-6">
@@ -66,7 +69,7 @@ export default async function ProfileAnalyticsPage() {
               <Eye className="h-4 w-4" />
             </div>
           </div>
-          <p className="mt-4 text-3xl font-black text-slate-900">{totalViews}</p>
+          <p className="mt-4 text-3xl font-black text-slate-900">{totalViews.toLocaleString('en-IN')}</p>
           <div className="mt-2 flex items-center gap-1 text-xs text-emerald-600 font-semibold">
             <TrendingUp className="h-3.5 w-3.5" />
             <span>Organic Local Reach</span>
@@ -88,17 +91,24 @@ export default async function ProfileAnalyticsPage() {
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">WhatsApp Connect Rate</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">WhatsApp Inquiries</span>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
               <MessageCircle className="h-4 w-4" />
             </div>
           </div>
-          <p className="mt-4 text-3xl font-black text-slate-900">Direct</p>
+          <p className="mt-4 text-3xl font-black text-slate-900">{totalWhatsappClicks.toLocaleString('en-IN')}</p>
           <div className="mt-2 text-xs text-purple-600 font-semibold">
             Pre-filled WhatsApp Deep Links
           </div>
         </div>
       </div>
+
+      {/* 30-Day Line Chart */}
+      <AnalyticsLineChart
+        totalViews={totalViews}
+        totalWhatsappClicks={totalWhatsappClicks}
+        listings={listings}
+      />
 
       {/* Conversion Tips */}
       <div className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50/40 p-6 shadow-xs">

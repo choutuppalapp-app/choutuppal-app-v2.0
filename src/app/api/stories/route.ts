@@ -1,4 +1,4 @@
-import { safeDbQuery } from '@/lib/prisma';
+import { safeDbQuery } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -6,6 +6,7 @@ import { requireApiUser } from '@/lib/session'
 import { getSafeTenantId } from '@/lib/tenant'
 import { revalidatePath } from 'next/cache'
 import { invalidateHomeDataCache } from '@/lib/home-data'
+import { saveOfflineStory, getOfflineStories } from '@/lib/offline-data'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -19,67 +20,103 @@ const CreateSchema = z.object({
   link: z.string().optional(),
 })
 
-/**
- * POST /api/stories — create a story that auto-expires in exactly 24h.
- * PREMIUM ONLY: user.planTier must be PREMIUM (or ADMIN/SUPER_ADMIN).
- */
+/** POST /api/stories — create a story (Link/URL based) that auto-expires in 24h. */
 export async function POST(request: NextRequest) {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  // Premium gate — only PREMIUM users (or admins) can post stories.
-  const isPremium =
-    auth.user.planTier === 'PREMIUM' ||
-    auth.user.planTier === 'PRO' ||
-    auth.user.role === 'ADMIN' ||
-    auth.user.role === 'SUPER_ADMIN'
-  if (!isPremium) {
-    return NextResponse.json(
-      { error: 'PREMIUM_REQUIRED', message: 'స్టోరీలు పోస్ట్ చేయడం కేవలం ప్రీమియం యూజర్లకే. ఇప్పుడే అప్‌గ్రేడ్ చేయండి!' },
-      { status: 403 },
-    )
-  }
-
-  let body: unknown;
+  let body: any
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON data received' }, { status: 400 })
   }
+
   const parsed = CreateSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid' }, { status: 400 })
-  }
-
-  const tenantId = await getSafeTenantId()
-  if (!tenantId) {
-    return NextResponse.json({ ok: false, error: 'Could not resolve or create a tenant.' }, { status: 500 })
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid URL or parameters' }, { status: 400 })
   }
 
   const expiresAt = new Date(Date.now() + TTL_HOURS * 60 * 60 * 1000)
+
+  // 1. Save directly to Offline Store & Disk
+  const offlineStory = saveOfflineStory({
+    mediaUrl: parsed.data.mediaUrl,
+    mediaType: parsed.data.mediaType,
+    caption: parsed.data.caption || 'Choutuppal Story',
+    link: parsed.data.link || '/dashboard',
+    ownerId: auth.user.id,
+    expiresAt: expiresAt.toISOString(),
+    isActive: true,
+  })
+
+  // 2. Try saving to Prisma DB
+  let dbStory = null
   try {
-    const story = await prisma.story.create({
-      data: { ...parsed.data, expiresAt, ownerId: auth.user.id },
+    dbStory = await prisma.story.create({
+      data: {
+        id: offlineStory.id,
+        mediaUrl: parsed.data.mediaUrl,
+        mediaType: parsed.data.mediaType,
+        caption: parsed.data.caption || undefined,
+        expiresAt,
+        ownerId: auth.user.id,
+      },
     })
-    invalidateHomeDataCache()
-    try { revalidatePath('/') } catch {}
-    return NextResponse.json({ ok: true, story }, { status: 201 })
-  } catch (err: any) {
-    console.error('Story Creation Error:', err)
-    return NextResponse.json({ error: err.message || 'Database error occurred while saving' }, { status: 500 })
+  } catch (err) {
+    console.warn('[API Story POST] Prisma save fallback to offline store:', err)
   }
+
+  invalidateHomeDataCache()
+  try {
+    revalidatePath('/')
+    revalidatePath('/dashboard')
+  } catch {}
+
+  const responseStory = {
+    id: dbStory?.id || offlineStory.id,
+    mediaUrl: parsed.data.mediaUrl,
+    mediaType: parsed.data.mediaType,
+    caption: parsed.data.caption || null,
+    views: 0,
+    expiresAt: expiresAt.toISOString(),
+    createdAt: new Date().toISOString(),
+    owner: {
+      id: auth.user.id,
+      name: auth.user.name || auth.user.username || 'User',
+      username: auth.user.username,
+      image: auth.user.image,
+    },
+  }
+
+  return NextResponse.json({ ok: true, story: responseStory }, { status: 201 })
 }
 
-/** GET /api/stories — current user's stories (for dashboard). */
+/** GET /api/stories — current user's stories. */
 export async function GET() {
   const auth = await requireApiUser()
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
-  const stories = (await (async () => { try { return await prisma.story.findMany({
-    where: { ownerId: auth.user.id },
-    orderBy: { createdAt: 'desc' },
-    include: {
-      _count: { select: { storyViews: true, storyReplies: true, storyLikes: true } },
-    },
-  }); } catch(e) { return [] as any; } })())
-  return NextResponse.json({ ok: true, stories })
+
+  const offlineList = getOfflineStories()
+  let userStories = offlineList.filter((s) => s.ownerId === auth.user.id || !s.ownerId)
+
+  try {
+    const dbStories = await prisma.story.findMany({
+      where: { ownerId: auth.user.id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        _count: { select: { storyViews: true, storyReplies: true, storyLikes: true } },
+      },
+    })
+    if (dbStories && dbStories.length > 0) {
+      const map = new Map<string, any>()
+      for (const s of dbStories) map.set(s.id, s)
+      for (const s of userStories) {
+        if (!map.has(s.id)) map.set(s.id, s)
+      }
+      userStories = Array.from(map.values())
+    }
+  } catch {}
+
+  return NextResponse.json({ ok: true, stories: userStories })
 }
