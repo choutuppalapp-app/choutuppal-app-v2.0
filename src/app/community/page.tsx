@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/session'
 import { CommunityFeed } from '@/components/community/community-feed'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 

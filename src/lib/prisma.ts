@@ -534,10 +534,10 @@ function createModelProxy(realModel: any, modelName: string) {
         try {
           const timeoutPromise = new Promise<never>((_, reject) => {
             timer = setTimeout(() => {
-              const timeoutErr = new Error(`Database query ${modelName}.${method} timed out (8s)`)
+              const timeoutErr = new Error(`Database query ${modelName}.${method} timed out (10s)`)
               timeoutErr.name = 'TimeoutError'
               reject(timeoutErr)
-            }, 8000)
+            }, 10000)
           })
 
           const queryPromise = Promise.resolve().then(() => target[method](...args))
@@ -625,14 +625,14 @@ export async function safeDbQuery<T>(
   fallback: T,
   maxRetries = 1,
   delayMs = 20,
-  timeoutMs = 8000
+  timeoutMs = 10000
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let timer: NodeJS.Timeout | undefined
     try {
       const timeoutPromise = new Promise<never>((_, reject) => {
         timer = setTimeout(() => {
-          const timeoutErr = new Error('Database query timed out (8s)')
+          const timeoutErr = new Error(`Database query timed out (${timeoutMs}ms)`)
           timeoutErr.name = 'TimeoutError'
           reject(timeoutErr)
         }, timeoutMs)

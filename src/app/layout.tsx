@@ -18,6 +18,7 @@ import { Phone, AlertTriangle } from 'lucide-react'
 import { DynamicDelayedScriptsWrapper } from '@/components/analytics/dynamic-delayed-scripts'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

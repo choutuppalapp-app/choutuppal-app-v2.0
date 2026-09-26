@@ -66,10 +66,7 @@ const getListingCached = cache(async (slug: string) => {
               },
             },
           }),
-        null,
-        1,
-        30,
-        1800
+        null
       )
       if (dbListing) return dbListing
 
@@ -164,10 +161,7 @@ const getListingCached = cache(async (slug: string) => {
               },
             },
           }),
-        null,
-        1,
-        30,
-        1800
+        null
       )
 
       if (dbRealEstate) {
@@ -569,10 +563,7 @@ export default async function BusinessPage({
           village: { select: { name: true } },
         },
       }),
-    FALLBACK_FEATURED_LISTINGS.filter((f) => f.slug !== slug).slice(0, 4),
-    1,
-    50,
-    1500
+    FALLBACK_FEATURED_LISTINGS.filter((f) => f.slug !== slug).slice(0, 4)
   )
 
   return <ListingDetailView data={data as any} related={related as any} />

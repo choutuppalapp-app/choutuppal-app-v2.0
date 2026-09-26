@@ -23,6 +23,23 @@ interface CacheOptions {
 const DEFAULT_TTL = 3 * 1000        // 3 seconds fresh
 const DEFAULT_STALE_TTL = 10 * 60 * 1000 // 10 minutes stale window
 
+/** Check if fetched data is valid and non-empty so empty failures are never cached */
+function isNonEmptyData(data: any): boolean {
+  if (data === null || data === undefined) return false
+  if (Array.isArray(data)) return data.length > 0
+  if (typeof data === 'object') {
+    const keys = Object.keys(data)
+    if (keys.length === 0) return false
+    return keys.some((k) => {
+      const val = data[k]
+      if (Array.isArray(val)) return val.length > 0
+      if (val !== null && val !== undefined) return true
+      return false
+    })
+  }
+  return true
+}
+
 export async function swrCache<T>(
   key: string,
   fetcher: () => Promise<T>,
@@ -46,6 +63,10 @@ export async function swrCache<T>(
       // Background revalidation
       fetcher()
         .then((freshData) => {
+          if (!isNonEmptyData(freshData)) {
+            if (cached) cached.isFetching = false
+            return
+          }
           memoryStore.set(key, {
             data: freshData,
             timestamp: Date.now(),
@@ -66,12 +87,14 @@ export async function swrCache<T>(
   if (!promise) {
     promise = fetcher()
       .then((freshData) => {
-        memoryStore.set(key, {
-          data: freshData,
-          timestamp: Date.now(),
-          staleUntil: Date.now() + staleTtlMs,
-          isFetching: false,
-        })
+        if (isNonEmptyData(freshData)) {
+          memoryStore.set(key, {
+            data: freshData,
+            timestamp: Date.now(),
+            staleUntil: Date.now() + staleTtlMs,
+            isFetching: false,
+          })
+        }
         return freshData
       })
       .finally(() => {
