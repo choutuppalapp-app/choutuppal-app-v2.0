@@ -26,7 +26,7 @@ export async function getActiveStories() {
           OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         orderBy: { createdAt: 'desc' },
-        take: 12,
+        take: 50,
         select: {
           id: true,
           mediaUrl: true,
@@ -65,7 +65,7 @@ export async function getActiveBanners() {
           OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
         orderBy: { createdAt: 'desc' },
-        take: 8,
+        take: 50,
         select: {
           id: true,
           title: true,
@@ -82,7 +82,7 @@ export async function getActiveBanners() {
             OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
           orderBy: { createdAt: 'desc' },
-          take: 8,
+          take: 50,
           select: {
             id: true,
             title: true,
@@ -112,7 +112,7 @@ export async function getCategories() {
     () =>
       prisma.category.findMany({
         orderBy: { name: 'asc' },
-        take: 12,
+        take: 100,
         select: {
           id: true,
           name: true,
@@ -331,7 +331,7 @@ export async function getFeaturedListings() {
           { isPremium: 'desc' },
           { createdAt: 'desc' },
         ],
-        take: 30,
+        take: 300,
         select: {
           id: true,
           title: true,
@@ -380,7 +380,7 @@ export async function getFeaturedListings() {
       const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
       return timeB - timeA
     })
-    return merged.slice(0, 24)
+    return merged.slice(0, 200)
   }
 
   return FALLBACK_FEATURED_LISTINGS
@@ -431,7 +431,7 @@ export async function getPremiumRealEstate() {
 
   const merged = Array.from(map.values())
   if (merged.length > 0) {
-    return merged.slice(0, 12)
+    return merged.slice(0, 100)
   }
   return FALLBACK_REAL_ESTATE
 }
@@ -444,7 +444,7 @@ export async function getShorts() {
       let shorts = await prisma.short.findMany({
         where: tenantFilter,
         orderBy: { createdAt: 'desc' },
-        take: 15,
+        take: 100,
         select: {
           id: true,
           videoUrl: true,
@@ -482,7 +482,7 @@ export async function getLatestNews() {
       let articles = await prisma.news.findMany({
         where: { ...tenantFilter, isPublished: true },
         orderBy: { createdAt: 'desc' },
-        take: 6,
+        take: 50,
         select: {
           id: true,
           title: true,
@@ -515,7 +515,7 @@ export async function getLatestBlogs() {
       let blogs = await prisma.blog.findMany({
         where: { ...tenantFilter, isPublished: true },
         orderBy: { createdAt: 'desc' },
-        take: 4,
+        take: 50,
         select: {
           id: true,
           title: true,

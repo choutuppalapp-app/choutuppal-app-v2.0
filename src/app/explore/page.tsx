@@ -12,6 +12,7 @@ import {
 import { ExploreGrid } from '@/components/explore/explore-grid'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireApiUser } from '@/lib/session'
-import { getSafeTenantId } from '@/lib/tenant'
+import { getSafeTenantId, DEFAULT_TENANT } from '@/lib/tenant'
 import { revalidatePath } from 'next/cache'
 import { invalidateHomeDataCache } from '@/lib/home-data'
 import { saveOfflineBanner, getOfflineBanners } from '@/lib/offline-data'
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid URL or parameters' }, { status: 400 })
   }
 
-  const tenantId = (await getSafeTenantId().catch(() => null)) || 'tenant_choutuppal'
+  const tenantId = (await getSafeTenantId().catch(() => null)) || DEFAULT_TENANT.id
   const expiresAt = new Date(Date.now() + TTL_HOURS * 60 * 60 * 1000)
 
   // 1. Save directly into Offline Disk Store
@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
     expiresAt: expiresAt.toISOString(),
     status: 'APPROVED',
     isActive: true,
+    tenantId,
   })
 
   // 2. Try saving to Prisma DB
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
         title: parsed.data.title || undefined,
         link: parsed.data.link || undefined,
         position: parsed.data.position,
+        status: 'APPROVED',
         expiresAt,
         ownerId: auth.user.id,
         tenantId,

@@ -38,7 +38,7 @@ export function NewsGrid({ articles }: NewsGridProps) {
       />
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-        {articles.slice(0, 4).map((a) => (
+        {articles.slice(0, 8).map((a) => (
           <Link
             key={a.id}
             href={`/news/${a.slug}`}

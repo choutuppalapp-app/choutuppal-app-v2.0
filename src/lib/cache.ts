@@ -20,8 +20,8 @@ interface CacheOptions {
   staleTtlMs?: number  // How long stale data can be served while revalidating in background (default: 15 mins)
 }
 
-const DEFAULT_TTL = 60 * 1000        // 1 minute fresh
-const DEFAULT_STALE_TTL = 15 * 60 * 1000 // 15 minutes stale window
+const DEFAULT_TTL = 3 * 1000        // 3 seconds fresh
+const DEFAULT_STALE_TTL = 10 * 60 * 1000 // 10 minutes stale window
 
 export async function swrCache<T>(
   key: string,

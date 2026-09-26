@@ -10,7 +10,8 @@ import { applyAutoLinks } from '@/lib/autolinks'
 import { ArticleFooter } from '@/components/news/article-footer'
 import { getOfflineBlogBySlug, getOfflineNewsBySlug, getOfflineBlogs } from '@/lib/offline-data'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
@@ -82,7 +83,7 @@ const getPost = cache(async (slug: string) => {
 
       return null
     },
-    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
+    { ttlMs: 5 * 1000, staleTtlMs: 15 * 60 * 1000 }
   )
 })
 

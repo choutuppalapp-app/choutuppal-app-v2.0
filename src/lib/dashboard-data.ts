@@ -1,5 +1,12 @@
 import { prisma, safeDbQuery } from '@/lib/prisma'
-import { getOfflineCategories, getOfflineVillages, getOfflineListings } from '@/lib/offline-data'
+import {
+  getOfflineCategories,
+  getOfflineVillages,
+  getOfflineListings,
+  getOfflineRealEstates,
+  getOfflineBanners,
+  getOfflineStories,
+} from '@/lib/offline-data'
 import type { User } from '@prisma/client'
 
 /** Fetch everything the dashboard needs in one fast pass with instant fallback. */
@@ -82,6 +89,41 @@ export async function getDashboardData(user: User) {
   } catch (err) {
     console.error('[DashboardData] Query error:', err)
   }
+
+  // Merge offline items for this user
+  try {
+    const offlineList = getOfflineListings().filter(
+      (l) => l.owner?.id === user.id || l.ownerId === user.id || (!l.ownerId && user.role === 'ADMIN')
+    )
+    const listMap = new Map<string, any>()
+    listings.forEach((l) => l?.id && listMap.set(l.id, l))
+    offlineList.forEach((l) => l?.id && listMap.set(l.id, l))
+    listings = Array.from(listMap.values())
+
+    const offlineRE = getOfflineRealEstates().filter(
+      (r) => r.ownerId === user.id || (!r.ownerId && user.role === 'ADMIN')
+    )
+    const reMap = new Map<string, any>()
+    realEstates.forEach((r) => r?.id && reMap.set(r.id, r))
+    offlineRE.forEach((r) => r?.id && reMap.set(r.id, r))
+    realEstates = Array.from(reMap.values())
+
+    const offlineBan = getOfflineBanners().filter(
+      (b) => b.ownerId === user.id || (!b.ownerId && user.role === 'ADMIN')
+    )
+    const banMap = new Map<string, any>()
+    banners.forEach((b) => b?.id && banMap.set(b.id, b))
+    offlineBan.forEach((b) => b?.id && banMap.set(b.id, b))
+    banners = Array.from(banMap.values())
+
+    const offlineSto = getOfflineStories().filter(
+      (s) => s.ownerId === user.id || (!s.ownerId && user.role === 'ADMIN')
+    )
+    const stoMap = new Map<string, any>()
+    stories.forEach((s) => s?.id && stoMap.set(s.id, s))
+    offlineSto.forEach((s) => s?.id && stoMap.set(s.id, s))
+    stories = Array.from(stoMap.values())
+  } catch {}
 
   // Ensure villages and categories are always populated instantly
   if (!villages || villages.length === 0) {

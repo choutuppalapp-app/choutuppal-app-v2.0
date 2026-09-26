@@ -4,7 +4,8 @@ import { BlogList } from '@/components/content/blog-list'
 import { swrCache } from '@/lib/cache'
 import { getOfflineBlogs } from '@/lib/offline-data'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
@@ -23,7 +24,7 @@ export default async function BlogPage() {
           prisma.blog.findMany({
             where: { isPublished: true },
             orderBy: { createdAt: 'desc' },
-            take: 24,
+            take: 200,
             select: {
               id: true, slug: true, title: true, excerpt: true, coverImage: true, category: true,
               createdAt: true,
@@ -31,9 +32,13 @@ export default async function BlogPage() {
           }),
         []
       )
-      return (dbBlogs && dbBlogs.length > 0) ? dbBlogs : getOfflineBlogs()
+      const offline = getOfflineBlogs().filter((b) => b.isPublished !== false)
+      const map = new Map<string, any>()
+      if (Array.isArray(dbBlogs)) dbBlogs.forEach((b) => b?.id && map.set(b.id, b))
+      if (Array.isArray(offline)) offline.forEach((b) => b?.id && map.set(b.id, b))
+      return Array.from(map.values())
     },
-    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
+    { ttlMs: 5 * 1000, staleTtlMs: 15 * 60 * 1000 }
   )
 
   return (

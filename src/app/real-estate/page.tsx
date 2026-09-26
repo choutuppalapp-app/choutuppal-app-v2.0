@@ -7,6 +7,7 @@ import { Building2, MapPin, Phone, MessageSquare, Plus, CheckCircle2, BedDouble,
 import { Badge } from '@/components/ui/badge'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export const metadata = {
   title: 'Real Estate & Properties in Choutuppal | Open Plots, Commercial & Houses',

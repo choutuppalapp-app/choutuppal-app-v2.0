@@ -20,13 +20,13 @@ import {
 } from '@/components/home/dynamic-wrappers'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 10
+export const revalidate = 0
 
 async function getCachedSettings() {
   return swrCache(
     'app_settings_global',
     () => safeDbQuery(() => prisma.setting.findMany(), []),
-    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
+    { ttlMs: 5 * 1000, staleTtlMs: 15 * 60 * 1000 }
   )
 }
 

@@ -38,7 +38,7 @@ export function BlogGrid({ blogs }: BlogGridProps) {
       />
 
       <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-        {blogs.slice(0, 4).map((b) => (
+        {blogs.slice(0, 8).map((b) => (
           <Link
             key={b.id}
             href={`/blog/${b.slug}`}

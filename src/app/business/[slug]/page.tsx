@@ -15,7 +15,7 @@ import {
 } from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 120
+export const revalidate = 0
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
@@ -460,7 +460,7 @@ const getListingCached = cache(async (slug: string) => {
         updatedAt: new Date(),
       }
     },
-    { ttlMs: 120 * 1000, staleTtlMs: 60 * 60 * 1000 }
+    { ttlMs: 5 * 1000, staleTtlMs: 15 * 60 * 1000 }
   )
 
   if (!listing) return null

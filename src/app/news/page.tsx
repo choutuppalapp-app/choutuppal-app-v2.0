@@ -6,7 +6,7 @@ import { swrCache } from '@/lib/cache'
 import { getOfflineNews, getOfflineBlogs } from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 10
+export const revalidate = 0
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
@@ -29,7 +29,7 @@ export default async function NewsPage() {
             prisma.news.findMany({
               where: { ...tenantFilter, isPublished: true },
               orderBy: { createdAt: 'desc' },
-              take: 24,
+              take: 200,
               select: {
                 id: true, slug: true, title: true, summary: true, image: true,
                 createdAt: true,
@@ -42,7 +42,7 @@ export default async function NewsPage() {
             prisma.blog.findMany({
               where: { ...tenantFilter, isPublished: true },
               orderBy: { createdAt: 'desc' },
-              take: 24,
+              take: 200,
               select: {
                 id: true, slug: true, title: true, excerpt: true, coverImage: true,
                 createdAt: true,
@@ -70,7 +70,7 @@ export default async function NewsPage() {
 
       return { news: finalNews, blogs: finalBlogs }
     },
-    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
+    { ttlMs: 5 * 1000, staleTtlMs: 15 * 60 * 1000 }
   )
 
   const combined = [

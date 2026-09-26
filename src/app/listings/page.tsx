@@ -15,7 +15,7 @@ import {
 } from '@/lib/offline-data'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 10
+export const revalidate = 0
 
 const SITE_URL = (process.env.NEXTAUTH_URL ?? 'https://choutuppal.in').replace(/\/$/, '')
 
@@ -60,7 +60,7 @@ const getListingsPageData = cache(async (tenantId: string, category?: string, vi
                   : {}),
               },
               orderBy: { createdAt: 'desc' },
-              take: 300,
+              take: 1000,
               select: {
                 id: true,
                 title: true,
@@ -79,10 +79,7 @@ const getListingsPageData = cache(async (tenantId: string, category?: string, vi
                 village: { select: { id: true, name: true, slug: true } },
               },
             }),
-          [],
-          1,
-          30,
-          1800
+          []
         ),
         safeDbQuery(
           () =>
@@ -103,7 +100,7 @@ const getListingsPageData = cache(async (tenantId: string, category?: string, vi
                   : {}),
               },
               orderBy: { createdAt: 'desc' },
-              take: 24,
+              take: 500,
               select: {
                 id: true,
                 title: true,
@@ -117,13 +114,10 @@ const getListingsPageData = cache(async (tenantId: string, category?: string, vi
                 village: { select: { id: true, name: true, slug: true } },
               },
             }),
-          [],
-          1,
-          30,
-          1800
+          []
         ),
-        safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true } }), [], 1, 30, 1500),
-        safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), [], 1, 30, 1500),
+        safeDbQuery(() => prisma.village.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true } }), []),
+        safeDbQuery(() => prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, slug: true, icon: true } }), []),
       ])
 
       // 1. Merge listings from DB and offline store
@@ -187,7 +181,7 @@ const getListingsPageData = cache(async (tenantId: string, category?: string, vi
 
       return { listings, realEstates, villages, categories }
     },
-    { ttlMs: 60 * 1000, staleTtlMs: 30 * 60 * 1000 }
+    { ttlMs: 5 * 1000, staleTtlMs: 15 * 60 * 1000 }
   )
 })
 

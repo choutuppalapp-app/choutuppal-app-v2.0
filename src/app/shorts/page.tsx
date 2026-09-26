@@ -11,7 +11,7 @@ export default async function ShortsPage() {
     () =>
       prisma.short.findMany({
         orderBy: { createdAt: 'desc' },
-        take: 30,
+        take: 200,
         select: {
           id: true,
           videoUrl: true,
