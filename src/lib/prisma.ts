@@ -506,6 +506,28 @@ function handleOfflineQuery(model: string, method: string, args: any[] = []): an
       break
     }
 
+    case 'whatsAppUser': {
+      const phone = queryArg.where?.phone || queryArg.data?.phone
+      if (method === 'findUnique' || method === 'findFirst') {
+        return { id: `wa-user-${phone || 'default'}`, phone: phone || '9494348175', name: 'Choutuppal User', language: 'te', role: 'USER' }
+      }
+      if (method === 'create' || method === 'update' || method === 'upsert') {
+        return { id: `wa-user-${phone || 'default'}`, ...queryArg.data, ...(queryArg.update || {}), phone }
+      }
+      break
+    }
+
+    case 'whatsAppSession': {
+      const phone = queryArg.where?.phone || queryArg.data?.phone
+      if (method === 'findUnique' || method === 'findFirst') {
+        return { id: `wa-sess-${phone || 'default'}`, phone: phone || '9494348175', state: 'MAIN_MENU', context: {}, lastActiveAt: new Date() }
+      }
+      if (method === 'create' || method === 'update' || method === 'upsert') {
+        return { id: `wa-sess-${phone || 'default'}`, state: queryArg.data?.state || queryArg.update?.state || 'MAIN_MENU', context: queryArg.data?.context || queryArg.update?.context || {}, phone, lastActiveAt: new Date() }
+      }
+      break
+    }
+
     default:
       break
   }

@@ -1,11 +1,49 @@
-import { safeDbQuery } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server'
-import { getAIResponse } from '@/lib/ai-agent'
-import { sendWhatsAppMessage } from '@/lib/whatsapp'
+import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
+import { getWhatsAppCredentials } from '@/lib/whatsapp'
+import { routeWhatsAppMessage, WhatsAppInboundEvent } from '@/lib/whatsapp/router'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+
+/**
+ * Verify Meta X-Hub-Signature-256
+ */
+function verifyMetaSignature(rawBody: string, signatureHeader: string | null, appSecret: string): boolean {
+  if (!signatureHeader) {
+    console.log('[WhatsApp Webhook] No X-Hub-Signature-256 header provided; skipping signature check.')
+    return true
+  }
+  if (!appSecret) {
+    console.log('[WhatsApp Webhook] WHATSAPP_APP_SECRET not set; skipping signature check.')
+    return true
+  }
+
+  try {
+    const parts = signatureHeader.split('=')
+    if (parts.length !== 2 || parts[0] !== 'sha256') {
+      console.warn('[WhatsApp Webhook] Signature header format invalid:', signatureHeader)
+      return false
+    }
+    const expectedSignature = parts[1]
+
+    const hmac = crypto.createHmac('sha256', appSecret)
+    hmac.update(rawBody, 'utf8')
+    const calculatedSignature = hmac.digest('hex')
+
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(expectedSignature, 'hex'),
+      Buffer.from(calculatedSignature, 'hex'),
+    )
+
+    console.log(`[WhatsApp Webhook] Signature verification result: ${isValid ? 'PASSED ✅' : 'FAILED ❌'}`)
+    return isValid
+  } catch (err) {
+    console.error('[WhatsApp Webhook] Signature verification exception:', err)
+    return false
+  }
+}
 
 /**
  * GET /api/webhooks/whatsapp — Meta Webhook Verification Handshake
@@ -17,361 +55,169 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get('hub.verify_token')
   const challenge = searchParams.get('hub.challenge')
 
+  console.log('[WhatsApp Webhook] GET Verification Request received:', { mode, token, challenge })
+
+  const creds = await getWhatsAppCredentials().catch((e) => {
+    console.warn('[WhatsApp Webhook] getWhatsAppCredentials error in GET:', e)
+    return null
+  })
+
   const verifyToken =
-    process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || 'choutuppal_verify_token'
+    process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN ||
+    process.env.WHATSAPP_VERIFY_TOKEN ||
+    creds?.verifyToken ||
+    'choutuppal_verify_token'
+
+  console.log('[WhatsApp Webhook] Expected verifyToken:', verifyToken, '| Received token:', token)
 
   if (mode === 'subscribe' && token === verifyToken) {
-    console.log('[WhatsApp Webhook] Verification successful!')
+    console.log('[WhatsApp Webhook] Verification SUCCESS! Returning challenge token.')
     return new NextResponse(challenge || '', {
       status: 200,
       headers: { 'Content-Type': 'text/plain' },
     })
   }
 
-  console.warn('[WhatsApp Webhook] Verification token mismatch.')
+  console.warn('[WhatsApp Webhook] Verification token MISMATCH. Provided:', token, 'Expected:', verifyToken)
   return NextResponse.json({ error: 'Verification token mismatch' }, { status: 403 })
 }
 
 /**
- * POST /api/webhooks/whatsapp — Human-like Smart Webhook & State Machine with Intent Logic
+ * POST /api/webhooks/whatsapp — Inbound Message Receiver & State Machine Dispatcher
  */
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
+  const requestId = Math.random().toString(36).substring(2, 8)
+  const timestamp = new Date().toISOString()
+  console.log(`\n================== [WhatsApp Webhook POST #${requestId} @ ${timestamp}] START ==================`)
 
-    // Extract incoming message details from Meta payload structure
-    const entry = body?.entry?.[0]
+  try {
+    const rawBody = await request.text()
+    const signature = request.headers.get('x-hub-signature-256')
+    const appSecret = (process.env.WHATSAPP_APP_SECRET || '').trim()
+
+    // --------------------------------------------------------------------------
+    // DEBUG LOGS BEFORE VALIDATION BEGINS: Raw Body & X-Hub-Signature-256 Header
+    // --------------------------------------------------------------------------
+    console.log(`\n------------------ [DEBUG WA WEBHOOK INCOMING PAYLOAD] ------------------`)
+    console.log(`[DEBUG WA WEBHOOK] X-Hub-Signature-256 (exact string): "${signature ?? ''}"`)
+    console.log(`[DEBUG WA WEBHOOK] Content-Type: "${request.headers.get('content-type') ?? ''}"`)
+    console.log(`[DEBUG WA WEBHOOK] App Secret Configured: ${appSecret ? 'YES (' + appSecret.length + ' chars)' : 'NO'}`)
+    console.log(`[DEBUG WA WEBHOOK] req.body (raw string, ${rawBody.length} bytes):\n${rawBody}`)
+
+    let parsedBodyObject: any = null
+    try {
+      parsedBodyObject = JSON.parse(rawBody || '{}')
+      console.log(`[DEBUG WA WEBHOOK] req.body (parsed JSON object):`, JSON.stringify(parsedBodyObject, null, 2))
+    } catch (parseErr) {
+      console.error(`[DEBUG WA WEBHOOK] JSON parse error:`, parseErr)
+    }
+    console.log(`------------------------------------------------------------------------\n`)
+
+    // 1. Signature Verification
+    if (appSecret && signature) {
+      console.log(`[WhatsApp Webhook #${requestId}] Validating X-Hub-Signature-256 against WHATSAPP_APP_SECRET...`)
+      const isValid = verifyMetaSignature(rawBody, signature, appSecret)
+      if (!isValid) {
+        console.warn(`[WhatsApp Webhook #${requestId}] ❌ Invalid signature rejected! Signature: "${signature}"`)
+        return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })
+      }
+      console.log(`[WhatsApp Webhook #${requestId}] Signature Validation PASSED ✅`)
+    } else {
+      console.log(`[WhatsApp Webhook #${requestId}] Signature check skipped (appSecret=${Boolean(appSecret)}, signature=${Boolean(signature)})`)
+    }
+
+    const payload = parsedBodyObject || {}
+
+    // 2. Extract incoming message details from Meta structure
+    const entry = payload?.entry?.[0]
     const changes = entry?.changes?.[0]
     const value = changes?.value
     const message = value?.messages?.[0]
     const contact = value?.contacts?.[0]
+    const senderName = contact?.profile?.name || undefined
+    const statuses = value?.statuses?.[0]
 
-    if (message && (message.type === 'text' || message.type === 'interactive')) {
-      const senderPhone = message.from
-      let rawText = ''
-      let buttonId = ''
-      if (message.type === 'text') {
-        rawText = (message.text?.body || '').trim()
-      } else if (message.type === 'interactive') {
-        rawText = message.interactive?.button_reply?.title || message.interactive?.list_reply?.title || ''
-        buttonId = message.interactive?.button_reply?.id || message.interactive?.list_reply?.id || ''
-      }
-
-      const lowerText = rawText.toLowerCase()
-
-      if (senderPhone && rawText) {
-        const cleanPhone = senderPhone.replace(/\D/g, '')
-        console.log(`[WhatsApp Webhook] Inbound from ${cleanPhone}: "${rawText}"`)
-
-        try {
-          await prisma.whatsAppLog.create({
-            data: {
-              phone: cleanPhone,
-              direction: 'inbound',
-              message: rawText,
-              status: 'received',
-            },
-          })
-        } catch (logErr) {
-          console.warn('[WhatsApp Webhook] Inbound log error:', logErr)
-        }
-
-        // Lookup Contact Record
-        let dbContact = await prisma.whatsAppContact.findUnique({
-          where: { phone: cleanPhone },
-        })
-
-        // ----------------------------------------------------------------------
-        // STEP 2: New User Onboarding (Phone NOT in DB)
-        // ----------------------------------------------------------------------
-        if (!dbContact) {
-          await prisma.whatsAppContact.create({
-            data: {
-              phone: cleanPhone,
-              messageCount: 1,
-              chatState: 'awaiting_name',
-              source: 'inbound_whatsapp',
-              tag: 'New Lead',
-            },
-          })
-
-          await sendWhatsAppMessage(
-            senderPhone,
-            'నమస్కారం! చౌటుప్పల్ యాప్ కి స్వాగతం. 🙏 మీ పేరు ఏమిటి?',
-          )
-          return NextResponse.json({ ok: true }, { status: 200 })
-        }
-
-        // ----------------------------------------------------------------------
-        // STEP 3: Name Capture (chatState === "awaiting_name")
-        // ----------------------------------------------------------------------
-        if (dbContact.chatState === 'awaiting_name') {
-          const userName = rawText.trim()
-          await prisma.whatsAppContact.update({
-            where: { phone: cleanPhone },
-            data: {
-              name: userName,
-              chatState: 'awaiting_type',
-              messageCount: (dbContact.messageCount || 0) + 1,
-            },
-          })
-
-          await sendWhatsAppMessage(
-            senderPhone,
-            `శుభోదయం ${userName} గారు! మీరు చౌటుప్పల్ లో ఏమి చేస్తున్నారు? మీకు సర్వీసెస్ కావాలా? లేదా మీరే ఏదైనా బిజినెస్/సర్వీస్ చేస్తున్నారా?`,
-            {
-              messageType: 'interactive_button',
-              buttonType: 'quick_reply',
-              headerText: 'Choutuppal App Community',
-              footerText: 'choutuppal.in • Local Super App',
-              buttons: [
-                { id: 'btn_customer', title: 'కస్టమర్' },
-                { id: 'btn_business_owner', title: 'బిజినెస్ ఓనర్' },
-              ],
-            },
-          )
-          return NextResponse.json({ ok: true }, { status: 200 })
-        }
-
-        // ----------------------------------------------------------------------
-        // STEP 4: User Type & Listing Pitch (chatState === "awaiting_type")
-        // ----------------------------------------------------------------------
-        if (dbContact.chatState === 'awaiting_type') {
-          const isBusinessOwner =
-            buttonId === 'btn_business_owner' ||
-            lowerText.includes('బిజినెస్') ||
-            lowerText.includes('business') ||
-            rawText.includes('2')
-
-          if (isBusinessOwner) {
-            await prisma.whatsAppContact.update({
-              where: { phone: cleanPhone },
-              data: {
-                userType: 'business_owner',
-                tag: 'Business Owner',
-                chatState: 'none',
-                messageCount: (dbContact.messageCount || 0) + 1,
-              },
-            })
-
-            await sendWhatsAppMessage(
-              senderPhone,
-              'అద్భుతం! మీ బిజినెస్ ని మన వెబ్సైట్ లో ఉచితంగా లిస్ట్ చేయండి. రెడీ అయితే "LIST" అని టైప్ చేయండి, నేను లింక్ పంపుతాను.',
-            )
-          } else {
-            await prisma.whatsAppContact.update({
-              where: { phone: cleanPhone },
-              data: {
-                userType: 'customer',
-                tag: 'Service Seeker',
-                chatState: 'none',
-                messageCount: (dbContact.messageCount || 0) + 1,
-              },
-            })
-
-            await sendWhatsAppMessage(
-              senderPhone,
-              `ధన్యవాదాలు ${dbContact.name || ''} గారు! మీకు కావలసిన సమాచారం చెప్పండి, నేను సహాయం చేస్తాను.`,
-            )
-          }
-          return NextResponse.json({ ok: true }, { status: 200 })
-        }
-
-        // Increment message count for general interaction
-        const newCount = (dbContact.messageCount || 0) + 1
-        await prisma.whatsAppContact.update({
-          where: { phone: cleanPhone },
-          data: { messageCount: newCount },
-        })
-
-        // ----------------------------------------------------------------------
-        // INTENT A: Emergency & Government Officials Fetch (No AI Cost)
-        // ----------------------------------------------------------------------
-        const isEmergencyQuery =
-          lowerText.includes('police') ||
-          lowerText.includes('emergency') ||
-          lowerText.includes('collector') ||
-          lowerText.includes('mla') ||
-          lowerText.includes('hospital number') ||
-          lowerText.includes('fire') ||
-          lowerText.includes('tahsildar') ||
-          lowerText.includes('mpdo') ||
-          lowerText.includes('rdo') ||
-          lowerText.includes('sarpanch') ||
-          lowerText.includes('పోలీస్') ||
-          lowerText.includes('అత్యవసర') ||
-          lowerText.includes('కలెక్టర్') ||
-          lowerText.includes('ఎమ్మెల్యే')
-
-        if (isEmergencyQuery) {
-          // Extract search token keyword
-          const searchKey = lowerText
-            .replace(/police|emergency|collector|mla|hospital number|hospital|fire|tahsildar|mpdo|rdo|sarpanch|నంబర్|నెంబర్|ఫోన్/gi, '')
-            .trim()
-
-          const emergencyContacts = (await (async () => { try { return await prisma.whatsAppContact.findMany({
-            where: {
-              userType: 'emergency_govt_leader',
-              ...(searchKey
-                ? {
-                    OR: [
-                      { name: { contains: searchKey, mode: 'insensitive' } },
-                      { tag: { contains: searchKey, mode: 'insensitive' } },
-                    ],
-                  }
-                : {}),
-            },
-            take: 10,
-          }); } catch(e) { return [] as any; } })())
-
-          if (emergencyContacts.length > 0) {
-            let emergencyReply = '🚨 *చౌటుప్పల్ అత్యవసర & ప్రభుత్వ ఫోన్ నంబర్లు:*\n\n'
-            emergencyContacts.forEach((item, idx) => {
-              emergencyReply += `${idx + 1}. *${item.name}*\n📱 Phone: +${item.phone}\n\n`
-            })
-            emergencyReply += 'మరిన్ని అత్యవసర నంబర్ల కోసం చౌటుప్పల్ యాప్ ని విజిట్ చేయండి: https://choutuppal.in'
-            await sendWhatsAppMessage(senderPhone, emergencyReply)
-            return NextResponse.json({ ok: true }, { status: 200 })
-          }
-        }
-
-        // ----------------------------------------------------------------------
-        // INTENT B: Business Info & Shop Details Fetch (No AI Cost)
-        // ----------------------------------------------------------------------
-        const isBusinessQuery =
-          lowerText.includes('phone number of') ||
-          lowerText.includes('address of') ||
-          lowerText.includes('mobile number of') ||
-          lowerText.includes('shop name') ||
-          lowerText.includes('contact of') ||
-          lowerText.includes('number of') ||
-          lowerText.includes('details of') ||
-          lowerText.includes('షాప్ నంబర్') ||
-          lowerText.includes('ఫోన్ నంబర్')
-
-        if (isBusinessQuery) {
-          // Extract business keyword from query
-          const bizKeyword = rawText
-            .replace(/phone number of|address of|mobile number of|shop name|contact of|number of|details of|షాప్ నంబర్|ఫోన్ నంబర్|నంబర్|నెంబర్/gi, '')
-            .trim()
-
-          if (bizKeyword) {
-            const listings = (await (async () => { try { return await prisma.listing.findMany({
-              where: {
-                title: { contains: bizKeyword, mode: 'insensitive' },
-              },
-              select: {
-                title: true,
-                phone: true,
-                address: true,
-                category: { select: { name: true } },
-              },
-              take: 5,
-            }); } catch(e) { return [] as any; } })())
-
-            if (listings.length > 0) {
-              let bizReply = `🏪 *చౌటుప్పల్ బిజినెస్ వివరాలు ("${bizKeyword}"):*\n\n`
-              listings.forEach((item, idx) => {
-                bizReply += `${idx + 1}. *${item.title}* (${item.category?.name || 'Local Business'})\n`
-                if (item.phone) bizReply += `📱 Phone: ${item.phone}\n`
-                if (item.address) bizReply += `📍 Address: ${item.address}\n`
-                bizReply += '\n'
-              })
-              bizReply += 'మరిన్ని వ్యాపారాల కోసం చూడండి: https://choutuppal.in/listings'
-              await sendWhatsAppMessage(senderPhone, bizReply)
-              return NextResponse.json({ ok: true }, { status: 200 })
-            }
-          }
-        }
-
-        // ----------------------------------------------------------------------
-        // STEP 5.5: Exact-Match Trigger Rules & Saved Templates (No AI Cost)
-        // ----------------------------------------------------------------------
-        const exactRule = await prisma.triggerRule.findFirst({
-          where: { keyword: { equals: lowerText, mode: 'insensitive' } },
-        })
-
-        if (exactRule) {
-          let triggerMsg = exactRule.replyText
-          if (exactRule.templateId) {
-            const linkedTpl = await prisma.whatsAppTemplate.findUnique({
-              where: { id: exactRule.templateId },
-            })
-            if (linkedTpl?.payload) {
-              triggerMsg = typeof linkedTpl.payload === 'object' && (linkedTpl.payload as any).text
-                ? (linkedTpl.payload as any).text
-                : String(linkedTpl.payload)
-            }
-          }
-          if (triggerMsg) {
-            await sendWhatsAppMessage(senderPhone, triggerMsg)
-            return NextResponse.json({ ok: true }, { status: 200 })
-          }
-        }
-
-        const tplTrigger = await prisma.whatsAppTemplate.findFirst({
-          where: { triggerText: { equals: lowerText, mode: 'insensitive' } },
-        })
-
-        if (tplTrigger?.payload) {
-          const tplMsg = typeof tplTrigger.payload === 'object' && (tplTrigger.payload as any).text
-            ? (tplTrigger.payload as any).text
-            : String(tplTrigger.payload)
-          if (tplMsg) {
-            await sendWhatsAppMessage(senderPhone, tplMsg)
-            return NextResponse.json({ ok: true }, { status: 200 })
-          }
-        }
-
-        // ----------------------------------------------------------------------
-        // STEP 6: Action Keywords (Fast Reply - No AI Cost)
-        // ----------------------------------------------------------------------
-        if (lowerText.includes('list') || rawText.includes('లిస్ట్') || buttonId === 'btn_list') {
-          await sendWhatsAppMessage(
-            senderPhone,
-            'నమస్తే! మీ షాప్ లేదా వ్యాపారాన్ని చౌటుప్పల్ యాప్ లో ఉచితంగా లిస్ట్ చేయడానికి క్రింది లింక్ పై క్లిక్ చేయండి:\n\nhttps://choutuppal.in/dashboard',
-          )
-          return NextResponse.json({ ok: true }, { status: 200 })
-        }
-
-        if (lowerText.includes('news') || rawText.includes('న్యూస్') || rawText.includes('వార్త')) {
-          const latestNews = (await (async () => { try { return await prisma.news.findMany({
-            where: { isPublished: true },
-            orderBy: { createdAt: 'desc' },
-            take: 3,
-            select: { title: true, summary: true, slug: true },
-          }); } catch(e) { return [] as any; } })())
-
-          if (latestNews.length > 0) {
-            let newsMsg = '📰 చౌటుప్పల్ తాజా వార్తలు:\n\n'
-            latestNews.forEach((n, i) => {
-              newsMsg += `${i + 1}. ${n.title}\n`
-              if (n.summary) newsMsg += `${n.summary.slice(0, 100)}…\n`
-              newsMsg += '\n'
-            })
-            newsMsg += 'మరిన్ని వార్తల కోసం: https://choutuppal.in/news'
-            await sendWhatsAppMessage(senderPhone, newsMsg)
-          } else {
-            await sendWhatsAppMessage(
-              senderPhone,
-              'చౌటుప్పల్ తాజా వార్తల కోసం మన వెబ్సైట్ https://choutuppal.in/news ని చూడగలరు.',
-            )
-          }
-          return NextResponse.json({ ok: true }, { status: 200 })
-        }
-
-        // ----------------------------------------------------------------------
-        // INTENT C: General Queries (Gemini AI Agent with Personalization)
-        // ----------------------------------------------------------------------
-        const aiReply = await getAIResponse(senderPhone, rawText, dbContact.name || undefined)
-        await sendWhatsAppMessage(senderPhone, aiReply)
-      }
+    // Handle delivery status updates (sent, delivered, read, failed)
+    if (statuses) {
+      console.log(`[WhatsApp Webhook #${requestId}] Received status update:`, {
+        recipient_id: statuses.recipient_id,
+        status: statuses.status,
+        id: statuses.id,
+        errors: statuses.errors,
+      })
+      return NextResponse.json({ ok: true, statusHandled: true }, { status: 200 })
     }
 
-    // Always return HTTP 200 OK to Meta
+    if (!message) {
+      console.log(`[WhatsApp Webhook #${requestId}] No message in payload (possibly status update or ping). Full payload:`, JSON.stringify(payload, null, 2).slice(0, 500))
+      return NextResponse.json({ ok: true, note: 'No incoming message to process' }, { status: 200 })
+    }
+
+    const senderPhone = message.from
+    let text = ''
+    let interactiveId = ''
+    let interactiveType: 'button_reply' | 'list_reply' | undefined
+
+    console.log(`[WhatsApp Webhook #${requestId}] Inbound Message Type: "${message.type}" from "${senderPhone}" (Sender: "${senderName || 'Unknown'}")`)
+
+    if (message.type === 'text') {
+      text = (message.text?.body || '').trim()
+    } else if (message.type === 'interactive') {
+      if (message.interactive?.type === 'button_reply') {
+        interactiveType = 'button_reply'
+        text = message.interactive?.button_reply?.title || ''
+        interactiveId = message.interactive?.button_reply?.id || ''
+      } else if (message.interactive?.type === 'list_reply') {
+        interactiveType = 'list_reply'
+        text = message.interactive?.list_reply?.title || ''
+        interactiveId = message.interactive?.list_reply?.id || ''
+      }
+    } else if (message.type === 'button') {
+      text = message.button?.text || ''
+      interactiveId = message.button?.payload || ''
+    }
+
+    console.log(`[WhatsApp Webhook #${requestId}] Extracted Content: Text="${text}", ActionID="${interactiveId}", InteractiveType="${interactiveType || 'none'}"`)
+
+    if (senderPhone && (text || interactiveId)) {
+      const cleanPhone = senderPhone.replace(/\D/g, '')
+
+      // 3. Log inbound message in WhatsAppLog (safely caught)
+      try {
+        await prisma.whatsAppLog.create({
+          data: {
+            phone: cleanPhone,
+            direction: 'inbound',
+            message: text || `[Interactive: ${interactiveId}]`,
+            status: 'received',
+          },
+        })
+        console.log(`[WhatsApp Webhook #${requestId}] Inbound message logged to database ✅`)
+      } catch (logErr: any) {
+        console.warn(`[WhatsApp Webhook #${requestId}] Warning logging to whatsAppLog (table may not exist yet, continuing):`, logErr?.message || logErr)
+      }
+
+      // 4. Dispatch to WhatsApp Chatbot State Router
+      const event: WhatsAppInboundEvent = {
+        phone: cleanPhone,
+        text,
+        interactiveId,
+        interactiveType,
+        senderName,
+        rawMessage: message,
+      }
+
+      console.log(`[WhatsApp Webhook #${requestId}] Dispatching to routeWhatsAppMessage()...`)
+      await routeWhatsAppMessage(event)
+      console.log(`[WhatsApp Webhook #${requestId}] routeWhatsAppMessage completed ✅`)
+    } else {
+      console.warn(`[WhatsApp Webhook #${requestId}] Message lacked text or interactiveId. Message object:`, JSON.stringify(message))
+    }
+
+    console.log(`================== [WhatsApp Webhook POST #${requestId}] END ==================\n`)
     return NextResponse.json({ ok: true }, { status: 200 })
-  } catch (err) {
-    console.error('[WhatsApp Webhook] POST error:', err)
-    return NextResponse.json({ ok: true, error: 'Internal processing error' }, { status: 200 })
+  } catch (err: any) {
+    console.error(`[WhatsApp Webhook #${requestId}] CRITICAL ERROR in POST:`, err)
+    return NextResponse.json({ ok: true, error: err?.message || 'Processing error' }, { status: 200 })
   }
 }

@@ -86,7 +86,7 @@ export async function sendWhatsAppMessage(
       return { ok: false, error: 'Invalid recipient phone number.' }
     }
 
-    const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`
+    const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`
     let payload: any = {
       messaging_product: 'whatsapp',
       recipient_type: 'individual',

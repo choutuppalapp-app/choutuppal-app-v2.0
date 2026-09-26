@@ -65,6 +65,7 @@ model User {
   accounts          Account[]
   sessions          Session[]
   resetTokens       PasswordResetToken[]
+  whatsAppUsers     WhatsAppUser[]
 
   tenantId String?
   tenant   Tenant? @relation(fields: [tenantId], references: [id])
@@ -153,6 +154,7 @@ model Village {
   users       User[]
   listings    Listing[]
   realEstates RealEstate[]
+  whatsAppUsers WhatsAppUser[]
   createdAt   DateTime @default(now())
 }
 
@@ -706,14 +708,11 @@ model WhatsAppLog {
   id        String   @id @default(cuid())
   phone     String
   direction String   // "inbound" or "outbound"
-  message   String
-  mediaUrl  String?
-  imageUrl  String?
-  status    String?  @default("sent")
+  message   String   // Text or interactive payload
+  status    String   @default("sent") // sent, delivered, read, received, failed
   createdAt DateTime @default(now())
 
   @@index([phone])
-  @@index([direction])
   @@index([createdAt])
 }
 
@@ -733,6 +732,46 @@ model WhatsAppCampaign {
   failedCount   Int      @default(0)
   status        String   @default("COMPLETED")
   createdAt     DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// WHATSAPP ECOSYSTEM STATE MACHINE & SESSIONS (Phase 1 & Phase 2)
+// ----------------------------------------------------------------------------
+
+model WhatsAppUser {
+  id           String           @id @default(cuid())
+  phone        String           @unique
+  name         String?
+  language     String           @default("te") // "te", "en"
+  role         String           @default("USER") // USER, MERCHANT, AGENT, ADMIN
+  villageId    String?
+  village      Village?         @relation(fields: [villageId], references: [id])
+  userId       String?
+  user         User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  session      WhatsAppSession?
+  isActive     Boolean          @default(true)
+  metadata     Json?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([phone])
+  @@index([role])
+}
+
+model WhatsAppSession {
+  id           String        @id @default(cuid())
+  phone        String        @unique
+  state        String        @default("NEW_USER") // NEW_USER, MAIN_MENU, NEWS, SERVICES, REAL_ESTATE, ADD_LISTING, AWAITING_INPUT
+  context      Json?         // Key-value session context data (e.g. selected category, search query, step)
+  lastActiveAt DateTime      @default(now())
+  userId       String?
+  whatsappUser WhatsAppUser? @relation(fields: [phone], references: [phone], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([phone])
+  @@index([state])
+  @@index([lastActiveAt])
 }
 
 
